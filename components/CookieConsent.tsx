@@ -1,26 +1,28 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function CookieConsent() {
-  const [consent, setConsent] = useState<string | null>(null);
-  const [closed, setClosed] = useState(false);
+  const [consent, setConsent] = useState<"accepted" | "declined" | null>(() => {
+    if (typeof window === "undefined") return null;
+    return localStorage.getItem("cookieConsent") as
+      | "accepted"
+      | "declined"
+      | null;
+  });
 
-  useEffect(() => {
-    const savedConsent = localStorage.getItem("cookieConsent");
-    if (savedConsent) setConsent(savedConsent);
-  }, []);
+  const [closed, setClosed] = useState(false);
 
   const handleClose = () => {
     setClosed(true);
-    // Optional: Re-show after 3 minutes for testing/reminders
+    // Optional: re-show after 5 minutes
     setTimeout(() => setClosed(false), 5 * 60 * 1000);
   };
 
   const handleConsent = (value: "accepted" | "declined") => {
-    setConsent(value);
     localStorage.setItem("cookieConsent", value);
+    setConsent(value);
   };
 
   return (
@@ -46,20 +48,37 @@ export default function CookieConsent() {
             >
               {/* Decorative Background Glow */}
               <div className="absolute -top-24 -left-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl" />
-              
+
               {/* Close Button */}
               <button
                 onClick={handleClose}
-                className="absolute top-5 cursor-pointer right-5 text-muted-foreground hover:text-foreground transition-colors p-2"
+                className="absolute top-5 right-5 cursor-pointer text-muted-foreground hover:text-foreground transition-colors p-2"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M18 6 6 18" />
+                  <path d="m6 6 12 12" />
+                </svg>
               </button>
 
               {/* Cookie Illustration */}
               <div className="flex justify-center mb-6">
                 <motion.img
                   animate={{ rotate: [0, 5, -5, 0] }}
-                  transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                  transition={{
+                    duration: 6,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
                   src="https://i.postimg.cc/Y2LCMyC9/cookie.png"
                   alt="Cookie"
                   className="w-40 h-40 object-contain drop-shadow-2xl"
@@ -72,8 +91,8 @@ export default function CookieConsent() {
                   Cookie Time!
                 </h3>
                 <p className="text-muted-foreground mb-8 leading-relaxed">
-                  We use cookies to make your experience on our site as sweet as possible. 
-                  Is that cool with you?
+                  We use cookies to make your experience on our site as sweet as
+                  possible. Is that cool with you?
                 </p>
 
                 {/* Actions */}
