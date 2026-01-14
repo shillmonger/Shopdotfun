@@ -8,6 +8,8 @@ import ThemeAndScroll from "@/components/landing-page/ThemeAndScroll";
 import Footer from "@/components/landing-page/Footer";
 import FeaturedCollection from "@/components/landing-page/FeaturedCollection";
 import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
+import { cloneElement } from "react";
 
 import {
   ShieldCheck,
@@ -47,6 +49,7 @@ import { FeatureCard } from "@/components/landing-page/FeatureCard";
 import { HotTrendingProducts } from "@/components/landing-page/HotTrendingProducts";
 import { PopularCategories } from "@/components/landing-page/PopularCategories";
 import { CategoryDeals } from "@/components/landing-page/CategoryDeals";
+import { HowItWorks } from "@/components/landing-page/HowItWorks";
 
 export default function HomePage() {
   const [activeIdx, setActiveIdx] = useState(5);
@@ -95,7 +98,7 @@ export default function HomePage() {
               Secure Multi-Vendor Marketplace
             </span>
 
-            <h1 className="text-5xl sm:text-6xl font-black tracking-tighter leading-tight">
+            <h1 className="text-5xl sm:text-6xl font-black tracking-tighter leading-tight bg-gradient-to-b from-foreground to-foreground/40 bg-clip-text text-transparent">
               Shop with Confidence, <br /> Sell with Ease.
             </h1>
 
@@ -196,7 +199,7 @@ export default function HomePage() {
       <PopularCategories />
 
 
-{/* Featured Collection - 7 Card 3D Stack */}
+{/* Featured Collection */}
       <FeaturedCollection />
 
       {/* Category Deals Section */}
@@ -204,113 +207,7 @@ export default function HomePage() {
 
 
       {/* How It Works Section */}
-      <section
-        id="how-it-works"
-        className="max-w-[1400px] mx-auto px-4 lg:px-0 py-20 w-full"
-      >
-        <div className="text-center mb-10">
-          <h2 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter mb-6">
-            How It Works
-          </h2>
-          <p className="text-muted-foreground max-w-3xl mx-auto text-base md:text-lg">
-            Shopdotfun acts as a trusted middleman to ensure every transaction
-            is secure for both buyers and sellers. Here is our simple 6-step
-            process.
-          </p>
-        </div>
-
-        {/* Desktop / Tablet Grid (3 columns, 2 rows) */}
-        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-8 cursor-pointer">
-          <FeatureCard
-            title="1. Add to Cart"
-            description="Browse our verified marketplace and add your favorite products from top-rated vendors to your shopping cart."
-            icon={<ShoppingCart className="w-6 h-6 text-primary" />}
-          />
-
-          <FeatureCard
-            title="2. Make Payment"
-            description="Pay securely via our automated gateway. The platform holds your funds in escrow to protect your purchase."
-            icon={<CreditCard className="w-6 h-6 text-primary" />}
-          />
-
-          <FeatureCard
-            title="3. Product Shipment"
-            description="The seller is notified immediately to process your order and provide tracking information for your package."
-            icon={<Truck className="w-6 h-6 text-primary" />}
-          />
-
-          <FeatureCard
-            title="4. Product Confirmation"
-            description="Once you receive your item and confirm it matches the description, notify us through your buyer dashboard."
-            icon={<ShieldCheck className="w-6 h-6 text-primary" />}
-          />
-
-          <FeatureCard
-            title="5. Seller Gets Paid"
-            description="After your confirmation, we release the funds to the seller. Secure, transparent, and fair for everyone."
-            icon={<Coins className="w-6 h-6 text-primary" />}
-          />
-
-          <FeatureCard
-            title="6. Everybody is Happy"
-            description="Leave a review for the seller! Our system ensures a high-quality experience and successful deals every time."
-            icon={<Smile className="w-6 h-6 text-primary" />}
-          />
-        </div>
-
-        {/* Mobile Carousel */}
-        <div className="md:hidden">
-          <Carousel>
-            <CarouselContent>
-              {[
-                {
-                  title: "1. Add to Cart",
-                  desc: "Browse our verified marketplace and add products from top-rated vendors to your cart.",
-                  icon: <ShoppingCart className="w-6 h-6 text-primary" />,
-                },
-                {
-                  title: "2. Make Payment",
-                  desc: "Pay securely via our gateway. Funds are held in escrow to protect your purchase.",
-                  icon: <CreditCard className="w-6 h-6 text-primary" />,
-                },
-                {
-                  title: "3. Product Shipment",
-                  desc: "Sellers are notified to ship your order and provide tracking info immediately.",
-                  icon: <Truck className="w-6 h-6 text-primary" />,
-                },
-                {
-                  title: "4. Product Confirmation",
-                  desc: "Confirm the item matches the description through your buyer dashboard.",
-                  icon: <ShieldCheck className="w-6 h-6 text-primary" />,
-                },
-                {
-                  title: "5. Seller Gets Paid",
-                  desc: "Once you are satisfied, we release the payment to the seller's account.",
-                  icon: <Coins className="w-6 h-6 text-primary" />,
-                },
-                {
-                  title: "6. Everybody is Happy",
-                  desc: "A successful transaction protected by Shopdotfun. Don't forget to leave a review!",
-                  icon: <Smile className="w-6 h-6 text-primary" />,
-                },
-              ].map((item, i) => (
-                <CarouselItem key={i}>
-                  <FeatureCard
-                    title={item.title}
-                    description={item.desc}
-                    icon={item.icon}
-                  />
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-
-            <div className="mt-5 flex items-center justify-center gap-6">
-              <CarouselPrevious className="static w-10 h-10 font-lg p-3 bg-primary/10 rounded-full hover:bg-primary/20 transition translate-y-0" />
-              <CarouselNext className="static w-10 h-10 p-3 bg-primary/10 rounded-full hover:bg-primary/20 transition translate-y-0" />
-            </div>
-          </Carousel>
-        </div>
-      </section>
+      <HowItWorks />
 
 
 

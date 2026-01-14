@@ -1,6 +1,8 @@
 import "./globals.css";
 import { Toaster } from "sonner";
 import { Providers } from "@/components/providers";
+import CookieConsent from "@/components/CookieConsent";
+
 
 export const metadata = {
   title: "Shopdotfun",
@@ -50,6 +52,7 @@ export default function RootLayout({
                 },
               }}
             />
+<CookieConsent />
           </div>
         </Providers>
       </body>

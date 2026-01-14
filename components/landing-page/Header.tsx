@@ -34,7 +34,7 @@ export default function Header() {
           
           {/* LOGO */}
           <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-            <span className="text-[20px] md:text-2xl font-black italic tracking-tighter text-foreground">
+            <span className="text-[20px] md:text-2xl font-black italic tracking-tighter text-foreground bg-gradient-to-b from-foreground to-foreground/40 bg-clip-text text-transparent">
               SHOPDOTFUN
             </span>
           </Link>

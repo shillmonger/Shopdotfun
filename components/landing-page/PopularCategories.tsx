@@ -6,7 +6,7 @@ export function PopularCategories() {
       <div className="max-w-[1400px] mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div className="space-y-1">
-            <h2 className="text-xl md:text-2xl font-black uppercase italic tracking-tighter border-l-4 border-primary pl-4">
+            <h2 className="text-xl md:text-2xl font-black uppercase italic tracking-tighter border-l-4 border-primary pl-4 bg-gradient-to-b from-foreground to-foreground/40 bg-clip-text text-transparent">
               Popular Categories
             </h2>
           </div>

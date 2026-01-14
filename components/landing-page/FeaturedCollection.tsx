@@ -10,7 +10,7 @@ export default function FeaturedCollection() {
   return (
     <section className="py-20 px-4 bg-background overflow-hidden">
       <div className="max-w-7xl mx-auto text-center mb-2">
-        <h2 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter mb-4 text-foreground">
+        <h2 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter mb-4 text-foreground bg-gradient-to-b from-foreground to-foreground/40 bg-clip-text text-transparent">
           FEATURED COLLECTION
         </h2>
         <p className="text-muted-foreground max-w-2xl mx-auto text-base md:text-lg">

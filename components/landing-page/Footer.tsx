@@ -38,7 +38,7 @@ export default function Footer() {
         <div className="flex flex-col space-y-6 md:col-span-4 lg:col-span-2">
           <div>
             <Link href="/" className="flex items-center gap-2">
-              <span className="text-2xl sm:text-4xl font-black uppercase italic tracking-wider hover:text-primary transition-colors">
+              <span className="text-2xl sm:text-4xl font-black uppercase italic tracking-wider hover:text-primary transition-colors bg-gradient-to-b from-foreground to-foreground/40 bg-clip-text text-transparent">
                 SHOPDOTFUN
               </span>
             </Link>
@@ -72,8 +72,8 @@ export default function Footer() {
 
         {/* Buyer Section */}
         <div className="flex flex-col space-y-4">
-          <h3 className="text-lg font-bold uppercase tracking-tight flex items-center gap-2">
-            <ShoppingBag size={18} /> For Buyers
+          <h3 className="text-lg font-bold uppercase tracking-tight flex items-center gap-2 bg-gradient-to-b from-foreground to-foreground/40 bg-clip-text text-transparent">
+            For Buyers
           </h3>
           <ul className="space-y-2 text-muted-foreground">
             <li><Link href="/auth/buyer/login" className="hover:text-primary transition-colors">Buyer Login</Link></li>
@@ -85,8 +85,8 @@ export default function Footer() {
 
         {/* Seller Section */}
         <div className="flex flex-col space-y-4">
-          <h3 className="text-lg font-bold uppercase tracking-tight flex items-center gap-2">
-            <Store size={18} /> For Sellers
+          <h3 className="text-lg font-bold uppercase tracking-tight flex items-center gap-2 bg-gradient-to-b from-foreground to-foreground/40 bg-clip-text text-transparent ">
+           For Sellers
           </h3>
           <ul className="space-y-2 text-muted-foreground">
             <li><Link href="/auth/seller/login" className="hover:text-primary transition-colors">Seller Login</Link></li>
@@ -98,7 +98,7 @@ export default function Footer() {
 
         {/* Support */}
         <div className="flex flex-col space-y-4">
-          <h3 className="text-lg font-bold uppercase tracking-tight">Support</h3>
+          <h3 className="text-lg font-bold uppercase tracking-tight bg-gradient-to-b from-foreground to-foreground/40 bg-clip-text text-transparent">Support</h3>
           <ul className="space-y-2 text-muted-foreground">
             <li><Link href="/help" className="hover:text-primary transition-colors">Help & FAQ</Link></li>
             <li><Link href="/terms" className="hover:text-primary transition-colors">Terms of Service</Link></li>
