@@ -40,7 +40,7 @@ export const HowItWorks = () => {
     { 
       title: "6. Everybody is Happy", 
       icon: <Smile />, 
-      img: "https://images.unsplash.com/photo-1522071823991-b5ae72647a4a?q=80&w=400", 
+      img: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&q=80&w=400", 
       desc: "Leave a review! Our system ensures a high-quality experience and successful deals." 
     },
   ];

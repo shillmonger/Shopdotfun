@@ -3,16 +3,15 @@
 import { useTheme } from "next-themes"
 import { Sun, Moon, Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"
+import { useMounted } from "@/hooks/useMounted"
 
 export default function ThemeToggle() {
-  const [mounted, setMounted] = useState(false)
+  const mounted = useMounted()
   const { theme, setTheme, resolvedTheme } = useTheme()
   const [isLoading, setIsLoading] = useState(true)
 
-  // Set mounted in effect to avoid hydration mismatch
+  // Small delay to prevent flash of incorrect theme
   useEffect(() => {
-    setMounted(true)
-    // Small delay to prevent flash of incorrect theme
     const timer = setTimeout(() => setIsLoading(false), 100)
     return () => clearTimeout(timer)
   }, [])

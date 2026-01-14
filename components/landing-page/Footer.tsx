@@ -12,23 +12,14 @@ import {
   Truck,
   Scale
 } from "lucide-react";
-import { useEffect, useState } from "react";
 
 export default function Footer() {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   const socialLinks = [
     { name: "YouTube", icon: <Youtube size={24} />, href: "#" },
     { name: "X (Twitter)", icon: <Twitter size={24} />, href: "#" },
     { name: "Telegram", icon: <Send size={24} />, href: "#" },
     { name: "Instagram", icon: <Instagram size={24} />, href: "#" },
   ];
-
-  if (!mounted) return null;
 
   return (
     <footer className="bg-background border-t border-border text-foreground pb-15 pt-12 px-6 md:px-16 relative">

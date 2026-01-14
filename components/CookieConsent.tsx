@@ -6,15 +6,11 @@ import { motion, AnimatePresence } from "framer-motion";
 export default function CookieConsent() {
   const [consent, setConsent] = useState<string | null>(null);
   const [closed, setClosed] = useState(false);
-  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    setIsClient(true);
     const savedConsent = localStorage.getItem("cookieConsent");
     if (savedConsent) setConsent(savedConsent);
   }, []);
-
-  if (!isClient) return null;
 
   const handleClose = () => {
     setClosed(true);

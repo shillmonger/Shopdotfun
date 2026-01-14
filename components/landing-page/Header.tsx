@@ -1,19 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Menu, X, ShoppingCart, HelpCircle, Store, Home, Tag } from "lucide-react";
 
 export default function Header() {
-  const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
@@ -24,8 +19,6 @@ export default function Header() {
         ? "text-foreground bg-black/[0.08] dark:bg-white/[0.1] shadow-sm" 
         : "text-muted-foreground hover:bg-black/[0.03] dark:hover:bg-white/[0.03]"
     }`;
-
-  if (!mounted) return null;
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
