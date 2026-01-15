@@ -13,12 +13,14 @@ export default function Header() {
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
   // Unified helper for both Desktop and Mobile highlights
-  const linkStyles = (href: string) => 
-    `px-4 py-3 md:py-2 text-[15px] md:text-[14px] font-bold tracking-wide transition-all rounded-xl md:rounded-full flex items-center gap-3 md:gap-0 hover:text-foreground ${
-      pathname === href 
+  const linkStyles = (href: string, exact: boolean = true) => {
+    const isActive = exact ? pathname === href : pathname.startsWith(href);
+    return `px-4 py-3 md:py-2 text-[15px] md:text-[14px] font-bold tracking-wide transition-all rounded-xl md:rounded-full flex items-center gap-3 md:gap-0 hover:text-foreground ${
+      isActive 
         ? "text-foreground bg-black/[0.08] dark:bg-white/[0.1] shadow-sm" 
         : "text-muted-foreground hover:bg-black/[0.03] dark:hover:bg-white/[0.03]"
     }`;
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
@@ -37,13 +39,13 @@ export default function Header() {
             <Link href="/" className={linkStyles("/")}>
               Home
             </Link>
-            <Link href="/products" className={linkStyles("/products")}>
+            <Link href="/products" className={linkStyles("/products", false)}>
               Products
             </Link>
-            <Link href="/stores" className={linkStyles("/stores")}>
+            <Link href="/landing-page/top-stores" className={linkStyles("/landing-page/top-stores", false)}>
               Top Stores
             </Link>
-            <Link href="/help" className={linkStyles("/help")}>
+            <Link href="/landing-page/help-center" className={linkStyles("/landing-page/help-center", false)}>
               Help & Support
             </Link>
           </nav>
@@ -98,17 +100,17 @@ export default function Header() {
             <Link href="/" onClick={closeMobileMenu} className={linkStyles("/")}>
               <Home size={18} /> Home
             </Link>
-            <Link href="/products" onClick={closeMobileMenu} className={linkStyles("/products")}>
-              <Tag size={18} /> Browse Products
-            </Link>
-            <Link href="/stores" onClick={closeMobileMenu} className={linkStyles("/stores")}>
-              <Store size={18} /> Top Stores
-            </Link>
             <Link href="/cart" onClick={closeMobileMenu} className={linkStyles("/cart")}>
               <ShoppingCart size={18} /> My Cart
             </Link>
-            <Link href="/help" onClick={closeMobileMenu} className={linkStyles("/help")}>
+            <Link href="/landing-page/top-stores" onClick={closeMobileMenu} className={linkStyles("/landing-page/top-stores", false)}>
+              <Store size={18} /> Top Stores
+            </Link>
+            <Link href="/landing-page/help-center" onClick={closeMobileMenu} className={linkStyles("/landing-page/help-center")}>
               <HelpCircle size={18} /> Help Center
+            </Link>
+            <Link href="/products" onClick={closeMobileMenu} className={linkStyles("/products", false)}>
+              <Tag size={18} /> Browse Products
             </Link>
           </nav>
 

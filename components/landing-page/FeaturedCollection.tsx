@@ -97,7 +97,7 @@ export default function FeaturedCollection() {
                   backdrop-blur-xl border border-border
                   text-foreground 
                   px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shadow-xl">
-                  New Arrival
+                  Arrivals
                 </div>
               )}
             </motion.div>

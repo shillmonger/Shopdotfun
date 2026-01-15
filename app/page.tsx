@@ -108,11 +108,22 @@ export default function HomePage() {
               system and fair dispute resolution.
             </p>
 
-            <div className="mt-4 flex flex-col sm:flex-row gap-4 justify-center sm:justify-start w-full">
+            {/* BUTTONS UPDATED BELOW */}
+            <div className="mt-6 flex w-full flex-row gap-3 sm:gap-4 justify-center sm:justify-start">
               <Button
                 asChild
                 size="lg"
-                className="font-bold py-7 px-8 rounded-xl text-[17px] shadow-lg active:scale-95"
+                className="
+            w-1/2 sm:w-auto
+            font-bold
+            h-auto
+            py-4 sm:py-4
+            px-4 sm:px-10
+            text-[16px] sm:text-[17px]
+            rounded-2xl
+            shadow-lg
+            active:scale-95
+          "
               >
                 <Link href="/products" className="flex items-center gap-2">
                   Start Shopping
@@ -123,7 +134,17 @@ export default function HomePage() {
                 asChild
                 variant="outline"
                 size="lg"
-                className="font-bold py-7 px-8 rounded-xl text-[17px] border-2 active:scale-95"
+                className="
+            w-1/2 sm:w-auto
+            font-bold
+            h-auto
+            py-4 sm:py-4
+            px-4 sm:px-10
+            text-[16px] sm:text-[17px]
+            rounded-2xl
+            border-2
+            active:scale-95
+          "
               >
                 <Link href="/auth/seller/register">Become a Seller</Link>
               </Button>
@@ -131,55 +152,89 @@ export default function HomePage() {
           </div>
 
           {/* Right Content – Marketplace Preview */}
-          <div className="relative flex justify-center items-center py-10">
+          <div className="relative flex justify-center items-center py-12 lg:py-20 overflow-visible w-full px-4">
             {/* Glow behind the cards */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-primary/20 blur-[120px] rounded-full -z-10" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250px] md:w-[500px] h-[250px] md:h-[500px] bg-primary/20 blur-[80px] md:blur-[150px] rounded-full -z-10" />
 
-            <div className="relative w-full max-w-[800px] hidden md:flex gap-6 items-center justify-center">
-              {/* Card 1 - Fashion/Categories Preview */}
-              <div className="w-[220px] h-[300px] rounded-3xl overflow-hidden bg-background/50 backdrop-blur-md border border-white/10 shadow-lg group cursor-pointer -rotate-[8deg] translate-y-6 transition-all duration-500 hover:rotate-0 hover:translate-y-0 hover:z-30 hover:scale-105">
+            {/* The Container - using flex-nowrap to prevent folding */}
+            <div className="relative w-full max-w-[800px] flex items-center justify-center">
+              {/* Card 1 - Left */}
+              <div
+                className="
+            w-[130px] h-[200px] -mr-16 sm:mr-0
+            md:w-[220px] md:h-[300px] 
+            relative rounded-2xl md:rounded-3xl overflow-hidden 
+            bg-background/50 backdrop-blur-md border border-white/10 shadow-lg 
+            group cursor-pointer 
+            -rotate-[10deg] md:-rotate-[8deg] 
+            translate-y-4 md:translate-y-6 
+            transition-all duration-500 z-10
+            hover:rotate-0 hover:translate-y-0 hover:z-40 hover:scale-110
+          "
+              >
                 <img
                   src="https://i.postimg.cc/vZW7SsZv/Vintage-Denim-Jacket.jpg"
                   alt="Fashion Category"
                   className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-all duration-500"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-5">
-                  <p className="text-white text-sm font-bold uppercase tracking-wide">
-                    Trending Style
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-3 md:p-5">
+                  <p className="text-white text-[8px] md:text-sm font-bold uppercase tracking-wide">
+                    Style
                   </p>
                 </div>
               </div>
 
               {/* Card 2 - Main Tech Hero */}
-              <div className="w-[320px] h-[420px] rounded-[2.5rem] overflow-hidden bg-zinc-900 border-2 border-primary/30 shadow-2xl z-20 scale-105 ring-8 ring-primary/5 group cursor-pointer transition-all duration-500 hover:scale-110">
+              <div
+                className="
+            w-[220px] h-[320px] 
+            sm:w-[280px] sm:h-[380px] 
+            md:w-[320px] md:h-[420px] 
+            relative rounded-[2rem] md:rounded-[2.5rem] overflow-hidden 
+            bg-zinc-900 border-2 border-primary/30 shadow-2xl z-30 
+            scale-110 ring-4 md:ring-8 ring-primary/5 
+            group cursor-pointer transition-all duration-500 hover:scale-[1.15]
+          "
+              >
                 <img
                   src="https://i.postimg.cc/Hnk3qsLb/Homens-Colar-de-pingente-Strass-Dolar.jpg"
                   alt="Featured Gadgets"
                   className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-all duration-500"
                 />
-                {/* Status Badge */}
-                <div className="absolute top-6 right-6 bg-primary px-4 py-1.5 rounded-full shadow-lg">
-                  <p className="text-[11px] font-black uppercase text-primary-foreground tracking-tighter">
-                    Verified Store
+                <div className="absolute top-4 right-4 md:top-6 md:right-6 bg-primary px-3 py-1 md:px-4 md:py-1.5 rounded-full shadow-lg">
+                  <p className="text-[8px] md:text-[11px] font-black uppercase text-primary-foreground tracking-tighter">
+                    Verified
                   </p>
                 </div>
-                <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black via-black/40 to-transparent flex items-end p-8">
-                  <p className="text-white text-lg font-black uppercase italic">
+                <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black via-black/40 to-transparent flex items-end p-5 md:p-8">
+                  <p className="text-white text-base md:text-lg font-black uppercase italic">
                     New Arrivals
                   </p>
                 </div>
               </div>
 
-              {/* Card 3 - Lifestyle Preview */}
-              <div className="w-[220px] h-[300px] rounded-3xl overflow-hidden bg-background/50 backdrop-blur-md border border-white/10 shadow-lg group cursor-pointer rotate-[8deg] translate-y-6 transition-all duration-500 hover:rotate-0 hover:translate-y-0 hover:z-30 hover:scale-105">
+              {/* Card 3 - Right */}
+              <div
+                className="
+            w-[130px] h-[200px] -ml-16 sm:ml-0
+            md:w-[220px] md:h-[300px] 
+            relative rounded-2xl md:rounded-3xl overflow-hidden 
+            bg-background/50 backdrop-blur-md border border-white/10 shadow-lg 
+            group cursor-pointer 
+            rotate-[10deg] md:rotate-[8deg] 
+            translate-y-4 md:translate-y-6 
+            transition-all duration-500 z-10
+            hover:rotate-0 hover:translate-y-0 hover:z-40 hover:scale-110
+          "
+              >
                 <img
                   src="https://i.postimg.cc/ydczDjhF/Ninja-Dragons.jpg"
                   alt="Electronics"
                   className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-all duration-500"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-5">
-                  <p className="text-white text-sm font-bold uppercase tracking-wide">
-                    Tech Gadgets
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-3 md:p-5">
+                  <p className="text-white text-[8px] md:text-sm font-bold uppercase tracking-wide">
+                    Tech
                   </p>
                 </div>
               </div>
@@ -188,33 +243,23 @@ export default function HomePage() {
         </div>
       </section>
 
-
-
       {/* Hot Trending Products */}
       <HotTrendingProducts />
-
-
 
       {/* Popular Categories */}
       <PopularCategories />
 
-
-{/* Featured Collection */}
+      {/* Featured Collection */}
       <FeaturedCollection />
 
       {/* Category Deals Section */}
       <CategoryDeals />
 
-
       {/* How It Works Section */}
       <HowItWorks />
 
-
-
       {/* Nav */}
       <ThemeAndScroll />
-
-
 
       {/* Footer scection */}
       <Footer />

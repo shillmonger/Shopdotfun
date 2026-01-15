@@ -69,8 +69,8 @@ export default function Footer() {
           <ul className="space-y-2 text-muted-foreground">
             <li><Link href="/auth/buyer/login" className="hover:text-primary transition-colors">Buyer Login</Link></li>
             <li><Link href="/auth/buyer/register" className="hover:text-primary transition-colors">Create Account</Link></li>
-            <li><Link href="/policies/payment" className="hover:text-primary transition-colors">Payment Policy</Link></li>
-            <li><Link href="/help" className="hover:text-primary transition-colors">Buyer Protection</Link></li>
+            <li><Link href="/landing-page/privacy" className="hover:text-primary transition-colors">Buyer Policy</Link></li>
+            <li><Link href="#" className="hover:text-primary transition-colors">Payout System</Link></li>
           </ul>
         </div>
 
@@ -82,8 +82,8 @@ export default function Footer() {
           <ul className="space-y-2 text-muted-foreground">
             <li><Link href="/auth/seller/login" className="hover:text-primary transition-colors">Seller Login</Link></li>
             <li><Link href="/auth/seller/register" className="hover:text-primary transition-colors">Become a Seller</Link></li>
-            <li><Link href="/policies/seller" className="hover:text-primary transition-colors">Seller Policy</Link></li>
-            <li><Link href="/seller/guidelines" className="hover:text-primary transition-colors">Payout System</Link></li>
+            <li><Link href="/landing-page/privacy" className="hover:text-primary transition-colors">Seller Policy</Link></li>
+            <li><Link href="#" className="hover:text-primary transition-colors">Payout System</Link></li>
           </ul>
         </div>
 
@@ -91,9 +91,9 @@ export default function Footer() {
         <div className="flex flex-col space-y-4">
           <h3 className="text-lg font-bold uppercase tracking-tight bg-gradient-to-b from-foreground to-foreground/40 bg-clip-text text-transparent">Support</h3>
           <ul className="space-y-2 text-muted-foreground">
-            <li><Link href="/help" className="hover:text-primary transition-colors">Help & FAQ</Link></li>
-            <li><Link href="/terms" className="hover:text-primary transition-colors">Terms of Service</Link></li>
-            <li><Link href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
+            <li><Link href="/landing-page/help-center" className="hover:text-primary transition-colors">Help & FAQ</Link></li>
+            <li><Link href="/landing-page/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
+            <li><Link href="/landing-page/terms" className="hover:text-primary transition-colors">Terms of Service</Link></li>
           </ul>
         </div>
       </div>
