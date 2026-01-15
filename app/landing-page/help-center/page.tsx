@@ -12,18 +12,8 @@ import {
 } from "lucide-react";
 
 export default function HelpCenter() {
-  const [isClient, setIsClient] = useState(false);
   const [activeTab, setActiveTab] = useState("Shopdotfun Global");
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  useEffect(() => {
-    // Set the first FAQ to be open by default on client side
-    setOpenFaq(0);
-  }, []);
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   const sidebarItems = [
     { name: "Payments", icon: <CreditCard className="w-5 h-5" /> },
@@ -121,7 +111,7 @@ export default function HelpCenter() {
                       </div>
                       {openFaq === idx ? <Minus className="text-primary" /> : <Plus />}
                     </button>
-                    {isClient && openFaq === idx && (
+                    {openFaq === idx && (
                       <motion.div 
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
