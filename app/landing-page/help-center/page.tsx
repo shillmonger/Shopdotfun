@@ -12,8 +12,13 @@ import {
 } from "lucide-react";
 
 export default function HelpCenter() {
+  const [isClient, setIsClient] = useState(false);
   const [activeTab, setActiveTab] = useState("Shopdotfun Global");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     // Set the first FAQ to be open by default on client side
