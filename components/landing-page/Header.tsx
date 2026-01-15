@@ -56,10 +56,10 @@ export default function Header() {
               <ShoppingCart size={22} />
             </Link>
             <Button asChild variant="secondary" className="px-6 py-6 text-[15px] font-semibold rounded-xl cursor-pointer">
-              <Link href="/auth/buyer/login">Login</Link>
+              <Link href="/auth/login">Login</Link>
             </Button>
             <Button asChild className="px-6 py-6 text-[15px] font-semibold rounded-xl cursor-pointer">
-              <Link href="/auth/seller/register">Sell on Fun</Link>
+              <Link href="/auth/register-seller">Sell on Fun</Link>
             </Button>
           </div>
 
@@ -119,10 +119,10 @@ export default function Header() {
               <Link href="/auth/login" onClick={closeMobileMenu}>Sign In</Link>
             </Button>
             <Button asChild className="py-6 rounded-xl text-lg font-bold">
-              <Link href="/auth/register" onClick={closeMobileMenu}>Create Account</Link>
+              <Link href="/auth/register-buyer" onClick={closeMobileMenu}>Create Account</Link>
             </Button>
             <p className="text-center text-xs text-muted-foreground mt-2">
-              Want to sell? <Link href="/seller/register" className="text-primary font-bold">Register as Vendor</Link>
+              Want to sell? <Link href="/seller/register-seller" className="text-primary font-bold">Register as Vendor</Link>
             </p>
           </div>
         </div>

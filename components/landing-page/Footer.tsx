@@ -67,8 +67,8 @@ export default function Footer() {
             For Buyers
           </h3>
           <ul className="space-y-2 text-muted-foreground">
-            <li><Link href="/auth/buyer/login" className="hover:text-primary transition-colors">Buyer Login</Link></li>
-            <li><Link href="/auth/buyer/register" className="hover:text-primary transition-colors">Create Account</Link></li>
+            <li><Link href="/auth/login" className="hover:text-primary transition-colors">Buyer Login</Link></li>
+            <li><Link href="/auth/register-buyer" className="hover:text-primary transition-colors">Create Account</Link></li>
             <li><Link href="/landing-page/privacy" className="hover:text-primary transition-colors">Buyer Policy</Link></li>
             <li><Link href="#" className="hover:text-primary transition-colors">Payout System</Link></li>
           </ul>
@@ -80,8 +80,8 @@ export default function Footer() {
            For Sellers
           </h3>
           <ul className="space-y-2 text-muted-foreground">
-            <li><Link href="/auth/seller/login" className="hover:text-primary transition-colors">Seller Login</Link></li>
-            <li><Link href="/auth/seller/register" className="hover:text-primary transition-colors">Become a Seller</Link></li>
+            <li><Link href="/auth/login" className="hover:text-primary transition-colors">Seller Login</Link></li>
+            <li><Link href="/auth/register-seller" className="hover:text-primary transition-colors">Become a Seller</Link></li>
             <li><Link href="/landing-page/privacy" className="hover:text-primary transition-colors">Seller Policy</Link></li>
             <li><Link href="#" className="hover:text-primary transition-colors">Payout System</Link></li>
           </ul>
@@ -91,6 +91,7 @@ export default function Footer() {
         <div className="flex flex-col space-y-4">
           <h3 className="text-lg font-bold uppercase tracking-tight bg-gradient-to-b from-foreground to-foreground/40 bg-clip-text text-transparent">Support</h3>
           <ul className="space-y-2 text-muted-foreground">
+            <li><Link href="/" className="hover:text-primary transition-colors">Home</Link></li>
             <li><Link href="/landing-page/help-center" className="hover:text-primary transition-colors">Help & FAQ</Link></li>
             <li><Link href="/landing-page/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
             <li><Link href="/landing-page/terms" className="hover:text-primary transition-colors">Terms of Service</Link></li>
@@ -159,8 +160,8 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row items-center gap-2 md:gap-6">
           <p>© {new Date().getFullYear()} SHOPDOTFUN — All rights reserved.</p>
           <div className="flex gap-4 text-[12px]">
-            <Link href="/privacy" className="hover:text-primary">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-primary">User Agreement</Link>
+            <Link href="/landing-page/privacy" className="hover:text-primary">Privacy Policy</Link>
+            <Link href="/landing-page/terms" className="hover:text-primary">User Agreement</Link>
           </div>
         </div>
         <p className="italic text-xs text-center md:text-right max-w-md opacity-60">

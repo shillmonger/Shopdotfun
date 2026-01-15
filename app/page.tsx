@@ -125,7 +125,7 @@ export default function HomePage() {
             active:scale-95
           "
               >
-                <Link href="/products" className="flex items-center gap-2">
+                <Link href="/auth/loginr" className="flex items-center gap-2">
                   Start Shopping
                 </Link>
               </Button>
@@ -146,7 +146,7 @@ export default function HomePage() {
             active:scale-95
           "
               >
-                <Link href="/auth/seller/register">Become a Seller</Link>
+                <Link href="/auth/register-seller">Become a Seller</Link>
               </Button>
             </div>
           </div>
