@@ -14,11 +14,9 @@ import {
 export default function HelpCenter() {
   const [activeTab, setActiveTab] = useState("Shopdotfun Global");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    setIsClient(true);
-    // Set the first FAQ to be open by default, but only on client side
+    // Set the first FAQ to be open by default on client side
     setOpenFaq(0);
   }, []);
 
