@@ -129,7 +129,7 @@ export default function TermsAndConditions() {
                 Sellers are required to list products accurately. Prohibited items include illegal substances, counterfeit goods, and any items that violate intellectual property rights.
               </p>
               <p className="leading-relaxed">
-                As a middleman, Shopdotfun reviews vendor performance. Sellers with consistently high ratings receive "Verified" status, while those with poor performance or fraudulent behavior are permanently banned.
+                As a middleman, Shopdotfun reviews vendor performance. Sellers with consistently high ratings receive &quot;Verified&quot; status, while those with poor performance or fraudulent behavior are permanently banned.
               </p>
             </div>
 
@@ -139,7 +139,7 @@ export default function TermsAndConditions() {
                 Our security is powered by an automated escrow system. When a buyer makes a payment, the funds are held securely by Shopdotfun.
               </p>
               <blockquote className="border-l-4 border-primary bg-primary/5 p-4 rounded-r-xl italic text-foreground">
-                "Funds are only released to the seller after the buyer confirms receipt and satisfaction with the product, or after the protection period expires without a dispute."
+                &quot;Funds are only released to the seller after the buyer confirms receipt and satisfaction with the product, or after the protection period expires without a dispute.&quot;
               </blockquote>
             </div>
 
@@ -149,7 +149,7 @@ export default function TermsAndConditions() {
                 In the event of a disagreement, our dedicated dispute resolution team will act as a neutral arbiter. We review tracking information, product photos, and communication logs to make a fair decision.
               </p>
               <p className="leading-relaxed">
-                Decisions made by the Shopdotfun arbitration team are final and binding within the platform's ecosystem.
+                Decisions made by the Shopdotfun arbitration team are final and binding within the platform&apos;s ecosystem.
               </p>
             </div>
 

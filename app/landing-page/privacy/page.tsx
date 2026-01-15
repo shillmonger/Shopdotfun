@@ -181,7 +181,7 @@ export default function PrivacyPolicy() {
               </h3>
               <div className="p-6 bg-primary/5 border border-primary/20 rounded-3xl">
                 <p className="text-muted-foreground leading-relaxed italic">
-                  "We have implemented advanced security measures to prevent your data from being accidentally lost, used, or accessed in an unauthorized way. Access is strictly limited to authorized employees and contractors with a business need to know."
+                  &quot;We have implemented advanced security measures to prevent your data from being accidentally lost, used, or accessed in an unauthorized way. Access is strictly limited to authorized employees and contractors with a business need to know.&quot;
                 </p>
               </div>
             </div>
