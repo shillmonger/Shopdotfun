@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import Header from "@/components/landing-page/Header";
 import ThemeAndScroll from "@/components/landing-page/ThemeAndScroll";
+import { PopularCategories } from "@/components/landing-page/PopularCategories";
 import Footer from "@/components/landing-page/Footer";
 import { motion } from "framer-motion";
 import { 
@@ -43,10 +44,7 @@ export default function PrivacyPolicy() {
       }
     };
 
-    // Set up scroll event listener
     window.addEventListener('scroll', handleScroll, { passive: true });
-    
-    // Initial check
     handleScroll();
     
     return () => {
@@ -70,7 +68,7 @@ export default function PrivacyPolicy() {
             Privacy Notice
           </motion.h2>
           <p className="text-muted-foreground text-lg sm:text-xl leading-relaxed">
-            Your privacy is our priority. Learn how Shopdotfun collects, uses, and protects your personal data.
+            Effective January 14, 2026. This notice outlines our commitment to the transparent processing of your personal data.
           </p>
         </div>
       </section>
@@ -114,7 +112,10 @@ export default function PrivacyPolicy() {
                 1. About this Notice
               </h3>
               <p className="text-muted-foreground leading-relaxed mb-4">
-                This Privacy Notice explains how **Shopdotfun** processes your personal data when you use our website, mobile apps, and services. It outlines our security measures and your rights regarding your data.
+                This Privacy Notice provides mandatory information on how **Shopdotfun** collects and processes your personal data when you visit our website, mobile applications, or use our specialized escrow services.
+              </p>
+              <p className="text-muted-foreground leading-relaxed">
+                It sets out our protocols for data retention, explains how we keep your information secure against unauthorized access, and details the legal rights you hold under applicable data protection legislation.
               </p>
             </div>
 
@@ -125,7 +126,7 @@ export default function PrivacyPolicy() {
                 2. Who We Are
               </h3>
               <p className="text-muted-foreground leading-relaxed">
-                Shopdotfun is a premier e-commerce platform connecting verified sellers with consumers. Our logistics and secure payment services facilitate seamless, protected transactions across the marketplace.
+                Shopdotfun is a leading multi-vendor marketplace platform. Our ecosystem comprises a consumer marketplace, a coordinated logistics framework for secure shipment, and a proprietary escrow payment service designed to facilitate trust and financial security between participants.
               </p>
             </div>
 
@@ -137,16 +138,16 @@ export default function PrivacyPolicy() {
               </h3>
               <div className="space-y-6">
                 <p className="text-muted-foreground leading-relaxed">
-                  We collect personal data to provide tailored products, analyze our performance, and improve our services.
+                  We collect personal data to provide a tailored user experience and to analyze and continually optimize our marketplace performance.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <DataCategory 
-                    title="Direct Information" 
-                    items={["Contact Details", "Billing Address", "Identity Data", "Payment Info"]} 
+                    title="Information You Provide" 
+                    items={["Full Name & Identity Data", "Postal & Delivery Addresses", "Biometric Authentication", "Financial & Billing Data"]} 
                   />
                   <DataCategory 
-                    title="Automated Data" 
-                    items={["IP Address", "Device Unique IDs", "Browsing History", "Search Queries"]} 
+                    title="Automated Technology" 
+                    items={["Device Operating Systems", "IP & Browser Fingerprints", "Browsing & Purchase History", "Geographic Location Data"]} 
                   />
                 </div>
               </div>
@@ -156,14 +157,16 @@ export default function PrivacyPolicy() {
             <div id="usage" className="scroll-mt-32 mb-16">
               <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
                 <span className="w-2 h-8 bg-primary rounded-full" />
-                4. How We Use Data
+                4. How We Use Your Data
               </h3>
+              <p className="text-muted-foreground mb-6">We only process data where we have a legal basis (Consent, Contract, or Legitimate Interest) for the following purposes:</p>
               <ul className="grid grid-cols-1 gap-3">
                 {[
-                  "Registering and managing your account",
-                  "Processing and delivering secure orders",
-                  "Detecting and preventing marketplace fraud",
-                  "Complying with legal and tax obligations"
+                  "Registering and authenticating your secure marketplace account",
+                  "Processing transactions and managing the escrow release cycle",
+                  "Performing due diligence and anti-fraud compliance checks",
+                  "Recommending products based on your inferred personal preferences",
+                  "Enabling interaction with third-party logistics and payment partners"
                 ].map((text, i) => (
                   <li key={i} className="flex items-start gap-3 text-muted-foreground bg-secondary/50 p-4 rounded-xl border border-border/50">
                     <UserCheck className="w-5 h-5 text-primary shrink-0" />
@@ -173,15 +176,26 @@ export default function PrivacyPolicy() {
               </ul>
             </div>
 
+            {/* Section 5: Sharing Data */}
+            <div id="sharing" className="scroll-mt-32 mb-16">
+              <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
+                <span className="w-2 h-8 bg-primary rounded-full" />
+                5. How We Share Data
+              </h3>
+              <p className="text-muted-foreground leading-relaxed">
+                To fulfill our contract with you, we may share data with third-party service providers who perform functions on our behalf, including order fulfillment, package delivery, and payment processing. We require all third parties to respect the security of your personal data and to treat it in accordance with the law and our strict internal instructions.
+              </p>
+            </div>
+
             {/* Section 6: Security */}
             <div id="security" className="scroll-mt-32 mb-16">
               <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
                 <span className="w-2 h-8 bg-primary rounded-full" />
-                5. Data Security
+                6. Data Security
               </h3>
               <div className="p-6 bg-primary/5 border border-primary/20 rounded-3xl">
                 <p className="text-muted-foreground leading-relaxed italic">
-                  &quot;We have implemented advanced security measures to prevent your data from being accidentally lost, used, or accessed in an unauthorized way. Access is strictly limited to authorized employees and contractors with a business need to know.&quot;
+                  &quot;Shopdotfun has implemented industry-standard technical and organizational security measures to prevent your personal data from being accidentally lost, altered, or accessed in an unauthorized way. We strictly limit data access to employees and agents who have a professional &apos;need-to-know&apos; and are subject to a duty of confidentiality.&quot;
                 </p>
               </div>
             </div>
@@ -190,15 +204,15 @@ export default function PrivacyPolicy() {
             <div id="rights" className="scroll-mt-32 mb-16">
               <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
                 <span className="w-2 h-8 bg-primary rounded-full" />
-                6. Your Legal Rights
+                7. Your Legal Rights
               </h3>
               <p className="text-muted-foreground leading-relaxed mb-6">
-                You have the right to access, correct, or erase your personal data at any time.
+                Under certain circumstances, you have rights under data protection laws in relation to your personal data, including the right to access, correct, or erase your information, or object to specific processing activities.
               </p>
               <div className="bg-secondary/30 p-6 rounded-[2rem] border border-border">
-                <h4 className="font-bold mb-2">Request Data Erasure</h4>
+                <h4 className="font-bold mb-2">Data Protection Officer</h4>
                 <p className="text-sm text-muted-foreground mb-4">
-                  To permanently delete your data and discontinue your relationship with Shopdotfun, please contact our compliance team.
+                  If you wish to exercise your legal rights or permanently delete your account, please submit a formal request to our compliance department.
                 </p>
                 <p className="text-primary font-bold">compliance@shopdotfun.com</p>
               </div>
@@ -207,6 +221,11 @@ export default function PrivacyPolicy() {
           </div>
         </div>
       </section>
+
+
+       {/* Popular Categories */}
+                  <PopularCategories />
+
 
       <ThemeAndScroll />
       <Footer />

@@ -76,7 +76,7 @@ export default function LoginPage() {
               <form onSubmit={handleSubmit} className="p-6 md:p-8">
                 <div className="flex flex-col gap-6">
                   <div className="flex flex-col items-center text-center">
-                    <h1 className="text-2xl font-black uppercase italic tracking-tighter">
+                    <h1 className="text-2xl font-black uppercase italic tracking-tighter text-foreground bg-gradient-to-b from-foreground to-foreground/40 bg-clip-text text-transparent">
                       {loginType === "buyer" ? "Welcome back" : "Seller Portal"}
                     </h1>
                     <p className="text-balance text-muted-foreground text-sm">

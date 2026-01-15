@@ -6,6 +6,7 @@ import ThemeAndScroll from "@/components/landing-page/ThemeAndScroll";
 import Footer from "@/components/landing-page/Footer";
 
 import { CategoryDeals } from "@/components/landing-page/CategoryDeals";
+import { PopularCategories } from "@/components/landing-page/PopularCategories";
 
 export default function HomePage() {
   const [activeIdx, setActiveIdx] = useState(5);
@@ -59,6 +60,11 @@ export default function HomePage() {
       </div>
       {/* Category Deals Section */}
       <CategoryDeals />
+
+
+
+      {/* Popular Categories */}
+            <PopularCategories />
 
     </section>
 

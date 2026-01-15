@@ -39,9 +39,6 @@ export default function Header() {
             <Link href="/" className={linkStyles("/")}>
               Home
             </Link>
-            <Link href="/products" className={linkStyles("/products", false)}>
-              Products
-            </Link>
             <Link href="/landing-page/top-stores" className={linkStyles("/landing-page/top-stores", false)}>
               Top Stores
             </Link>

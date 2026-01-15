@@ -67,13 +67,15 @@ export default function SellerSignupPage() {
     <div className="flex px-3 py-10 min-h-screen flex-col items-center justify-center bg-background text-foreground p-6 md:p-10 transition-colors duration-300">
       <ThemeAndScroll />
 
-      <div className="w-full max-w-md md:max-w-[550px] overflow-hidden mb-20 mt-10">
+      <div className="w-full max-w-md md:max-w-[500px] overflow-hidden mb-20 mt-10">
         <Card className="overflow-hidden bg-card border border-border rounded-3xl">
           <CardContent className="p-0">
             <form onSubmit={handleSubmit} className="p-6 md:p-10">
               <div className="flex flex-col gap-6">
                 <div className="flex flex-col items-center text-center">
-                  <h1 className="text-3xl font-black italic uppercase tracking-tighter">Seller Central</h1>
+                  <h1 className="text-3xl font-black italic uppercase tracking-tighter text-foreground bg-gradient-to-b from-foreground to-foreground/40 bg-clip-text text-transparent">
+                  Seller Central
+                  </h1>
                   <p className="text-muted-foreground mt-2">
                     Open your store and start reaching millions of customers
                   </p>

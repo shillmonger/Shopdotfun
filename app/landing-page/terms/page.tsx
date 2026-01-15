@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import Header from "@/components/landing-page/Header";
 import ThemeAndScroll from "@/components/landing-page/ThemeAndScroll";
+import { PopularCategories } from "@/components/landing-page/PopularCategories";
 import Footer from "@/components/landing-page/Footer";
 import { motion } from "framer-motion";
 import { Scale, ShieldCheck, FileText, Gavel, AlertCircle } from "lucide-react";
@@ -38,12 +39,8 @@ export default function TermsAndConditions() {
       }
     };
 
-    // Set up scroll event listener
     window.addEventListener('scroll', handleScroll, { passive: true });
-    
-    // Initial check
     handleScroll();
-    
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
@@ -86,7 +83,7 @@ export default function TermsAndConditions() {
                 }}
                 className={`flex items-center gap-3 p-3 rounded-xl transition-all text-sm font-medium ${
                   activeSection === item.id
-                    ? 'bg-primary/10 text-primary border-l-4 border-primary'
+                    ? 'bg-primary/10 text-primary  border-primary'
                     : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
                 }`}
               >
@@ -104,52 +101,70 @@ export default function TermsAndConditions() {
             <div id="introduction" className="scroll-mt-32 mb-12">
               <h3 className="text-2xl font-bold mb-4">1. Introduction</h3>
               <p className="leading-relaxed mb-4">
-                Welcome to **Shopdotfun**. These Terms and Conditions govern your use of our multi-vendor marketplace platform. By accessing or using Shopdotfun, you agree to be bound by these terms. Shopdotfun acts as a trusted middleman and escrow facilitator between buyers and sellers.
+                1.1. **Shopdotfun** operates an e-commerce platform consisting of a website and mobile application (&quot;marketplace&quot;), together with supporting IT, logistics, and escrow payment infrastructure for the sale and purchase of consumer products and services.
+              </p>
+              <p className="leading-relaxed mb-4">
+                1.2. These general terms and conditions shall govern your use of the marketplace and related services. By accessing or using our marketplace, you accept these terms in full. If you disagree with any part of these terms, you must immediately discontinue use of the platform.
               </p>
               <p className="leading-relaxed">
-                We provide a secure environment where every transaction is monitored. Our goal is to ensure that buyers receive exactly what they paid for and sellers receive their funds promptly upon successful delivery.
+                1.3. Shopdotfun acts as a neutral facilitator and escrow provider. While we provide the framework for secure transactions, unless explicitly stated otherwise, Shopdotfun is not a party to the contract of sale between buyers and sellers, but rather ensures the integrity of the exchange process.
               </p>
             </div>
 
             <div id="accounts" className="scroll-mt-32 mb-12">
               <h3 className="text-2xl font-bold mb-4">2. User Accounts</h3>
               <p className="leading-relaxed mb-4">
-                To access certain features, you must register for an account. You are responsible for maintaining the confidentiality of your login credentials and for all activities that occur under your account.
+                2.1. You may not register with our marketplace if you are under 18 years of age. By using the platform, you warrant and represent that you meet this age requirement.
               </p>
-              <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
-                <li>You must be at least 18 years old to use this service.</li>
-                <li>You agree to provide accurate, current, and complete information during registration.</li>
-                <li>Shopdotfun reserves the right to suspend accounts that provide false information or violate our safety guidelines.</li>
+              <p className="leading-relaxed mb-4">
+                2.2. Registered users are responsible for maintaining the absolute confidentiality of their account credentials. You agree to:
+              </p>
+              <ul className="list-disc pl-5 space-y-2 text-muted-foreground mb-4">
+                <li>Provide accurate, current, and complete information as prompted by the registration forms.</li>
+                <li>Notify us in writing immediately if you become aware of any unauthorized use of your account or disclosure of your password.</li>
+                <li>Accept full responsibility for all activities that occur under your account, regardless of whether such activities were authorized by you.</li>
               </ul>
+              <p className="leading-relaxed">
+                2.3. Shopdotfun reserves the right, in our sole discretion and without notice or explanation, to suspend or cancel your account, or edit your account details, particularly in cases of suspected fraudulent activity or breach of these terms.
+              </p>
             </div>
 
             <div id="marketplace" className="scroll-mt-32 mb-12">
               <h3 className="text-2xl font-bold mb-4">3. Marketplace Rules</h3>
               <p className="leading-relaxed mb-4">
-                Sellers are required to list products accurately. Prohibited items include illegal substances, counterfeit goods, and any items that violate intellectual property rights.
+                3.1. Sellers are exclusively responsible for the accuracy, quality, and legality of the products listed. Every product listing must include all relevant taxes and comply with applicable laws in force.
+              </p>
+              <p className="leading-relaxed mb-4">
+                3.2. Prohibited Content: You must not use the marketplace to list products that infringe upon third-party intellectual property rights, promote illegal substances, or depict gratuitous violence.
               </p>
               <p className="leading-relaxed">
-                As a middleman, Shopdotfun reviews vendor performance. Sellers with consistently high ratings receive &quot;Verified&quot; status, while those with poor performance or fraudulent behavior are permanently banned.
+                3.3. **Shopdotfun Protocol:** As a middleman service, we implement a &quot;Verified Vendor&quot; system. High-performing sellers are granted enhanced visibility, while vendors found to be engaging in deceptive practices, off-platform solicitation, or bait-and-switch tactics will face immediate and permanent exclusion from the ecosystem.
               </p>
             </div>
 
             <div id="payments" className="scroll-mt-32 mb-12">
               <h3 className="text-2xl font-bold mb-4">4. Escrow & Payments</h3>
               <p className="leading-relaxed mb-4">
-                Our security is powered by an automated escrow system. When a buyer makes a payment, the funds are held securely by Shopdotfun.
+                4.1. To ensure maximum security, Shopdotfun utilizes a proprietary automated escrow mechanism. Upon a buyer&apos;s confirmation of purchase, funds are debited and held in a secure, non-interest-bearing escrow account managed by Shopdotfun.
               </p>
-              <blockquote className="border-l-4 border-primary bg-primary/5 p-4 rounded-r-xl italic text-foreground">
-                &quot;Funds are only released to the seller after the buyer confirms receipt and satisfaction with the product, or after the protection period expires without a dispute.&quot;
+              <blockquote className="border-l-4 border-primary bg-primary/5 p-4 rounded-r-xl italic text-foreground mb-4">
+                &quot;Payment is only released to the seller&apos;s wallet once the buyer formally confirms receipt of the product in the specified condition, or once the designated protection period elapses without the filing of a formal dispute.&quot;
               </blockquote>
+              <p className="leading-relaxed">
+                4.2. Users must make all payments through the provided marketplace interfaces. Any attempt to bypass the Shopdotfun escrow system by transacting directly between buyer and seller is a material breach of these terms and voids all buyer protection guarantees.
+              </p>
             </div>
 
             <div id="disputes" className="scroll-mt-32 mb-12">
               <h3 className="text-2xl font-bold mb-4">5. Dispute Resolution</h3>
               <p className="leading-relaxed mb-4">
-                In the event of a disagreement, our dedicated dispute resolution team will act as a neutral arbiter. We review tracking information, product photos, and communication logs to make a fair decision.
+                5.1. In the event of a conflict between a buyer and seller, either party may initiate a &quot;Dispute&quot; within the protection window. Shopdotfun&apos;s specialized Arbitration Team will then intervene as a neutral third party.
+              </p>
+              <p className="leading-relaxed mb-4">
+                5.2. Evidence-Based Review: Our resolution process involves a rigorous audit of on-platform communication logs, digital tracking data, and photographic evidence provided by both parties. 
               </p>
               <p className="leading-relaxed">
-                Decisions made by the Shopdotfun arbitration team are final and binding within the platform&apos;s ecosystem.
+                5.3. Finality: You acknowledge and agree that the decisions rendered by the Shopdotfun arbitration team are final and binding. This includes the authority to issue full or partial refunds to the buyer or to release the held escrow funds to the seller based on the merits of the case.
               </p>
             </div>
 
@@ -165,6 +180,11 @@ export default function TermsAndConditions() {
           </div>
         </div>
       </section>
+
+
+
+         {/* Popular Categories */}
+                    <PopularCategories />
 
       <ThemeAndScroll />
       <Footer />

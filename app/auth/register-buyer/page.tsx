@@ -70,7 +70,10 @@ export default function SignupPage() {
             <form onSubmit={handleSubmit} className="p-6 md:p-8">
               <div className="flex flex-col gap-6">
                 <div className="flex flex-col items-center text-center">
-                  <h1 className="text-2xl font-bold">Create your account</h1>
+                  <h1 className="text-3xl font-black italic uppercase tracking-tighter text-foreground bg-gradient-to-b from-foreground to-foreground/40 bg-clip-text text-transparent">
+                    Create Account
+                  </h1>
+                  {/* <h1 className="text-2xl font-bold">Create your account</h1> */}
                   <p className="text-balance text-muted-foreground">
                     Enter your details below to join Shopdotfun
                   </p>
