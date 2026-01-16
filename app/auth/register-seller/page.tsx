@@ -13,6 +13,7 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { signIn } from "next-auth/react"
 import ThemeAndScroll from "@/components/landing-page/ThemeAndScroll"
+import Footer from "@/components/landing-page/Footer"
 
 export default function SellerSignupPage() {
   const router = useRouter();
@@ -313,6 +314,8 @@ export default function SellerSignupPage() {
           </CardContent>
         </Card>
       </div>
+
+            <Footer />
     </div>
   );
 }
