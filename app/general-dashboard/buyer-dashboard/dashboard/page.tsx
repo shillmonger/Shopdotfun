@@ -43,7 +43,7 @@ export default function BuyerDashboard() {
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Hi Buyer, {session?.user?.name || 'Welcome!'}</h1>
-        <Button variant="outline" onClick={handleLogout}>
+        <Button variant="outline" onClick={handleLogout} className="cursor-pointer">
           Logout
         </Button>
       </div>
