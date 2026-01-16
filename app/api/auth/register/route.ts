@@ -23,7 +23,17 @@ export async function POST(req: Request) {
     }
 
     // Create user data object with common fields
-    const userData: any = {
+    type UserData = {
+      name: string;
+      email: string;
+      password: string;
+      phone: string;
+      country: string;
+      businessName?: string;
+      businessAddress?: string;
+    };
+
+    const userData: UserData = {
       name,
       email,
       password, // In a real app, you should hash the password

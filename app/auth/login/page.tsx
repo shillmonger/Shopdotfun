@@ -105,7 +105,7 @@ export default function LoginPage() {
           toast.error(
             <div>
               <p>Incorrect password.</p>
-              <p>Please try again or <Link href="/forgot-password" className="font-medium underline">reset your password</Link> if you've forgotten it.</p>
+              <p>Please try again or <Link href="/forgot-password" className="font-medium underline">reset your password</Link> if you&apos;ve forgotten it.</p>
             </div>,
             { duration: 5000 }
           );
@@ -247,10 +247,7 @@ export default function LoginPage() {
                 
 
                   <div className="text-center text-sm">
-                    New to Shopdotfun?{" "}
-                    <Link href="/auth/register-buyer" className="font-bold text-primary underline underline-offset-4">
-                      Create account
-                    </Link>
+                    <p className="text-sm text-muted-foreground">Don&apos;t have an account? <Link href="/auth/register-buyer" className="text-primary hover:underline font-medium">Sign up</Link></p>
                   </div>
                 </div>
               </form>

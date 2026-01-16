@@ -1,18 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function CookieConsent() {
-  const [mounted, setMounted] = useState(false);
-  const [consent, setConsent] = useState<"accepted" | "declined" | null>(null);
+  // Initialize state with a function to avoid running it on every render
+  const [consent, setConsent] = useState<"accepted" | "declined" | null>(() => {
+    // This will only run on the client side during initial render
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem("cookieConsent") as "accepted" | "declined" | null;
+    }
+    return null;
+  });
   const [closed, setClosed] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    const storedConsent = localStorage.getItem("cookieConsent") as "accepted" | "declined" | null;
-    setConsent(storedConsent);
-  }, []);
 
   const handleClose = () => {
     setClosed(true);
@@ -24,8 +24,6 @@ export default function CookieConsent() {
     localStorage.setItem("cookieConsent", value);
     setConsent(value);
   };
-
-  if (!mounted) return null;
 
   return (
     <AnimatePresence>

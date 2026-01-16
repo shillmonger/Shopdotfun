@@ -72,7 +72,7 @@ export default function SellerDashboard() {
             <CardTitle>Analytics</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground">View your shop's performance</p>
+            <p className="text-muted-foreground">View your shop&apos;s performance</p>
           </CardContent>
         </Card>
       </div>
