@@ -1,9 +1,23 @@
 import { NextResponse } from 'next/server';
 import UserModel from '@/models/User';
 
+type UserRole = "buyer" | "seller";
+
+type RegisterRequestBody = {
+  name: string;
+  email: string;
+  password: string;
+  phone: string;
+  country: string;
+  role: UserRole;
+  businessName?: string;
+  businessAddress?: string;
+}
+
 export async function POST(req: Request) {
   try {
-    const { name, email, password, phone, country, role, businessName, businessAddress } = await req.json();
+    const data: RegisterRequestBody = (await req.json()) as RegisterRequestBody;
+    const { name, email, password, phone, country, role, businessName, businessAddress } = data;
 
     // Basic validation
     if (!name || !email || !password || !phone || !country || !role) {
