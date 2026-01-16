@@ -8,24 +8,26 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
 import Link from "next/link"
 import { useState } from "react"
-import { Eye, EyeOff, Store } from "lucide-react"
+import { Eye, EyeOff, Store, Loader2 } from "lucide-react"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
+import { signIn } from "next-auth/react"
 import ThemeAndScroll from "@/components/landing-page/ThemeAndScroll"
-import Footer from "@/components/landing-page/Footer"
 
 export default function SellerSignupPage() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [formData, setFormData] = useState({
-    businessName: "",
-    ownerFullName: "",
+    name: "",
     email: "",
     password: "",
     phone: "",
     country: "",
+    businessName: "",
     businessAddress: "",
     acceptAgreement: false,
   });
@@ -33,6 +35,11 @@ export default function SellerSignupPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    // Clear password error when typing
+    if (name === 'password' || name === 'confirmPassword') {
+      setPasswordError("");
+    }
   };
 
   const handleCheckboxChange = (checked: boolean) => {
@@ -41,9 +48,11 @@ export default function SellerSignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setPasswordError("");
 
     if (formData.password !== confirmPassword) {
       setPasswordError("Passwords do not match");
+      toast.error("Passwords do not match");
       return;
     }
 
@@ -53,14 +62,46 @@ export default function SellerSignupPage() {
     }
 
     setIsLoading(true);
-    
-    // Logic for processing seller registration data
-    console.log("Seller Application Submitted:", formData);
-    
-    setTimeout(() => {
-        setIsLoading(false);
-        toast.success("Seller application submitted successfully!");
-    }, 1500);
+
+    try {
+      // Register the seller
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          role: 'seller',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Registration failed');
+      }
+
+      // Auto-login after registration
+      const result = await signIn('credentials', {
+        redirect: false,
+        email: formData.email,
+        password: formData.password,
+        role: 'seller',
+      });
+
+      if (result?.error) {
+        throw new Error(result.error);
+      }
+
+      toast.success('Account created successfully! Redirecting to your seller dashboard...');
+      router.push('/general-dashboard/seller-dashboard/dashboard');
+    } catch (error) {
+      console.error('Registration error:', error);
+      toast.error(error instanceof Error ? error.message : 'Registration failed');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -99,13 +140,13 @@ export default function SellerSignupPage() {
 
                   {/* Owner Full Name */}
                   <div className="grid gap-2">
-                    <Label htmlFor="ownerFullName">Owner Full Name</Label>
+                    <Label htmlFor="name">Owner Full Name</Label>
                     <Input
-                      id="ownerFullName"
-                      name="ownerFullName"
+                      id="name"
+                      name="name"
                       placeholder="John Doe"
                       required
-                      value={formData.ownerFullName}
+                      value={formData.name}
                       onChange={handleChange}
                       disabled={isLoading}
                       className="p-5"
@@ -257,7 +298,7 @@ export default function SellerSignupPage() {
                   </label>
                 </div>
 
-                <Button type="submit" className="w-full p-6 text-base font-bold rounded-2xl shadow-lg shadow-primary/20" disabled={isLoading}>
+                <Button type="submit" className="w-full p-6 text-base font-bold cursor-pointer rounded-2xl shadow-lg shadow-primary/20" disabled={isLoading}>
                   {isLoading ? "Setting up store..." : "Register as Seller"}
                 </Button>
 
@@ -272,8 +313,6 @@ export default function SellerSignupPage() {
           </CardContent>
         </Card>
       </div>
-
-      <Footer />
     </div>
   );
 }

@@ -7,19 +7,22 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
 import { useState } from "react"
-import { Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
+import { signIn } from "next-auth/react"
 import ThemeAndScroll from "@/components/landing-page/ThemeAndScroll"
 import Footer from "@/components/landing-page/Footer"
 
 export default function SignupPage() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [formData, setFormData] = useState({
-    fullName: "",
+    name: "",
     email: "",
     password: "",
     phone: "",
@@ -30,6 +33,11 @@ export default function SignupPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    // Clear password error when typing
+    if (name === 'password' || name === 'confirmPassword') {
+      setPasswordError("");
+    }
   };
 
   const handleCheckboxChange = (checked: boolean) => {
@@ -38,9 +46,11 @@ export default function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setPasswordError("");
 
     if (formData.password !== confirmPassword) {
       setPasswordError("Passwords do not match");
+      toast.error("Passwords do not match");
       return;
     }
 
@@ -50,14 +60,46 @@ export default function SignupPage() {
     }
 
     setIsLoading(true);
-    
-    // Logic for handling the cleaned data goes here
-    console.log("Form Submitted:", formData);
-    
-    setTimeout(() => {
-        setIsLoading(false);
-        toast.success("Account created successfully!");
-    }, 1500);
+
+    try {
+      // Register the user
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          role: 'buyer',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Registration failed');
+      }
+
+      // Auto-login after registration
+      const result = await signIn('credentials', {
+        redirect: false,
+        email: formData.email,
+        password: formData.password,
+        role: 'buyer',
+      });
+
+      if (result?.error) {
+        throw new Error(result.error);
+      }
+
+      toast.success('Account created successfully! Redirecting...');
+      router.push('/general-dashboard/buyer-dashboard/dashboard');
+    } catch (error) {
+      console.error('Registration error:', error);
+      toast.error(error instanceof Error ? error.message : 'Registration failed');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -81,15 +123,15 @@ export default function SignupPage() {
 
                 {/* Full Name */}
                 <div className="grid gap-2">
-                  <Label htmlFor="fullName">Full Name</Label>
+                  <Label htmlFor="name">Full Name</Label>
                   <Input
-                    id="fullName"
-                    name="fullName"
+                    id="name"
+                    name="name"
                     type="text"
                     className="p-5 text-[15px]"
                     placeholder="John Doe"
                     required
-                    value={formData.fullName}
+                    value={formData.name}
                     onChange={handleChange}
                     disabled={isLoading}
                   />
