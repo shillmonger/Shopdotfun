@@ -40,7 +40,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
     <>
       <Header />
       <ThemeAndScroll />
-      <main className="container max-w-[1400px] mx-auto px-4 py-5 min-h-screen mt-20">
+      <main className="container max-w-[1400px] mx-auto py-5 min-h-screen mt-20">
         <h1 className="text-3xl font-bolder mb-8 capitalize font-black italic tracking-tighter text-foreground bg-gradient-to-b from-foreground to-foreground/40 bg-clip-text text-transparent text-center">
           {categoryName}
         </h1>

@@ -166,7 +166,7 @@ export function CategoryDeals({ categoryFilter }: CategoryDealsProps) {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 max-w-[1400px] mx-auto px-4">
       {filteredSections.map((section, sectionIndex) => (
         <div key={sectionIndex} className="w-full rounded-lg overflow-hidden border border-border shadow-sm">
           {/* Orange Header Bar */}
