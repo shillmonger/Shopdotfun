@@ -1,80 +1,35 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { toast } from "sonner";
+import React, { useState } from "react";
+import BuyerHeader from "@/components/buyer-dashboard/BuyerHeader";
+import BuyerSidebar from "@/components/buyer-dashboard/BuyerSidebar";
+import BuyerNav from "@/components/buyer-dashboard/BuyerNav";
 
-export default function BuyerDashboard() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/login");
-    } else if (status === "authenticated" && session?.user?.role !== "buyer") {
-      router.push("/auth/register-buyer");
-      toast.error("Please register as a buyer first");
-    }
-  }, [status, router, session]);
-
-  if (status === "loading") {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (status === "unauthenticated") {
-    return null;
-  }
-
-  const handleLogout = async () => {
-    const { signOut } = await import("next-auth/react");
-    await signOut({ redirect: false });
-    router.push("/auth/login");
-    toast.success("Logged out successfully");
-  };
+export default function BuyerDashboardPage() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Hi Buyer, {session?.user?.name || 'Welcome!'}</h1>
-        <Button variant="outline" onClick={handleLogout} className="cursor-pointer">
-          Logout
-        </Button>
-      </div>
+    <div className="flex h-screen overflow-hidden bg-background">
+      <BuyerSidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Your Orders</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">View and track your orders</p>
-          </CardContent>
-        </Card>
+      <div className="flex-1 flex flex-col overflow-hidden text-foreground">
+        <BuyerHeader sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Wishlist</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">Your saved items</p>
-          </CardContent>
-        </Card>
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-24 flex items-center justify-center">
+          <div className="text-center animate-in fade-in zoom-in duration-700">
+            <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter italic leading-none mb-4">
+              Welcome, <span className="text-muted-foreground">Buyer</span>
+            </h1>
+            <p className="text-xs md:text-sm text-muted-foreground font-bold uppercase tracking-[0.4em]">
+              Start your next discovery today
+            </p>
+            <div className="pt-8">
+                <div className="h-1 w-20 bg-foreground mx-auto rounded-full" />
+              </div>
+          </div>
+        </main>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Account Settings</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">Update your profile and preferences</p>
-          </CardContent>
-        </Card>
+        <BuyerNav />
       </div>
     </div>
   );

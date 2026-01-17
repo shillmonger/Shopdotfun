@@ -1,80 +1,56 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { toast } from "sonner";
+import React, { useState } from "react";
+import { Toaster } from "sonner";
 
-export default function SellerDashboard() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
+// Import your custom components
+import SellerHeader from "@/components/seller-dashboard/SellerHeader";
+import SellerSidebar from "@/components/seller-dashboard/SellerSidebar";
+import SellerNav from "@/components/seller-dashboard/SellerNav";
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/login");
-    } else if (status === "authenticated" && session?.user?.role !== "seller") {
-      router.push("/auth/register-seller");
-      toast.error("Please register as a seller first");
-    }
-  }, [status, router, session]);
-
-  if (status === "loading") {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (status === "unauthenticated") {
-    return null;
-  }
-
-  const handleLogout = async () => {
-    const { signOut } = await import("next-auth/react");
-    await signOut({ redirect: false });
-    router.push("/auth/login");
-    toast.success("Logged out successfully");
-  };
+export default function SellerDashboardPage() {
+  // State to sync the sidebar toggle between Header and Sidebar
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Hi Seller, {session?.user?.name || 'Welcome!'}</h1>
-        <Button variant="outline" onClick={handleLogout} className="cursor-pointer">
-          Logout
-        </Button>
-      </div>
+    <div className="flex h-screen overflow-hidden bg-background font-inter">
+      <Toaster position="top-center" richColors />
+      
+      {/* Sidebar - Pass state and setter */}
+      <SellerSidebar 
+        sidebarOpen={sidebarOpen} 
+        setSidebarOpen={setSidebarOpen} 
+      />
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Products</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">Manage your products</p>
-          </CardContent>
-        </Card>
+      <div className="flex-1 flex flex-col overflow-hidden text-foreground">
+        {/* Header - Pass state and setter for the Hamburger-to-X logic */}
+        <SellerHeader 
+          sidebarOpen={sidebarOpen} 
+          setSidebarOpen={setSidebarOpen} 
+        />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Orders</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">View and process orders</p>
-          </CardContent>
-        </Card>
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-24">
+          <div className="max-w-7xl mx-auto h-full flex flex-col items-center justify-center text-center">
+            
+            {/* Simple Welcome Section */}
+            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter italic leading-none text-foreground">
+                Welcome, <span className="text-muted-foreground">Seller</span>
+              </h1>
+              <p className="text-sm md:text-base text-muted-foreground font-medium uppercase tracking-[0.3em]">
+                Your marketplace overview is ready
+              </p>
+              
+              <div className="pt-8">
+                <div className="h-1 w-20 bg-foreground mx-auto rounded-full" />
+              </div>
+            </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Analytics</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">View your shop&apos;s performance</p>
-          </CardContent>
-        </Card>
+          </div>
+        </main>
+
+        {/* Bottom Nav for Mobile */}
+        <SellerNav />
       </div>
     </div>
   );
