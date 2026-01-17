@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import Link from "next/link";
 import { ChevronRight, ShoppingCart } from "lucide-react";
@@ -9,7 +11,8 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"; // ← shadcn/ui Select (install if needed)
+} from "@/components/ui/select";
+import { useRouter } from 'next/navigation';
 
 interface Product {
   id: number;
@@ -25,7 +28,11 @@ interface CategorySection {
   products: Product[];
 }
 
-export function CategoryDeals() {
+interface CategoryDealsProps {
+  categoryFilter?: string;
+}
+
+export function CategoryDeals({ categoryFilter }: CategoryDealsProps) {
   const categorySections: CategorySection[] = [
     {
       title: "Beauty Deals",
@@ -61,7 +68,7 @@ export function CategoryDeals() {
       ],
     },
     {
-      title: "Kids & Baby",
+      title: "Kids and Baby",
       products: [
         { id: 19, name: "Pampers Baby Diapers Size 4", price: "18,500", oldPrice: "22,000", discount: "16", img: "https://i.postimg.cc/FHZhhTrM/Pampers.jpg" },
         { id: 20, name: "Johnson's Baby Lotion 500ml", price: "6,200", oldPrice: "8,000", discount: "23", img: "https://i.postimg.cc/rF2TWBzh/bby-lotion.jpg" },
@@ -72,16 +79,16 @@ export function CategoryDeals() {
       ],
     },
     {
-  title: "Cool Wines",
-  products: [
-    { id: 25, name: "Four Cousins Sweet Red Wine 75cl", price: "6,500", oldPrice: "8,000", discount: "19", img: "https://i.postimg.cc/hj78dyGd/Kroger.jpg" },
-    { id: 26, name: "Carlo Rossi Red Wine 75cl", price: "7,200", oldPrice: "9,000", discount: "20", img: "https://i.postimg.cc/fTs7VvQN/download.jpg" },
-    { id: 27, name: "Don Simon Red Wine 1L", price: "5,800", oldPrice: "7,200", discount: "19", img: "https://i.postimg.cc/RZswb56W/Don-Simon.jpg" },
-    { id: 28, name: "Martini Rosso Vermouth 1L", price: "9,500", oldPrice: "12,000", discount: "21", img: "https://i.postimg.cc/D0TGb7DR/Martini.jpg" },
-    { id: 29, name: "Gordons Sparkling Red Wine 75cl", price: "6,900", oldPrice: "8,800", discount: "22", img: "https://i.postimg.cc/vZc4T1TQ/Top-Holiday.jpg" },
-    { id: 30, name: "Chamdor Sparkling Red Grape 75cl", price: "5,200", oldPrice: "6,500", discount: "20", img: "https://i.postimg.cc/5t8NQ8V1/Welch-s-Sparkling.jpg" },
-  ],
-},
+      title: "Cool Wines",
+      products: [
+        { id: 25, name: "Four Cousins Sweet Red Wine 75cl", price: "6,500", oldPrice: "8,000", discount: "19", img: "https://i.postimg.cc/hj78dyGd/Kroger.jpg" },
+        { id: 26, name: "Carlo Rossi Red Wine 75cl", price: "7,200", oldPrice: "9,000", discount: "20", img: "https://i.postimg.cc/fTs7VvQN/download.jpg" },
+        { id: 27, name: "Don Simon Red Wine 1L", price: "5,800", oldPrice: "7,200", discount: "19", img: "https://i.postimg.cc/RZswb56W/Don-Simon.jpg" },
+        { id: 28, name: "Martini Rosso Vermouth 1L", price: "9,500", oldPrice: "12,000", discount: "21", img: "https://i.postimg.cc/D0TGb7DR/Martini.jpg" },
+        { id: 29, name: "Gordons Sparkling Red Wine 75cl", price: "6,900", oldPrice: "8,800", discount: "22", img: "https://i.postimg.cc/vZc4T1TQ/Top-Holiday.jpg" },
+        { id: 30, name: "Chamdor Sparkling Red Grape 75cl", price: "5,200", oldPrice: "6,500", discount: "20", img: "https://i.postimg.cc/5t8NQ8V1/Welch-s-Sparkling.jpg" },
+      ],
+    },
     {
       title: "Fashion Deals",
       products: [
@@ -116,73 +123,66 @@ export function CategoryDeals() {
       ],
     },
     {
-  title: "Accessories",
-  products: [
-    { id: 49, name: "Classic Wrist Watch", price: "35,000", oldPrice: "45,000", discount: "22", img: "https://i.postimg.cc/m2FxrB45/watch.jpg" },
-    { id: 50, name: "Men’s Beaded Bracelet", price: "7,500", oldPrice: "10,000", discount: "25", img: "https://i.postimg.cc/JhdVnnsg/beads.jpg" },
-    { id: 51, name: "Gold Plated Earrings", price: "12,000", oldPrice: "15,500", discount: "23", img: "https://i.postimg.cc/x120DcHY/ear-ring.jpg" },
-    { id: 52, name: "Silver Chain Necklace", price: "18,000", oldPrice: "24,000", discount: "25", img: "https://i.postimg.cc/fT4smJ87/necklace.jpg" },
-    { id: 53, name: "Leather Strap Watch", price: "28,500", oldPrice: "36,000", discount: "21", img: "https://i.postimg.cc/nzw5HwPH/watch-(2).jpg" },
-    { id: 54, name: "Fashion Stud Earrings", price: "6,800", oldPrice: "9,000", discount: "24", img: "https://i.postimg.cc/sx7tw4TS/download.jpg" },
-  ],
-},
-{
-  title: "Tech Essentials",
-  products: [
-    { id: 55, name: "HP Pavilion Laptop 15\"", price: "420,000", oldPrice: "480,000", discount: "13", img: "https://i.postimg.cc/jqnwRnWJ/HP-Pavilion.jpg" },
-    { id: 56, name: "Dell Inspiron 14 Laptop", price: "395,000", oldPrice: "450,000", discount: "12", img: "https://i.postimg.cc/d3GVrddX/Hp-ENVY.jpg" },
-    { id: 57, name: "Wireless Ear Pods Pro", price: "28,000", oldPrice: "35,000", discount: "20", img: "https://i.postimg.cc/cCGsxHj7/download.jpg" },
-    { id: 58, name: "Bluetooth Ear Pods", price: "18,500", oldPrice: "24,000", discount: "23", img: "https://i.postimg.cc/52sNBfYc/Noise-Buds.jpg" },
-    { id: 59, name: "Noise-Cancelling Headset", price: "32,000", oldPrice: "40,000", discount: "20", img: "https://i.postimg.cc/yNJB0cCS/P9-Wireless.jpg" },
-    { id: 60, name: "Gaming Headset with Mic", price: "45,000", oldPrice: "58,000", discount: "22", img: "https://i.postimg.cc/4dkCt05f/Gaming-Headset-with-Mic.jpg" },
-  ],
-},
-
-
+      title: "Accessories",
+      products: [
+        { id: 49, name: "Classic Wrist Watch", price: "35,000", oldPrice: "45,000", discount: "22", img: "https://i.postimg.cc/m2FxrB45/watch.jpg" },
+        { id: 50, name: "Men’s Beaded Bracelet", price: "7,500", oldPrice: "10,000", discount: "25", img: "https://i.postimg.cc/JhdVnnsg/beads.jpg" },
+        { id: 51, name: "Gold Plated Earrings", price: "12,000", oldPrice: "15,500", discount: "23", img: "https://i.postimg.cc/x120DcHY/ear-ring.jpg" },
+        { id: 52, name: "Silver Chain Necklace", price: "18,000", oldPrice: "24,000", discount: "25", img: "https://i.postimg.cc/fT4smJ87/necklace.jpg" },
+        { id: 53, name: "Leather Strap Watch", price: "28,500", oldPrice: "36,000", discount: "21", img: "https://i.postimg.cc/nzw5HwPH/watch-(2).jpg" },
+        { id: 54, name: "Fashion Stud Earrings", price: "6,800", oldPrice: "9,000", discount: "24", img: "https://i.postimg.cc/sx7tw4TS/download.jpg" },
+      ],
+    },
+    {
+      title: "Tech Essentials",
+      products: [
+        { id: 55, name: "HP Pavilion Laptop 15\"", price: "420,000", oldPrice: "480,000", discount: "13", img: "https://i.postimg.cc/jqnwRnWJ/HP-Pavilion.jpg" },
+        { id: 56, name: "Dell Inspiron 14 Laptop", price: "395,000", oldPrice: "450,000", discount: "12", img: "https://i.postimg.cc/d3GVrddX/Hp-ENVY.jpg" },
+        { id: 57, name: "Wireless Ear Pods Pro", price: "28,000", oldPrice: "35,000", discount: "20", img: "https://i.postimg.cc/cCGsxHj7/download.jpg" },
+        { id: 58, name: "Bluetooth Ear Pods", price: "18,500", oldPrice: "24,000", discount: "23", img: "https://i.postimg.cc/52sNBfYc/Noise-Buds.jpg" },
+        { id: 59, name: "Noise-Cancelling Headset", price: "32,000", oldPrice: "40,000", discount: "20", img: "https://i.postimg.cc/yNJB0cCS/P9-Wireless.jpg" },
+        { id: 60, name: "Gaming Headset with Mic", price: "45,000", oldPrice: "58,000", discount: "22", img: "https://i.postimg.cc/4dkCt05f/Gaming-Headset-with-Mic.jpg" },
+      ],
+    },
   ];
 
-  const [selectedCategory, setSelectedCategory] = React.useState("All");
+  // Filter sections if categoryFilter is provided
+  const filteredSections = categoryFilter
+    ? categorySections.filter(section => 
+        section.title.toLowerCase() === categoryFilter.toLowerCase()
+      )
+    : categorySections;
 
-  const filteredSections =
-    selectedCategory === "All"
-      ? categorySections
-      : categorySections.filter((s) => s.title === selectedCategory);
+  // If no sections match the filter, show a message
+  if (filteredSections.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <h2 className="text-2xl font-bold">No products found in this category</h2>
+        <Link href="/" className="text-blue-600 hover:underline mt-4 inline-block">
+          Back to Home
+        </Link>
+      </div>
+    );
+  }
 
   return (
-    <section className="max-w-[1400px] mx-auto px-4 lg:px-0 pb-20 w-full space-y-10">
-      {/* Filter Dropdown - Top Right */}
-      <div className="flex justify-end mb-6">
-        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-          <SelectTrigger className="w-[220px]">
-            <SelectValue placeholder="Filter by Category" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Categories</SelectLabel>
-              <SelectItem value="All">All Categories</SelectItem>
-              {categorySections.map((section) => (
-                <SelectItem key={section.title} value={section.title}>
-                  {section.title}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {filteredSections.map((section, idx) => (
-        <div key={idx} className="w-full rounded-lg overflow-hidden border border-border shadow-sm">
+    <div className="space-y-8">
+      {filteredSections.map((section, sectionIndex) => (
+        <div key={sectionIndex} className="w-full rounded-lg overflow-hidden border border-border shadow-sm">
           {/* Orange Header Bar */}
           <div className="bg-primary px-4 py-3 flex items-center justify-between">
             <h3 className="text-primary-foreground font-bold text-lg md:text-xl tracking-tight uppercase italic">
               {section.title}
             </h3>
-            <Link
-              href="/products"
-              className="text-primary-foreground/90 text-sm font-medium flex items-center gap-1 hover:underline"
-            >
-              See All <ChevronRight size={16} />
-            </Link>
+            {!categoryFilter && (
+              <Link 
+                href={`/landing-page/products-details/[slug]`} 
+                as={`/landing-page/products-details/${encodeURIComponent(section.title.toLowerCase().replace(/\s+/g, '-'))}`} 
+                className="text-primary-foreground hover:underline flex items-center"
+              >
+                See all <ChevronRight className="ml-1 h-4 w-4" />
+              </Link>
+            )}
           </div>
 
           {/* Product Grid */}
@@ -208,7 +208,7 @@ export function CategoryDeals() {
                   <h4 className="text-[13px] font-medium line-clamp-2 leading-snug min-h-[34px]">
                     {product.name}
                   </h4>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center mb-4">
                     <span className="text-base font-bold">₦ {product.price}</span>
                     <span className="text-[11px] text-muted-foreground line-through">₦ {product.oldPrice}</span>
                   </div>
@@ -230,6 +230,6 @@ export function CategoryDeals() {
           </div>
         </div>
       ))}
-    </section>
+    </div>
   );
 }

@@ -12,12 +12,6 @@ export function HotTrendingProducts() {
               Hot Trending Products
             </h2>
           </div>
-          <Link 
-            href="/products" 
-            className="flex items-center gap-1 text-sm font-bold text-muted-foreground hover:text-primary transition-colors"
-          >
-            View All <ChevronRight size={16} />
-          </Link>
         </div>
 
         {/* Mobile Carousel / Desktop Grid Container */}
