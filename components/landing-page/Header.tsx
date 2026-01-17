@@ -1,19 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Menu, X, ShoppingCart, HelpCircle, Store, Home, Tag } from "lucide-react";
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
@@ -75,64 +70,60 @@ export default function Header() {
         </div>
       </div>
 
-      {/* MOBILE MENU BACKDROP - Only render on client */}
-      {mounted && (
-        <>
-          <div
-            onClick={closeMobileMenu}
-            className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 md:hidden ${
-              mobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-            }`}
-          />
+      {/* MOBILE MENU BACKDROP */}
+      <div
+        onClick={closeMobileMenu}
+        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 md:hidden ${
+          mobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+      />
 
-          {/* MOBILE SIDEBAR */}
-          <aside
-            className={`fixed right-0 top-0 h-full w-[300px] bg-background border-l border-border shadow-2xl z-50 transform transition-transform duration-300 ease-in-out md:hidden ${
-              mobileMenuOpen ? "translate-x-0" : "translate-x-full"
-            }`}
-          >
-            <div className="p-6 h-full flex flex-col">
-              <div className="flex justify-between items-center mb-10">
-                <span className="font-black italic tracking-widest text-sm">NAVIGATION</span>
-                <button onClick={closeMobileMenu} className="p-2 hover:bg-muted rounded-full">
-                  <X className="h-6 w-6" />
-                </button>
-              </div>
+      {/* MOBILE SIDEBAR */}
+      <aside
+        className={`fixed right-0 top-0 h-full w-[300px] bg-background border-l border-border shadow-2xl z-50 transform transition-transform duration-300 ease-in-out md:hidden ${
+          mobileMenuOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div className="p-6 h-full flex flex-col">
+          <div className="flex justify-between items-center mb-10">
+            <span className="font-black italic tracking-widest text-sm">NAVIGATION</span>
+            <button onClick={closeMobileMenu} className="p-2 hover:bg-muted rounded-full">
+              <X className="h-6 w-6" />
+            </button>
+          </div>
 
-              {/* Updated Mobile Nav with Active/Hover Colors matching Desktop */}
-              <nav className="flex flex-col gap-2">
-                <Link href="/" onClick={closeMobileMenu} className={linkStyles("/")}>
-                  <Home size={18} /> Home
-                </Link>
-                <Link href="/cart" onClick={closeMobileMenu} className={linkStyles("/cart")}>
-                  <ShoppingCart size={18} /> My Cart
-                </Link>
-                <Link href="/landing-page/top-stores" onClick={closeMobileMenu} className={linkStyles("/landing-page/top-stores", false)}>
-                  <Store size={18} /> Top Stores
-                </Link>
-                <Link href="/landing-page/help-center" onClick={closeMobileMenu} className={linkStyles("/landing-page/help-center")}>
-                  <HelpCircle size={18} /> Help Center
-                </Link>
-                <Link href="/products" onClick={closeMobileMenu} className={linkStyles("/products", false)}>
-                  <Tag size={18} /> Browse Products
-                </Link>
-              </nav>
+          {/* Updated Mobile Nav with Active/Hover Colors matching Desktop */}
+          <nav className="flex flex-col gap-2">
+            <Link href="/" onClick={closeMobileMenu} className={linkStyles("/")}>
+              <Home size={18} /> Home
+            </Link>
+            <Link href="/cart" onClick={closeMobileMenu} className={linkStyles("/cart")}>
+              <ShoppingCart size={18} /> My Cart
+            </Link>
+            <Link href="/landing-page/top-stores" onClick={closeMobileMenu} className={linkStyles("/landing-page/top-stores", false)}>
+              <Store size={18} /> Top Stores
+            </Link>
+            <Link href="/landing-page/help-center" onClick={closeMobileMenu} className={linkStyles("/landing-page/help-center")}>
+              <HelpCircle size={18} /> Help Center
+            </Link>
+            <Link href="/products" onClick={closeMobileMenu} className={linkStyles("/products", false)}>
+              <Tag size={18} /> Browse Products
+            </Link>
+          </nav>
 
-              <div className="mt-auto flex flex-col gap-3 border-t border-border pt-6">
-                <Button variant="outline" asChild className="py-6 rounded-xl text-lg font-bold">
-                  <Link href="/auth/login" onClick={closeMobileMenu}>Sign In</Link>
-                </Button>
-                <Button asChild className="py-6 rounded-xl text-lg font-bold">
-                  <Link href="/auth/register-buyer" onClick={closeMobileMenu}>Create Account</Link>
-                </Button>
-                <p className="text-center text-xs text-muted-foreground mt-2">
-                  Want to sell? <Link href="/seller/register-seller" className="text-primary font-bold">Register as Vendor</Link>
-                </p>
-              </div>
-            </div>
-          </aside>
-        </>
-      )}
+          <div className="mt-auto flex flex-col gap-3 border-t border-border pt-6">
+            <Button variant="outline" asChild className="py-6 rounded-xl text-lg font-bold">
+              <Link href="/auth/login" onClick={closeMobileMenu}>Sign In</Link>
+            </Button>
+            <Button asChild className="py-6 rounded-xl text-lg font-bold">
+              <Link href="/auth/register-buyer" onClick={closeMobileMenu}>Create Account</Link>
+            </Button>
+            <p className="text-center text-xs text-muted-foreground mt-2">
+              Want to sell? <Link href="/seller/register-seller" className="text-primary font-bold">Register as Vendor</Link>
+            </p>
+          </div>
+        </div>
+      </aside>
     </header>
   );
 }
