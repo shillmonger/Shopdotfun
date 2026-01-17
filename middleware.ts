@@ -46,8 +46,8 @@ export default withAuth(
     }
 
     // Check role-based access for dashboard routes
-    const isBuyerPath = req.nextUrl.pathname.startsWith("/app/general-dashboard/buyer-dashboard");
-    const isSellerPath = req.nextUrl.pathname.startsWith("/app/general-dashboard/seller-dashboard");
+    const isBuyerPath = req.nextUrl.pathname.startsWith("/general-dashboard/buyer-dashboard");
+    const isSellerPath = req.nextUrl.pathname.startsWith("/general-dashboard/seller-dashboard");
 
     // If user is trying to access a role-specific dashboard without the right role, redirect
     if ((isBuyerPath && token.role !== "buyer") || (isSellerPath && token.role !== "seller")) {
