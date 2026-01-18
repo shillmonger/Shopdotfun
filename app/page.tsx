@@ -6,6 +6,7 @@ import Link from "next/link";
 import Header from "@/components/landing-page/Header";
 import ThemeAndScroll from "@/components/landing-page/ThemeAndScroll";
 import Footer from "@/components/landing-page/Footer";
+import Features from "@/components/landing-page/Features";
 import FeaturedCollection from "@/components/landing-page/FeaturedCollection";
 import { Button } from "@/components/ui/button";
 import { HotTrendingProducts } from "@/components/landing-page/HotTrendingProducts";
@@ -135,10 +136,10 @@ export default function HomePage() {
           "
               >
                 <img
-                  src="https://i.postimg.cc/vZW7SsZv/Vintage-Denim-Jacket.jpg"
-                  alt="Fashion Category"
+                  src="https://i.postimg.cc/ZR3bz4Cw/Vintage-Men.jpg"
+                  alt="Featured Men's T-Shirt"
                   className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-all duration-500"
-                />
+                  />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-3 md:p-5">
                   <p className="text-white text-[8px] md:text-sm font-bold uppercase tracking-wide">
                     Style
@@ -156,11 +157,11 @@ export default function HomePage() {
             bg-zinc-900 border-2 border-primary/30 shadow-2xl z-30 
             scale-110 ring-4 md:ring-8 ring-primary/5 
             group cursor-pointer transition-all duration-500 hover:scale-[1.15]
-          "
-              >
+            "
+            >
                 <img
-                  src="https://i.postimg.cc/Hnk3qsLb/Homens-Colar-de-pingente-Strass-Dolar.jpg"
-                  alt="Featured Gadgets"
+            src="https://i.postimg.cc/vZW7SsZv/Vintage-Denim-Jacket.jpg"
+                  alt="Featured Jacket"
                   className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-all duration-500"
                 />
                 <div className="absolute top-4 right-4 md:top-6 md:right-6 bg-primary px-3 py-1 md:px-4 md:py-1.5 rounded-full shadow-lg">
@@ -190,8 +191,8 @@ export default function HomePage() {
           "
               >
                 <img
-                  src="https://i.postimg.cc/ydczDjhF/Ninja-Dragons.jpg"
-                  alt="Electronics"
+                  src="https://i.postimg.cc/zBfZDNtt/Polo-T-Shirt-Pack.jpg"
+                  alt="Featured T-Shirt"
                   className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-all duration-500"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-3 md:p-5">
@@ -204,6 +205,11 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+
+      {/* Features */}
+<Features />
+
 
       {/* Hot Trending Products */}
       <HotTrendingProducts />
