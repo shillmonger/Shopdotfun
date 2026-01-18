@@ -36,7 +36,7 @@ export default async function ProductDetailsPage({
         
         {/* You May Also Like Section */}
         <div className="mt-12">
-          <div className="flex justify-between items-center mb-2">
+          <div className="flex justify-center items-center mb-2">
             <h2 className="text-2xl font-bolder capitalize font-black italic tracking-tighter text-foreground bg-gradient-to-b from-foreground to-foreground/40 bg-clip-text text-transparent text-center">
             You May Also Like
             </h2>

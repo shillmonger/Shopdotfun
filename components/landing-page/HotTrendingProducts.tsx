@@ -32,7 +32,7 @@ export function HotTrendingProducts() {
           ].map((product, index) => (
             <div
               key={index}
-              className="min-w-[280px] sm:min-w-[240px] md:min-w-0 snap-start group relative bg-card border border-border rounded-3xl p-3 transition-all duration-300 hover:shadow-xl hover:border-primary/30 flex flex-col gap-2"
+              className="min-w-[210px] sm:min-w-[240px] md:min-w-0 snap-start group relative bg-card border border-border rounded-3xl p-3 transition-all duration-300 hover:shadow-xl hover:border-primary/30 flex flex-col gap-2"
             >
               {/* Product Image */}
               <div className="aspect-square rounded-2xl overflow-hidden bg-secondary/30 relative">

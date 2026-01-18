@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ShoppingCart, HelpCircle, Store, Home, Tag } from "lucide-react";
+import { Menu, X, ShoppingCart, HelpCircle, Store, Home, Tag, Headset, Building2
+ } from "lucide-react";
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -41,6 +42,9 @@ export default function Header() {
             </Link>
             <Link href="/landing-page/top-stores" className={linkStyles("/landing-page/top-stores", false)}>
               Top Stores
+            </Link>
+            <Link href="/landing-page/know-us" className={linkStyles("/landing-page/know-us", false)}>
+              Know Us
             </Link>
             <Link href="/landing-page/help-center" className={linkStyles("/landing-page/help-center", false)}>
               Help & Support
@@ -84,7 +88,7 @@ export default function Header() {
           mobileMenuOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="p-6 h-full flex flex-col">
+        <div className="p-6 h-full flex flex-col z[200]">
           <div className="flex justify-between items-center mb-10">
             <span className="font-black italic tracking-widest text-sm">NAVIGATION</span>
             <button onClick={closeMobileMenu} className="p-2 hover:bg-muted rounded-full">
@@ -103,11 +107,11 @@ export default function Header() {
             <Link href="/landing-page/top-stores" onClick={closeMobileMenu} className={linkStyles("/landing-page/top-stores", false)}>
               <Store size={18} /> Top Stores
             </Link>
-            <Link href="/landing-page/help-center" onClick={closeMobileMenu} className={linkStyles("/landing-page/help-center")}>
-              <HelpCircle size={18} /> Help Center
+            <Link href="/landing-page/know-us" onClick={closeMobileMenu} className={linkStyles("/landing-page/know-us", false)}>
+              <Building2 size={18} /> Know Us
             </Link>
-            <Link href="/products" onClick={closeMobileMenu} className={linkStyles("/products", false)}>
-              <Tag size={18} /> Browse Products
+            <Link href="/landing-page/help-center" onClick={closeMobileMenu} className={linkStyles("/landing-page/help-center")}>
+              <Headset size={18} /> Help Center
             </Link>
           </nav>
 

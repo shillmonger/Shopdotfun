@@ -71,7 +71,7 @@ export default function HomePage() {
             </p>
 
             {/* BUTTONS UPDATED BELOW */}
-            <div className="mt-6 flex w-full flex-row gap-3 sm:gap-4 justify-center sm:justify-start">
+            <div className="mt-6 flex px-5 flex-row gap-3 sm:gap-4 justify-center sm:justify-start">
               <Button
                 asChild
                 size="lg"
