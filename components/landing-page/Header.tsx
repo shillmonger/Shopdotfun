@@ -123,7 +123,7 @@ export default function Header() {
               <Link href="/auth/register-buyer" onClick={closeMobileMenu}>Create Account</Link>
             </Button>
             <p className="text-center text-xs text-muted-foreground mt-2">
-              Want to sell? <Link href="/seller/register-seller" className="text-primary font-bold">Register as Vendor</Link>
+              Want to sell? <Link href="/auth/register-seller" className="text-primary font-bold">Register as Vendor</Link>
             </p>
           </div>
         </div>
