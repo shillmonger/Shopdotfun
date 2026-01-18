@@ -3,11 +3,11 @@ import { Toaster } from "sonner";
 import { Providers } from "@/components/providers";
 import CookieConsent from "@/components/CookieConsent";
 
-
 export const metadata = {
-  title: "Shopdotfun",
-  description: "Lets help you sell your Product",
+  title: "Shopdotfun | Buy & Sell Online",
+  description: "Shopdotfun is an online marketplace that connects buyers and sellers, making it easy to buy, sell, and grow your business online.",
 };
+
 
 export const viewport = {
   themeColor: [
