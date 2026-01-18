@@ -4,14 +4,23 @@ import Footer from "@/components/landing-page/Footer";
 import { CategoryDeals } from "@/components/landing-page/CategoryDeals";
 
 interface ProductDetailsPageProps {
-  params: { category: string };
-  searchParams: { [key: string]: string | string[] | undefined };
+  params: Promise<{
+    category: string;
+  }>;
+  searchParams?: Promise<{
+    [key: string]: string | string[] | undefined;
+  }>;
 }
 
-export default function ProductDetailsPage({ params }: ProductDetailsPageProps) {
-  // Get the category from the URL and replace hyphens with spaces
-  const categoryName = params.category.replace(/-/g, ' ');
-  
+export default async function ProductDetailsPage({
+  params,
+}: ProductDetailsPageProps) {
+  // ✅ Await params (Next.js 15 requirement)
+  const { category } = await params;
+
+  // Replace hyphens with spaces
+  const categoryName = category.replace(/-/g, " ");
+
   return (
     <>
       <Header />
@@ -20,6 +29,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
         <h1 className="text-3xl font-bolder mb-8 capitalize font-black italic tracking-tighter text-foreground bg-gradient-to-b from-foreground to-foreground/40 bg-clip-text text-transparent text-center">
           {categoryName}
         </h1>
+
         <CategoryDeals categoryFilter={categoryName} />
       </main>
       <Footer />
