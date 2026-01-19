@@ -217,7 +217,7 @@ export default function CaseStudies() {
             Ready to expand <br /> your wardrobe?
           </h2>
           <p className="text-lg opacity-80 mb-10 font-light">
-            Don't leave your cart lonely. Complete your purchase now and join our community of satisfied shoppers.
+            Don&apos;t leave your cart lonely. Complete your purchase now and join our community of satisfied shoppers.
           </p>
           <Link href="/auth/login">
             <button className="bg-white text-black px-10 py-4 rounded-full cursor-pointer font-bold uppercase tracking-tighter hover:bg-primary hover:text-white transition-colors">
