@@ -48,7 +48,7 @@ export const HowItWorks = () => {
   return (
     <section
       id="how-it-works"
-      className="relative max-w-[1400px] mx-auto px-4 lg:px-0 pb-20 w-full overflow-hidden mt-20"
+      className="relative max-w-[1400px] mx-auto px-4 lg:px-0 pb-20 w-full overflow-hidden mt-15 lg:mt-20"
     >
       {/* Background Glows */}
       <div className="absolute top-0 -right-20 w-96 h-96 bg-primary/10 rounded-full blur-[120px] -z-10" />

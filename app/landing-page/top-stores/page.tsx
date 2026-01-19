@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import Header from "@/components/landing-page/Header";
 import ThemeAndScroll from "@/components/landing-page/ThemeAndScroll";
 import Footer from "@/components/landing-page/Footer";
@@ -30,27 +31,57 @@ export default function HomePage() {
     <main className="min-h-screen bg-background text-foreground">
       <Header />
 
-      <section className="container max-w-[1400px] mx-auto pt-32 bg-background">
-        <div className="max-w-7xl mx-auto px-4 text-center mb-10">
-          <h2 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter mb-4 text-foreground bg-gradient-to-b from-foreground to-foreground/40 bg-clip-text text-transparent">
-            OUR TOP STORE
-          </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-lg">
-            Discover hand-picked premium products ensuring quality and security in every transaction.
-          </p>
+
+{/* Hero Section */}
+      <section className="relative h-[60vh] w-full flex items-center justify-center overflow-hidden">
+        {/* Background Image with Overlay */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat z-0"
+          style={{
+            backgroundImage: "url('https://i.postimg.cc/KjXqYt0f/b3.jpg')",
+          }}
+        >
+          {/* Dark overlay to ensure text readability */}
+          <div className="absolute inset-0 bg-black/30" />
         </div>
+
+        {/* Hero Content */}
+        <div className="relative z-10 text-center text-white px-4">
+          <motion.h1
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.6 }}
+  className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter mb-4 text-white"
+>
+  #OUR TOP STORE
+</motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="text-lg md:text-xl font-light tracking-wide opacity-90"
+          >
+            Discover hand-picked premium products ensuring quality and security in every transaction.
+          </motion.p>
+        </div>
+      </section>
+
+
+
+      <section className="container max-w-[1400px] mx-auto pt-20 bg-background">
 
         {/* Product Grid: 4 columns on mobile, 4 on desktop for symmetry */}
         <div className="w-full mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-5 md:gap-10">
             {TOP_STORE_PRODUCTS.map((product) => (
               <Link 
                 href={`/landing-page/top-stores/${product.id}`}
                 className="block"
                 key={product.id}
               >
-                <div className="bg-card border border-border rounded-2xl p-3 md:p-4 hover:shadow-xl transition-all group h-full">
-                  <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-secondary mb-3">
+                <div className="bg-card border border-border rounded-lg p-3 md:p-4 hover:shadow-xl transition-all group h-full">
+                  <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-secondary mb-3">
                     <img 
                       src={product.image} 
                       alt={product.name}

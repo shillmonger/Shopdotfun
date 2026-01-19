@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 
 export function HotTrendingProducts() {
   return (
-    <section className="py-20 px-4 md:px-6 lg:px-8 bg-background">
+    <section className="mt-10 lg:mt-30 px-4 md:px-6 lg:px-8 bg-background">
       <div className="max-w-[1400px] mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div className="space-y-1">

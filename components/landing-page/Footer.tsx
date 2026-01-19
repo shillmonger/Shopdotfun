@@ -69,8 +69,8 @@ export default function Footer() {
           <ul className="space-y-2 text-muted-foreground">
             <li><Link href="/auth/login" className="hover:text-primary transition-colors">Buyer Login</Link></li>
             <li><Link href="/auth/register-buyer" className="hover:text-primary transition-colors">Create Account</Link></li>
-            <li><Link href="/landing-page/privacy" className="hover:text-primary transition-colors">Buyer Policy</Link></li>
-            <li><Link href="#" className="hover:text-primary transition-colors">Payout System</Link></li>
+            <li><Link href="/landing-page/blog" className="hover:text-primary transition-colors">Buyer Blog</Link></li>
+            <li><Link href="/landing-page/know-us" className="hover:text-primary transition-colors">About Us</Link></li>
           </ul>
         </div>
 
@@ -82,8 +82,8 @@ export default function Footer() {
           <ul className="space-y-2 text-muted-foreground">
             <li><Link href="/auth/login" className="hover:text-primary transition-colors">Seller Login</Link></li>
             <li><Link href="/auth/register-seller" className="hover:text-primary transition-colors">Become a Seller</Link></li>
-            <li><Link href="/landing-page/privacy" className="hover:text-primary transition-colors">Seller Policy</Link></li>
-            <li><Link href="#" className="hover:text-primary transition-colors">Payout System</Link></li>
+            <li><Link href="/landing-page/know-us" className="hover:text-primary transition-colors">Know Us</Link></li>
+            <li><Link href="/landing-page/contact-us" className="hover:text-primary transition-colors">Contact Us</Link></li>
           </ul>
         </div>
 

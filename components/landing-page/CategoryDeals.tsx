@@ -167,6 +167,17 @@ export function CategoryDeals({ categoryFilter }: CategoryDealsProps) {
 
   return (
     <div className="space-y-8 max-w-[1400px] mx-auto px-4">
+      {/* Header Section */}
+      <div className="text-center mb-10 space-y-2">
+        <h2 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter mb-4 text-foreground bg-gradient-to-b from-foreground to-foreground/40 bg-clip-text text-transparent">
+          Features Deals
+        </h2>
+        <p className="text-muted-foreground font-medium tracking-widest uppercase text-sm">
+          Summer Collection New Modern Design
+        </p>
+      </div>
+
+
       {filteredSections.map((section, sectionIndex) => (
         <div key={sectionIndex} className="w-full rounded-lg overflow-hidden border border-border shadow-sm">
           {/* Orange Header Bar */}

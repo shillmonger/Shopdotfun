@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ShoppingCart, HelpCircle, Store, Home, Tag, Headset, Building2
+import { Menu, X, ShoppingCart, HelpCircle, BookOpen, Newspaper, FileText, Store, Home, Tag, Headset, Building2
  } from "lucide-react";
 
 export default function Header() {
@@ -43,11 +43,14 @@ export default function Header() {
             <Link href="/landing-page/top-stores" className={linkStyles("/landing-page/top-stores", false)}>
               Top Stores
             </Link>
+            <Link href="/landing-page/blog" className={linkStyles("/landing-page/blog", false)}>
+              Our Blog
+            </Link>
             <Link href="/landing-page/know-us" className={linkStyles("/landing-page/know-us", false)}>
               Know Us
             </Link>
-            <Link href="/landing-page/help-center" className={linkStyles("/landing-page/help-center", false)}>
-              Help & Support
+            <Link href="/landing-page/contact-us" className={linkStyles("/landing-page/contact-us", false)}>
+              Contact Us
             </Link>
           </nav>
 
@@ -101,8 +104,11 @@ export default function Header() {
             <Link href="/" onClick={closeMobileMenu} className={linkStyles("/")}>
               <Home size={18} /> Home
             </Link>
-            <Link href="/cart" onClick={closeMobileMenu} className={linkStyles("/cart")}>
+            <Link href="/landing-page/cart" onClick={closeMobileMenu} className={linkStyles("/landing-page/cart")}>
               <ShoppingCart size={18} /> My Cart
+            </Link>
+            <Link href="/landing-page/blog" onClick={closeMobileMenu} className={linkStyles("/landing-page/blog")}>
+              <FileText size={18} /> Blog
             </Link>
             <Link href="/landing-page/top-stores" onClick={closeMobileMenu} className={linkStyles("/landing-page/top-stores", false)}>
               <Store size={18} /> Top Stores

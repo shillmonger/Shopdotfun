@@ -12,8 +12,12 @@ export function PopularCategories() {
           </div>
         </div>
 
-        {/* Horizontal Scroll on Mobile / 6 Columns on Desktop */}
-        <div className="flex overflow-x-auto pb-6 gap-4 snap-x snap-mandatory md:grid md:grid-cols-3 lg:grid-cols-6 md:overflow-visible md:pb-0 scrollbar-hide">
+        {/* UPDATED: 
+          - Changed from 'flex' to 'grid'
+          - Added 'grid-cols-2' for mobile (2 items per row)
+          - Removed horizontal scroll logic (overflow-x-auto, snap-x)
+        */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 pb-6 md:pb-0">
           {[
             { name: "Smart Phones", count: 21, color: "bg-rose-900/80", img: "https://images.unsplash.com/photo-1592890288564-76628a30a657?q=80&w=300&auto=format&fit=crop" },
             { name: "Laptops & PCs", count: 14, color: "bg-blue-900/80", img: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?q=80&w=300&auto=format&fit=crop" },
@@ -24,7 +28,8 @@ export function PopularCategories() {
           ].map((cat, index) => (
             <div
               key={index}
-              className="min-w-[200px] md:min-w-0 aspect-[4/3] md:aspect-auto md:h-32 snap-start group relative rounded-2xl overflow-hidden cursor-pointer shadow-md transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+              /* UPDATED: Removed min-w-[200px] so it fits in the grid column perfectly */
+              className="w-full aspect-[4/3] md:aspect-auto md:h-32 group relative rounded-2xl overflow-hidden cursor-pointer shadow-md transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
             >
               {/* Background Image */}
               <img
@@ -37,8 +42,8 @@ export function PopularCategories() {
               <div className={`absolute inset-0 ${cat.color} mix-blend-multiply opacity-80 group-hover:opacity-70 transition-opacity`} />
               
               {/* Content */}
-              <div className="absolute inset-0 p-5 flex flex-col justify-center">
-                <h3 className="text-white font-black text-lg leading-tight uppercase tracking-tighter italic">
+              <div className="absolute inset-0 p-3 md:p-5 flex flex-col justify-center">
+                <h3 className="text-white font-black text-base md:text-lg leading-tight uppercase tracking-tighter italic">
                   {cat.name}
                 </h3>
                 <p className="text-white/80 text-[10px] font-bold mt-1">

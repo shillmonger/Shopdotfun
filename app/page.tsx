@@ -214,14 +214,16 @@ export default function HomePage() {
       {/* Hot Trending Products */}
       <HotTrendingProducts />
 
-      {/* Popular Categories */}
-      <PopularCategories />
+      
 
       {/* Featured Collection */}
       <FeaturedCollection />
 
       {/* Category Deals Section */}
       <CategoryDeals />
+
+      {/* Popular Categories */}
+      <PopularCategories />
 
       {/* How It Works Section */}
       <HowItWorks />
