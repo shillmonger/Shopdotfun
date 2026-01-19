@@ -33,7 +33,7 @@ export default function HomePage() {
 
 
 {/* Hero Section */}
-      <section className="relative h-[60vh] w-full flex items-center justify-center overflow-hidden">
+      <section className="relative h-[50vh] w-full flex items-center justify-center overflow-hidden">
         {/* Background Image with Overlay */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat z-0"
@@ -73,7 +73,7 @@ export default function HomePage() {
 
         {/* Product Grid: 4 columns on mobile, 4 on desktop for symmetry */}
         <div className="w-full mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-5 md:gap-10">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-5">
             {TOP_STORE_PRODUCTS.map((product) => (
               <Link 
                 href={`/landing-page/top-stores/${product.id}`}

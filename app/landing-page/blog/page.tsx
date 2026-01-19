@@ -13,7 +13,7 @@ export default function CaseStudies() {
       <Header />
 
       {/* Hero Section */}
-      <section className="relative h-[60vh] w-full flex items-center justify-center overflow-hidden">
+      <section className="relative h-[50vh] w-full flex items-center justify-center overflow-hidden">
         {/* Background Image with Overlay */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat z-0"

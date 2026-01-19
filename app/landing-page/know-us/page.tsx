@@ -27,7 +27,7 @@ export default function CaseStudies() {
       <Header />
 
       {/* Hero Section */}
-      <section className="relative h-[60vh] w-full flex items-center justify-center overflow-hidden">
+      <section className="relative h-[50vh] w-full flex items-center justify-center overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat z-0"
           style={{
@@ -176,7 +176,7 @@ export default function CaseStudies() {
             Whether you are a buyer looking for the best deals or a seller
             wanting to reach millions, our platform is built for your success.
           </p>
-          <Link href="/auth/lon">
+          <Link href="/auth/login">
             <button className="bg-white text-black px-10 py-4 rounded-full cursor-pointer font-bold uppercase tracking-tighter hover:bg-primary hover:text-white transition-colors">
               Get Started
             </button>

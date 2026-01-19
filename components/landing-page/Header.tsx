@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ShoppingCart, HelpCircle, BookOpen, Newspaper, FileText, Store, Home, Tag, Headset, Building2
+import { Menu, X, ShoppingCart, HelpCircle, Mail, Users, ShoppingBag, FileText, Store, Home, Tag, Headset, Building2
  } from "lucide-react";
 
 export default function Header() {
@@ -56,7 +56,7 @@ export default function Header() {
 
           {/* AUTH BUTTONS & CART */}
           <div className="hidden md:flex items-center gap-3 ml-4">
-            <Link href="/cart" className="p-2 mr-2 text-muted-foreground hover:text-primary transition-colors">
+            <Link href="/landing-page/cart" className="p-2 mr-2 text-muted-foreground hover:text-primary transition-colors">
               <ShoppingCart size={22} />
             </Link>
             <Button asChild variant="secondary" className="px-6 py-6 text-[15px] font-semibold rounded-xl cursor-pointer">
@@ -108,16 +108,19 @@ export default function Header() {
               <ShoppingCart size={18} /> My Cart
             </Link>
             <Link href="/landing-page/blog" onClick={closeMobileMenu} className={linkStyles("/landing-page/blog")}>
-              <FileText size={18} /> Blog
+              <FileText size={18} /> Our Blog
             </Link>
             <Link href="/landing-page/top-stores" onClick={closeMobileMenu} className={linkStyles("/landing-page/top-stores", false)}>
-              <Store size={18} /> Top Stores
+              <ShoppingBag size={18} /> Top Stores
             </Link>
             <Link href="/landing-page/know-us" onClick={closeMobileMenu} className={linkStyles("/landing-page/know-us", false)}>
-              <Building2 size={18} /> Know Us
+              <Users size={18} /> About Us
             </Link>
             <Link href="/landing-page/help-center" onClick={closeMobileMenu} className={linkStyles("/landing-page/help-center")}>
               <Headset size={18} /> Help Center
+            </Link>
+            <Link href="/landing-page/contact-us" onClick={closeMobileMenu} className={linkStyles("/landing-page/contact-us")}>
+              <Mail size={18} /> Contact Us
             </Link>
           </nav>
 
