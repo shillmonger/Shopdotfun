@@ -82,7 +82,7 @@ export default function Footer() {
           <ul className="space-y-2 text-muted-foreground">
             <li><Link href="/auth/login" className="hover:text-primary transition-colors">Seller Login</Link></li>
             <li><Link href="/auth/register-seller" className="hover:text-primary transition-colors">Become a Seller</Link></li>
-            <li><Link href="/landing-page/know-us" className="hover:text-primary transition-colors">Know Us</Link></li>
+            <li><Link href="/landing-page/cart" className="hover:text-primary transition-colors">My Cart</Link></li>
             <li><Link href="/landing-page/contact-us" className="hover:text-primary transition-colors">Contact Us</Link></li>
           </ul>
         </div>
