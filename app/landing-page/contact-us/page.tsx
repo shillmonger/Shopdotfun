@@ -95,7 +95,7 @@ export default function ContactUsPage() {
               Contact Us
             </motion.h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Have a question or feedback? We're here to help you grow your marketplace experience.
+              Have a question or feedback? We&apos;re here to help you grow your marketplace experience.
             </p>
           </div>
 
