@@ -30,20 +30,20 @@ export default function BuyerSidebar({ sidebarOpen, setSidebarOpen }: SidebarPro
   const pathname = usePathname();
   const router = useRouter();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const basePath = "/buyer-dashboard";
+  const basePath = "/general-dashboard/buyer-dashboard";
 
   // Navigation Items mapped to your specific list
   const sidebarItems = [
-    { name: "Overview", icon: LayoutDashboard, href: `${basePath}` },
-    { name: "Profile & Settings", icon: UserCircle, href: `${basePath}/profile` },
-    { name: "Browse Products", icon: Search, href: `/shop` }, // Assuming shop is a main route
+    { name: "Dashboard", icon: LayoutDashboard, href: `${basePath}/dashboard` },
     { name: "My Cart", icon: ShoppingCart, href: `${basePath}/cart` },
     { name: "Checkout", icon: CreditCard, href: `${basePath}/checkout` },
     { name: "My Orders", icon: Package, href: `${basePath}/orders` },
     { name: "Order Tracking", icon: Truck, href: `${basePath}/tracking` },
+    { name: "Browse Products", icon: Search, href: `/browse-product` },
     { name: "Payment History", icon: History, href: `${basePath}/payments` },
     { name: "Reviews & Ratings", icon: Star, href: `${basePath}/reviews` },
-    { name: "Disputes", icon: AlertOctagon, href: `${basePath}/disputes` },
+    { name: "Profile & Settings", icon: Settings, href: `${basePath}/profile-settings` },
+    { name: "Disputes/Complaints", icon: AlertOctagon, href: `${basePath}/disputes` },
   ];
 
   return (
@@ -90,7 +90,7 @@ export default function BuyerSidebar({ sidebarOpen, setSidebarOpen }: SidebarPro
                 <Link
                   key={name}
                   href={href}
-                  className={`group flex items-center px-4 py-2.5 rounded-xl transition-all duration-200 ${
+                  className={`group flex items-center px-4 py-2.5 rounded-sm transition-all duration-200 ${
                     active
                       ? "bg-foreground text-background shadow-lg shadow-black/10"
                       : "text-muted-foreground hover:bg-secondary hover:text-foreground"

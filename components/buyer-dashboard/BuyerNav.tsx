@@ -2,17 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutGrid, Wallet, LogOut, Files, User, GraduationCap } from "lucide-react";
+import { LayoutGrid, CreditCard, Package, ShoppingBag, User, GraduationCap, Settings } from "lucide-react";
 
 export default function UserNav() {
   const pathname = usePathname();
 
   const navItems = [
-    { name: "SWITCH", href: "/user-dashboard/dashboard", icon: GraduationCap },
-    { name: "CONTENTS", href: "/admin-dashboard/all-content", icon: Files },
-    { name: "UPLOAD", href: "/admin-dashboard/uploads", icon: LayoutGrid },
-    { name: "MANAGE", href: "/admin-dashboard/user-management", icon: User },
-    { name: "LOGOUT", href: "/", icon: LogOut },
+    { name: "Orders", href: "/general-dashboard/buyer-dashboard/order", icon: Package },
+    { name: "Products", href: "/general-dashboard/buyer-dashboard/browse-product", icon: ShoppingBag },
+    { name: "Dashboard", href: "/general-dashboard/buyer-dashboard/dashboard", icon: LayoutGrid },
+    { name: "Checkout", href: "/general-dashboard/buyer-dashboard/Checkout", icon: CreditCard },
+    { name: "Profile", href: "/general-dashboard/buyer-dashboard/profile-settings", icon: Settings },
   ];
 
   const isActive = (href: string) =>
