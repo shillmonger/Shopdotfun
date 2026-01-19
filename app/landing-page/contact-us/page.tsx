@@ -210,7 +210,7 @@ export default function ContactUsPage() {
             <aside className="space-y-6">
               <div className="bg-primary p-8 rounded-[2.5rem] text-primary-foreground shadow-lg">
                 <h3 className="text-2xl font-black uppercase italic tracking-tighter mb-4">
-                  We're Here To Help
+                  We&apos;re here to help!
                 </h3>
                 <p className="opacity-90 mb-8 text-sm leading-relaxed">
                   Our customer success team is available 24/7 to ensure your experience remains seamless.
