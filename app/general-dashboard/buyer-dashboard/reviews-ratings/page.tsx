@@ -23,14 +23,14 @@ const ELIGIBLE_PRODUCTS = [
     id: "p1",
     name: "Classic Leather Sneakers",
     seller: "Elite Footwear",
-    image: "https://via.placeholder.com/100",
+    image: "https://i.postimg.cc/pLD6CsVc/download-(5).jpg",
     orderDate: "Jan 12, 2026"
   },
   {
     id: "p2",
     name: "Minimalist Desk Lamp",
     seller: "Modern Home",
-    image: "https://via.placeholder.com/100",
+    image: "https://i.postimg.cc/pLD6CsVc/download-(5).jpg",
     orderDate: "Jan 14, 2026"
   }
 ];
@@ -101,7 +101,7 @@ export default function ReviewsPage() {
                         
                         <button 
                           onClick={() => setSelectedProduct(product)}
-                          className="mt-3 text-[10px] font-black uppercase tracking-widest bg-foreground text-background px-4 py-2 rounded-lg hover:opacity-90 transition-all"
+                          className="mt-3 text-[10px] font-black uppercase cursor-pointer tracking-widest bg-foreground text-background px-4 py-2 rounded-lg hover:opacity-90 transition-all"
                         >
                           {selectedProduct?.id === product.id ? "Reviewing..." : "Write a Review"}
                         </button>

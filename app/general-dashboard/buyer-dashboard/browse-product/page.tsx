@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { 
   Search, 
   SlidersHorizontal, 
@@ -18,6 +18,16 @@ import BuyerNav from "@/components/buyer-dashboard/BuyerNav";
 // Mock Data for the UI
 const CATEGORIES = ["Electronics", "Fashion", "Home & Garden", "Sports", "Health"];
 
+interface Product {
+  id: number;
+  name: string;
+  seller: string;
+  price: number;
+  rating: number;
+  stock: number;
+  image: string;
+}
+
 export default function BrowseProductsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isFilterVisible, setIsFilterVisible] = useState(false);
@@ -29,15 +39,17 @@ export default function BrowseProductsPage() {
   const [priceRange, setPriceRange] = useState(1000);
 
   // Mock Product Data
-  const products = Array.from({ length: 8 }).map((_, i) => ({
-    id: i,
-    name: `Premium Product ${i + 1}`,
-    seller: `Elite Vendor ${i + 1}`,
-    price: Math.floor(Math.random() * 500) + 50,
-    rating: 4.5,
-    stock: i === 3 ? 0 : 10, // Mock one out-of-stock item
-    image: "https://via.placeholder.com/300",
-  }));
+  const products: Product[] = useMemo(() => {
+    return Array.from({ length: 8 }).map((_, i) => ({
+      id: i,
+      name: `Premium Product ${i + 1}`,
+      seller: `Elite Vendor ${i + 1}`,
+      price: Math.floor(Math.random() * 500) + 50,
+      rating: 4.5,
+      stock: i === 3 ? 0 : 10, // Mock one out-of-stock item
+      image: "https://i.postimg.cc/pLD6CsVc/download-(5).jpg",
+    }));
+  }, []);
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">

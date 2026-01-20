@@ -84,7 +84,7 @@ export default function DisputesPage() {
               </div>
               <button 
                 onClick={() => setIsCreating(!isCreating)}
-                className="bg-foreground text-background px-8 py-4 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-primary hover:text-primary-foreground transition-all shadow-xl active:scale-95"
+                className="bg-foreground text-background px-8 py-4 cursor-pointer rounded-xl text-xs font-black uppercase tracking-widest hover:bg-primary hover:text-primary-foreground transition-all shadow-xl active:scale-95"
               >
                 {isCreating ? "View My Cases" : "Open New Dispute"}
               </button>
@@ -121,7 +121,7 @@ export default function DisputesPage() {
                           <p className="text-xs font-bold">{dispute.date}</p>
                         </div>
                       </div>
-                      <button className="p-2 bg-muted rounded-lg group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                      <button className="p-2 bg-muted rounded-lg group-hover:bg-primary cursor-pointer group-hover:text-primary-foreground transition-colors">
                         <ChevronRight className="w-4 h-4" />
                       </button>
                     </div>

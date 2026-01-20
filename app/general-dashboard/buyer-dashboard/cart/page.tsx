@@ -95,7 +95,7 @@ export default function CartPage() {
                   <ShoppingBag className="w-8 h-8 text-muted-foreground" />
                 </div>
                 <h2 className="text-xl font-bold uppercase italic">Your cart is empty</h2>
-                <p className="text-muted-foreground text-sm mt-2 mb-6">Looks like you haven't added anything yet.</p>
+                <p className="text-muted-foreground text-sm mt-2 mb-6">Looks like you haven&apos;t added anything yet.</p>
                 <Link href="/buyer/browse" className="inline-block bg-primary text-primary-foreground px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all">
                   Start Discovering
                 </Link>
