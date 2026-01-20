@@ -11,7 +11,7 @@ export default function UserNav() {
     { name: "Orders", href: "/general-dashboard/buyer-dashboard/order", icon: Package },
     { name: "Products", href: "/general-dashboard/buyer-dashboard/browse-product", icon: ShoppingBag },
     { name: "Dashboard", href: "/general-dashboard/buyer-dashboard/dashboard", icon: LayoutGrid },
-    { name: "Checkout", href: "/general-dashboard/buyer-dashboard/Checkout", icon: CreditCard },
+    { name: "Checkout", href: "/general-dashboard/buyer-dashboard/checkout", icon: CreditCard },
     { name: "Profile", href: "/general-dashboard/buyer-dashboard/profile-settings", icon: Settings },
   ];
 

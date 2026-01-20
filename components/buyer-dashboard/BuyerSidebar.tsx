@@ -38,12 +38,12 @@ export default function BuyerSidebar({ sidebarOpen, setSidebarOpen }: SidebarPro
     { name: "My Cart", icon: ShoppingCart, href: `${basePath}/cart` },
     { name: "Checkout", icon: CreditCard, href: `${basePath}/checkout` },
     { name: "My Orders", icon: Package, href: `${basePath}/orders` },
-    { name: "Order Tracking", icon: Truck, href: `${basePath}/tracking` },
-    { name: "Browse Products", icon: Search, href: `/browse-product` },
-    { name: "Payment History", icon: History, href: `${basePath}/payments` },
-    { name: "Reviews & Ratings", icon: Star, href: `${basePath}/reviews` },
-    { name: "Profile & Settings", icon: Settings, href: `${basePath}/profile-settings` },
+    { name: "Order Tracking", icon: Truck, href: `${basePath}/order-tracking` },
+    { name: "Browse Products", icon: Search, href: `${basePath}/browse-product` },
+    { name: "Payment History", icon: History, href: `${basePath}/payment-history` },
+    { name: "Reviews & Ratings", icon: Star, href: `${basePath}/reviews-ratings` },
     { name: "Disputes/Complaints", icon: AlertOctagon, href: `${basePath}/disputes` },
+    { name: "Profile & Settings", icon: Settings, href: `${basePath}/profile-settings` },
   ];
 
   return (

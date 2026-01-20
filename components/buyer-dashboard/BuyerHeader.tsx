@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { Menu, X, Bell, ShoppingCart } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSession } from "next-auth/react";
@@ -35,10 +36,11 @@ export default function BuyerHeader({ sidebarOpen, setSidebarOpen }: HeaderProps
       </div>
 
       <div className="flex items-center gap-4">
+        <Link href="/general-dashboard/buyer-dashboard/cart">
         <button className="p-2 hover:bg-secondary rounded-full relative cursor-pointer">
             <ShoppingCart className="h-5 w-5" />
-            {/* <span className="absolute top-1 right-1 h-2 w-2 bg-foreground rounded-full" /> */}
         </button>
+        </Link>
         
         <div className="flex items-center gap-3 pl-4 border-l border-border">
           <Avatar className="h-9 w-9 border-2 border-foreground/20 rounded-xl p-0.5">
