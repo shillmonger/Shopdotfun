@@ -13,12 +13,20 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+type ReviewProduct = {
+  id: string;
+  name: string;
+  seller: string;
+  image: string;
+  orderDate: string;
+};
+
 import BuyerHeader from "@/components/buyer-dashboard/BuyerHeader";
 import BuyerSidebar from "@/components/buyer-dashboard/BuyerSidebar";
 import BuyerNav from "@/components/buyer-dashboard/BuyerNav";
 
 // Mock Data
-const ELIGIBLE_PRODUCTS = [
+const ELIGIBLE_PRODUCTS: ReviewProduct[] = [
   {
     id: "p1",
     name: "Classic Leather Sneakers",
@@ -40,7 +48,7 @@ export default function ReviewsPage() {
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [comment, setComment] = useState("");
-  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [selectedProduct, setSelectedProduct] = useState<ReviewProduct | null>(null);
 
   const handleSubmitReview = (e: React.FormEvent) => {
     e.preventDefault();

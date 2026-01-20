@@ -32,11 +32,9 @@ export default function UserSettingsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const [user, setUser] = useState<{ role?: string }>({});
 
   // Settings States
   const [darkMode, setDarkMode] = useState(false);
-  const [notifications, setNotifications] = useState(true);
   
   // Personal Info State
   const [personalInfo, setPersonalInfo] = useState({
@@ -52,12 +50,7 @@ export default function UserSettingsPage() {
   ]);
 
   // Form states
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>("https://github.com/shadcn.png");
 
   useEffect(() => {

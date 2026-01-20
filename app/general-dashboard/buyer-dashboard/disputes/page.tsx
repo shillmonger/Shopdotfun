@@ -193,7 +193,7 @@ export default function DisputesPage() {
                     </div>
                     <h3 className="text-lg font-black uppercase italic tracking-tighter">Buyer Protection</h3>
                     <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest mt-2 max-w-[250px] leading-relaxed">
-                      If your order hasn't arrived or is not as described, you can open a dispute here.
+                      If your order hasn&apos;t arrived or is not as described, you can open a dispute here.
                     </p>
                   </div>
                 )}

@@ -145,7 +145,7 @@ export default function OrderTrackingPage() {
                         onClick={handleConfirmDelivery}
                         className="w-full bg-primary text-primary-foreground py-4 rounded-xl text-xs font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-lg shadow-primary/20"
                       >
-                        I've Received the Order
+                        I&apos;ve Received the Order
                       </button>
                       <button className="w-full bg-background/10 cursor-pointer text-background py-3 rounded-xl text-[10px] font-black uppercase tracking-widest border border-background/20 hover:bg-background/20 transition-all">
                         Report an Issue
