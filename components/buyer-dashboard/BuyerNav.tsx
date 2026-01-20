@@ -8,7 +8,7 @@ export default function UserNav() {
   const pathname = usePathname();
 
   const navItems = [
-    { name: "Orders", href: "/general-dashboard/buyer-dashboard/order", icon: Package },
+    { name: "Orders", href: "/general-dashboard/buyer-dashboard/orders", icon: Package },
     { name: "Products", href: "/general-dashboard/buyer-dashboard/browse-product", icon: ShoppingBag },
     { name: "Dashboard", href: "/general-dashboard/buyer-dashboard/dashboard", icon: LayoutGrid },
     { name: "Checkout", href: "/general-dashboard/buyer-dashboard/checkout", icon: CreditCard },
