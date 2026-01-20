@@ -12,6 +12,11 @@ import {
   Boxes,
   ShoppingCart,
   Truck,
+  ClipboardCheck,
+  Inbox,
+  PackagePlus,
+  Edit,
+  MapPin,
   BarChart3,
   History,
   LogOut,
@@ -29,18 +34,21 @@ export default function SellerSidebar({ sidebarOpen, setSidebarOpen }: SidebarPr
   const router = useRouter();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  const basePath = "/seller-dashboard";
+  const basePath = "/general-dashboard/seller-dashboard";
 
   // Updated navigation items for Seller Dashboard
   const sidebarItems = [
-    { name: "Dashboard", icon: LayoutDashboard, href: `${basePath}` },
-    { name: "Profile & Status", icon: UserCheck, href: `${basePath}/profile` },
+    { name: "Dashboard", icon: LayoutDashboard, href: `${basePath}/dashboard` },
     { name: "Add Product", icon: PlusCircle, href: `${basePath}/add-product` },
-    { name: "My Products", icon: Package, href: `${basePath}/products` },
-    { name: "Inventory", icon: Boxes, href: `${basePath}/inventory` },
-    { name: "Orders", icon: ShoppingCart, href: `${basePath}/orders` },
+    { name: "My Products", icon: Package, href: `${basePath}/my-products` },
+    { name: "Edit Products", icon: Edit, href: `${basePath}/edit-products` },
+    { name: "Orders/Received", icon: Truck, href: `${basePath}/orders-received` },
+    { name: "Mark as Shipped", icon: ClipboardCheck, href: `${basePath}/mark-shipped` },
+    { name: "My Inventory", icon: Boxes, href: `${basePath}/inventory` },
+    { name: "Tracking Info", icon: MapPin, href: `${basePath}/tracking-info` },
     { name: "Sales Analytics", icon: BarChart3, href: `${basePath}/analytics` },
     { name: "Payout History", icon: History, href: `${basePath}/payouts` },
+    { name: "Profile & Settings", icon: UserCheck, href: `${basePath}/profile-settings` },
   ];
 
   const isActive = (href: string) => pathname === href;
@@ -65,7 +73,7 @@ export default function SellerSidebar({ sidebarOpen, setSidebarOpen }: SidebarPr
         <div className="flex items-center justify-between h-15 px-6 border-b border-border">
           <div className="flex flex-col">
             <h1 className="text-xl font-black uppercase tracking-tighter italic text-foreground">
-              Seller<span className="text-muted-foreground italic">Hub</span>
+              Shop<span className="text-muted-foreground italic">dot</span>fun
             </h1>
             <p className="text-[8px] font-bold tracking-[0.2em] text-muted-foreground uppercase">
               Growth & Earnings
@@ -77,7 +85,7 @@ export default function SellerSidebar({ sidebarOpen, setSidebarOpen }: SidebarPr
         </div>
 
         {/* Navigation */}
-        <div className="flex flex-col justify-between h-[calc(100vh-5rem)]">
+        <div className="flex flex-col justify-between h-[calc(100vh-4rem)]">
           <nav className="px-4 py-6 space-y-1 overflow-y-auto">
             {sidebarItems.map(({ name, icon: Icon, href }) => {
               const active = isActive(href);

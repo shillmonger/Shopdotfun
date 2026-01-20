@@ -66,19 +66,10 @@ export default function UserSettingsPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground transition-colors duration-300">
-      <div className="hidden lg:block fixed inset-y-0 left-0 z-30 w-72">
-        <BuyerSidebar sidebarOpen={true} setSidebarOpen={setSidebarOpen} />
-      </div>
+    <div className="flex h-screen overflow-hidden bg-background text-foreground">
+      <BuyerSidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-      {/* Mobile sidebar overlay */}
-      {sidebarOpen && (
-        <div className="lg:hidden fixed inset-0 z-40">
-          <BuyerSidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-        </div>
-      )}
-
-      <div className="flex-1 flex flex-col lg:pl-72">
+      <div className="flex-1 flex flex-col overflow-hidden">
         <BuyerHeader sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
         <main className="flex-1 overflow-y-auto p-6 md:p-10 space-y-8 pb-32">
