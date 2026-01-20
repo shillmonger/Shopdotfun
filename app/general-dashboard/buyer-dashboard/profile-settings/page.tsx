@@ -31,10 +31,9 @@ import BuyerNav from "@/components/buyer-dashboard/BuyerNav";
 export default function UserSettingsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  // Settings States
-  const [darkMode, setDarkMode] = useState(false);
+  
+  // Derived state
+  const darkMode = theme === "dark";
   
   // Personal Info State
   const [personalInfo, setPersonalInfo] = useState({
@@ -53,15 +52,8 @@ export default function UserSettingsPage() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>("https://github.com/shadcn.png");
 
-  useEffect(() => {
-    setMounted(true);
-    setDarkMode(theme === "dark");
-  }, [theme]);
-
   const toggleTheme = () => {
-    const newTheme = theme === "dark" ? "light" : "dark";
-    setTheme(newTheme);
-    setDarkMode(newTheme === "dark");
+    setTheme(theme === "dark" ? "light" : "dark");
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -162,13 +154,14 @@ export default function UserSettingsPage() {
                   </h3>
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-bold">Dark Mode</p>
-                    {mounted && (
-                      <button onClick={toggleTheme} className={`relative w-14 h-8 rounded-full cursor-pointer border border-border transition-colors ${darkMode ? "bg-primary" : "bg-muted"}`}>
-                        <div className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow-md transition-transform flex items-center justify-center ${darkMode ? "translate-x-6" : "translate-x-1"}`}>
-                          {darkMode ? <Moon className="w-3.5 h-3.5 text-black" /> : <Sun className="w-3.5 h-3.5 text-yellow-500" />}
-                        </div>
-                      </button>
-                    )}
+                    <button 
+                      onClick={toggleTheme} 
+                      className={`relative w-14 h-8 rounded-full cursor-pointer border border-border transition-colors ${darkMode ? "bg-primary" : "bg-muted"}`}
+                    >
+                      <div className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow-md transition-transform flex items-center justify-center ${darkMode ? "translate-x-6" : "translate-x-1"}`}>
+                        {darkMode ? <Moon className="w-3.5 h-3.5 text-black" /> : <Sun className="w-3.5 h-3.5 text-yellow-500" />}
+                      </div>
+                    </button>
                   </div>
                 </div>
               </div>
