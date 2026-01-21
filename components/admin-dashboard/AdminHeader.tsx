@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useLayoutEffect } from "react";
 import { Menu, X, Sun, Moon } from "lucide-react"; 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSession } from "next-auth/react";
@@ -14,12 +14,12 @@ interface HeaderProps {
 export default function SellerHeader({ sidebarOpen, setSidebarOpen }: HeaderProps) {
   const { data: session } = useSession();
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+const [mounted, setMounted] = useState(false);
 
   // Avoid Hydration Mismatch by waiting until component is mounted
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+ useLayoutEffect(() => {
+  setMounted(true);
+}, []);
 
   return (
     <header className="h-15 border-b border-border flex items-center justify-between gap-4 px-4 sm:px-10 bg-background/80 backdrop-blur-md sticky top-0 z-50">
