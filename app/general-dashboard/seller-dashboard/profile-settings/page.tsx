@@ -315,7 +315,7 @@ export default function SellerProfilePage() {
                     </div>
                     {!passwordsMatch && (
                       <p className="text-[10px] font-bold text-destructive flex items-center gap-1 uppercase tracking-tight">
-                        <AlertCircle className="w-3 h-3" /> Passwords don't match
+                        <AlertCircle className="w-3 h-3" /> Passwords don&apost; match
                       </p>
                     )}
                     <button 

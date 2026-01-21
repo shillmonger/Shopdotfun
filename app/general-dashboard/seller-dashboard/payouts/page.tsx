@@ -158,7 +158,7 @@ export default function PayoutHistoryPage() {
                 <p className="text-[10px] font-black uppercase tracking-widest">Deduction Policy</p>
                 <p className="text-[9px] text-muted-foreground font-medium uppercase leading-relaxed">
                   A 10% platform fee is deducted from the gross sale amount. This covers payment processing, 24/7 server maintenance, and marketing for your store. 
-                  Payouts are released every Friday for orders marked as "Delivered" and outside the 3-day return window.
+                  Payouts are released every Friday for orders marked as &quot;Delivered&quot; and outside the 3-day return window.
                 </p>
               </div>
             </div>

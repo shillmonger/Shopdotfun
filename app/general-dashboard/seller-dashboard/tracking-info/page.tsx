@@ -177,7 +177,7 @@ export default function UploadTrackingPage() {
                     <div>
                       <h4 className="text-[11px] font-black uppercase tracking-tight mb-1">Status Syncing</h4>
                       <p className="text-[10px] text-muted-foreground font-medium leading-relaxed uppercase">
-                        Adding a valid tracking number allows the system to automatically mark the order as "Delivered" once the courier API confirms arrival.
+                        Adding a valid tracking number allows the system to automatically mark the order as &quot;Delivered&quot; once the courier API confirms arrival.
                       </p>
                     </div>
                   </div>
