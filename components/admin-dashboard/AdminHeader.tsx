@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useLayoutEffect } from "react";
+import React from "react";
 import { Menu, X, Sun, Moon } from "lucide-react"; 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSession } from "next-auth/react";
@@ -14,12 +14,6 @@ interface HeaderProps {
 export default function SellerHeader({ sidebarOpen, setSidebarOpen }: HeaderProps) {
   const { data: session } = useSession();
   const { theme, setTheme } = useTheme();
-const [mounted, setMounted] = useState(false);
-
-  // Avoid Hydration Mismatch by waiting until component is mounted
- useLayoutEffect(() => {
-  setMounted(true);
-}, []);
 
   return (
     <header className="h-15 border-b border-border flex items-center justify-between gap-4 px-4 sm:px-10 bg-background/80 backdrop-blur-md sticky top-0 z-50">
@@ -53,14 +47,10 @@ const [mounted, setMounted] = useState(false);
           className="p-2.5 rounded-xl border border-border hover:bg-secondary transition-all cursor-pointer group"
           aria-label="Toggle Theme"
         >
-          {mounted && (
-            <>
-              {theme === "dark" ? (
-                <Sun className="h-5 w-5 text-amber-400 group-hover:rotate-45 transition-transform duration-300" />
-              ) : (
-                <Moon className="h-5 w-5 text-slate-700 group-hover:-rotate-12 transition-transform duration-300" />
-              )}
-            </>
+          {theme === "dark" ? (
+            <Sun className="h-5 w-5 text-amber-400 group-hover:rotate-45 transition-transform duration-300" />
+          ) : (
+            <Moon className="h-5 w-5 text-slate-700 group-hover:-rotate-12 transition-transform duration-300" />
           )}
         </button>
 
