@@ -2,17 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutGrid, CreditCard, Package, ShoppingBag, User, GraduationCap, Settings } from "lucide-react";
+import { LayoutGrid, CreditCard, Package, Truck, User, GraduationCap, Settings } from "lucide-react";
 
 export default function UserNav() {
   const pathname = usePathname();
 
   const navItems = [
-    { name: "Orders", href: "/general-dashboard/buyer-dashboard/orders", icon: Package },
-    { name: "Products", href: "/general-dashboard/buyer-dashboard/browse-product", icon: ShoppingBag },
-    { name: "Dashboard", href: "/general-dashboard/buyer-dashboard/dashboard", icon: LayoutGrid },
-    { name: "Checkout", href: "/general-dashboard/buyer-dashboard/checkout", icon: CreditCard },
-    { name: "Profile", href: "/general-dashboard/buyer-dashboard/profile-settings", icon: Settings },
+    { name: "ProdMod ", href: "/general-dashboard/admin-dashboard/product-moderation", icon: Package },
+    { name: "Payment", href: "/general-dashboard/admin-dashboard/payment-approvals", icon: CreditCard },
+    { name: "Dashboard", href: "/general-dashboard/admin-dashboard/dashboard", icon: LayoutGrid },
+    { name: "OrderTrack", href: "/general-dashboard/admin-dashboard/order-monitoring", icon: Truck },
+    { name: "Control", href: "/general-dashboard/admin-dashboard/sellers-control", icon: Settings },
   ];
 
   const isActive = (href: string) =>

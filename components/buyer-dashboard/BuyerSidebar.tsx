@@ -18,7 +18,7 @@ import {
   AlertOctagon, // Dispute icon
   LogOut,
   X,
-  UserCircle
+  Server
 } from "lucide-react";
 
 interface SidebarProps {
@@ -44,6 +44,7 @@ export default function BuyerSidebar({ sidebarOpen, setSidebarOpen }: SidebarPro
     { name: "Reviews & Ratings", icon: Star, href: `${basePath}/reviews-ratings` },
     { name: "Disputes/Complaints", icon: AlertOctagon, href: `${basePath}/disputes` },
     { name: "Profile & Settings", icon: Settings, href: `${basePath}/profile-settings` },
+    { name: "# Admin Auth Panel", icon: Server, href: `/general-dashboard/admin-dashboard/dashboard` },
   ];
 
   return (

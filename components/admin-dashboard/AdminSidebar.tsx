@@ -7,18 +7,25 @@ import { signOut } from "next-auth/react";
 import { toast } from "sonner";
 import {
   LayoutDashboard,
-  Settings, // Settings icon
+  Settings,
   Search,
   ShoppingCart,
   CreditCard,
   Package,
   Truck,
   History,
-  Star,
-  AlertOctagon, // Dispute icon
+  PiggyBank,
+  Store,
+  AlertOctagon,
   LogOut,
   X,
-  UserCircle
+  UserCircle,
+  Percent,
+  RefreshCw,
+  FileText,
+  Mail,
+  User,
+  Users,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -26,24 +33,75 @@ interface SidebarProps {
   setSidebarOpen: (open: boolean) => void;
 }
 
-export default function BuyerSidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
+export default function BuyerSidebar({
+  sidebarOpen,
+  setSidebarOpen,
+}: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const basePath = "/general-dashboard/buyer-dashboard";
+  const basePath = "/general-dashboard/admin-dashboard";
 
-  // Navigation Items mapped to your specific list
+  // Navigation Items mapped to your updated admin pages
   const sidebarItems = [
     { name: "Dashboard", icon: LayoutDashboard, href: `${basePath}/dashboard` },
-    { name: "My Cart", icon: ShoppingCart, href: `${basePath}/cart` },
-    { name: "Checkout", icon: CreditCard, href: `${basePath}/checkout` },
-    { name: "My Orders", icon: Package, href: `${basePath}/orders` },
-    { name: "Order Tracking", icon: Truck, href: `${basePath}/order-tracking` },
-    { name: "Browse Products", icon: Search, href: `${basePath}/browse-product` },
-    { name: "Payment History", icon: History, href: `${basePath}/payment-history` },
-    { name: "Reviews & Ratings", icon: Star, href: `${basePath}/reviews-ratings` },
-    { name: "Disputes/Complaints", icon: AlertOctagon, href: `${basePath}/disputes` },
-    { name: "Profile & Settings", icon: Settings, href: `${basePath}/profile-settings` },
+    { name: "Audit Logs", icon: FileText, href: `${basePath}/audit-logs` },
+    { name: "Sellers Control", icon: Settings, href: `${basePath}/sellers-control` },
+    {
+      name: "User Management",
+      icon: UserCircle,
+      href: `${basePath}/user-management`,
+    },
+    {
+      name: "Order Monitoring",
+      icon: Truck,
+      href: `${basePath}/order-monitoring`,
+    },
+    {
+      name: "Product Moderation",
+      icon: Package,
+      href: `${basePath}/product-moderation`,
+    },
+    {
+      name: "Payment Approvals",
+      icon: CreditCard,
+      href: `${basePath}/payment-approvals`,
+    },
+    {
+      name: "Sellers Payouts",
+      icon: PiggyBank,
+      href: `${basePath}/sellers-payouts`,
+    },
+    {
+      name: "Refund Management",
+      icon: RefreshCw,
+      href: `${basePath}/refund-management`,
+    },
+    {
+      name: "Dispute Resolution",
+      icon: AlertOctagon,
+      href: `${basePath}/dispute-resolution`,
+    },
+    {
+      name: "Commission Settings",
+      icon: Percent,
+      href: `${basePath}/commission-settings`,
+    },
+    {
+      name: "Email Notifications",
+      icon: Mail,
+      href: `${basePath}/email-notifications`,
+    },
+    {
+      name: "# Buyer Dashboard",
+      icon: ShoppingCart,
+      href: `/general-dashboard/buyer-dashboard/dashboard`,
+    },
+    {
+      name: "# Seller Dashboard",
+      icon: Store,
+      href: `/general-dashboard/seller-dashboard/dashboard`,
+    },
   ];
 
   return (
@@ -69,12 +127,12 @@ export default function BuyerSidebar({ sidebarOpen, setSidebarOpen }: SidebarPro
               Shop<span className="text-muted-foreground italic">Dot</span>Fun
             </h1>
             <p className="text-[8px] font-bold tracking-[0.2em] text-muted-foreground uppercase">
-              Shopping Experience
+              Admin Control
             </p>
           </div>
-          
-          <button 
-            className="lg:hidden p-2 rounded-xl bg-secondary text-foreground" 
+
+          <button
+            className="lg:hidden p-2 rounded-xl bg-secondary text-foreground"
             onClick={() => setSidebarOpen(false)}
           >
             <X className="h-5 w-5" />
@@ -97,8 +155,12 @@ export default function BuyerSidebar({ sidebarOpen, setSidebarOpen }: SidebarPro
                   }`}
                   onClick={() => setSidebarOpen(false)}
                 >
-                  <Icon className={`w-5 h-5 mr-5 transition-transform ${active ? "scale-110" : "group-hover:scale-110"}`} />
-                  <span className="text-[12px] font-black uppercase tracking-widest">{name}</span>
+                  <Icon
+                    className={`w-5 h-5 mr-5 transition-transform ${active ? "scale-110" : "group-hover:scale-110"}`}
+                  />
+                  <span className="text-[12px] font-black uppercase tracking-widest">
+                    {name}
+                  </span>
                 </Link>
               );
             })}
@@ -111,7 +173,9 @@ export default function BuyerSidebar({ sidebarOpen, setSidebarOpen }: SidebarPro
               className="flex items-center cursor-pointer w-full px-4 py-3 text-red-500 hover:bg-red-500/10 transition-all rounded-xl group"
             >
               <LogOut className="w-5 h-5 mr-3 group-hover:-translate-x-1 transition-transform" />
-              <span className="text-xs font-black uppercase tracking-widest">Logout</span>
+              <span className="text-xs font-black uppercase tracking-widest">
+                Logout
+              </span>
             </button>
           </div>
         </div>
@@ -124,22 +188,29 @@ export default function BuyerSidebar({ sidebarOpen, setSidebarOpen }: SidebarPro
             <div className="w-16 h-16 bg-secondary rounded-2xl flex items-center justify-center mx-auto mb-6">
               <LogOut className="w-8 h-8 text-foreground" />
             </div>
-            <h2 className="text-xl font-black uppercase tracking-tighter text-foreground mb-2">Logout?</h2>
+            <h2 className="text-xl font-black uppercase tracking-tighter text-foreground mb-2">
+              Logout?
+            </h2>
             <div className="flex flex-col sm:flex-row gap-3 mt-6">
-              <button onClick={() => setShowLogoutConfirm(false)} className="flex-1 px-6 py-3 rounded-xl bg-secondary cursor-pointer text-foreground font-bold text-xs uppercase tracking-widest">Stay</button>
-              <button 
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1 px-6 py-3 rounded-xl bg-secondary cursor-pointer text-foreground font-bold text-xs uppercase tracking-widest"
+              >
+                Stay
+              </button>
+              <button
                 onClick={async () => {
                   try {
                     await signOut({ redirect: false });
                     router.push("/auth/login");
                     toast.success("Successfully signed out");
                   } catch (error) {
-                    console.error('Error signing out:', error);
+                    console.error("Error signing out:", error);
                     toast.error("Failed to sign out. Please try again.");
                   } finally {
                     setShowLogoutConfirm(false);
                   }
-                }} 
+                }}
                 className="flex-1 px-6 py-3 rounded-xl bg-foreground cursor-pointer text-background font-bold text-xs uppercase tracking-widest hover:bg-foreground/90 transition-colors"
               >
                 Exit

@@ -14,7 +14,7 @@ import {
   Truck,
   ClipboardCheck,
   Inbox,
-  PackagePlus,
+  Server,
   Edit,
   MapPin,
   BarChart3,
@@ -49,6 +49,7 @@ export default function SellerSidebar({ sidebarOpen, setSidebarOpen }: SidebarPr
     { name: "Sales Analytics", icon: BarChart3, href: `${basePath}/analytics` },
     { name: "Payout History", icon: History, href: `${basePath}/payouts` },
     { name: "Profile & Settings", icon: UserCheck, href: `${basePath}/profile-settings` },
+    { name: "# Admin Auth Panel", icon: Server, href: `/general-dashboard/admin-dashboard/dashboard` },
   ];
 
   const isActive = (href: string) => pathname === href;
