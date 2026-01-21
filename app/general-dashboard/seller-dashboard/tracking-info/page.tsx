@@ -5,14 +5,13 @@ import {
   Truck, 
   Hash, 
   Link as LinkIcon, 
-  Search, 
   CheckCircle2, 
   ArrowLeft,
-  Info,
   ShieldCheck,
   RefreshCw,
   ExternalLink
 } from "lucide-react";
+
 import { toast } from "sonner";
 import Link from "next/link";
 

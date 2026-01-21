@@ -4,27 +4,23 @@ import React, { useState } from "react";
 import { useTheme } from "next-themes";
 import { 
   Camera, 
-  User, 
   Lock, 
   Palette, 
   Moon, 
   Sun, 
   Shield, 
-  LogOut, 
   Eye, 
   EyeOff, 
   Building2, 
-  CheckCircle2, 
   Mail, 
   Phone,
   Upload,
   AlertCircle,
   FileText,
-  Clock,
-  Trash2,
   Globe,
   MapPin
 } from "lucide-react";
+
 import { toast } from "sonner";
 
 import SellerHeader from "@/components/seller-dashboard/SellerHeader";

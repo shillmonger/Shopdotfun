@@ -45,7 +45,7 @@ const INITIAL_PRODUCTS = [
   },
   { 
     id: "P-8910", 
-    name: "UltraWide 34' Monitor", 
+name: "UltraWide 34&apos; Monitor",
     image: "https://images.unsplash.com/photo-1527443154391-507e9dc6c5cc?w=100&h=100&fit=crop",
     stock: 5, 
     price: "450.00", 
@@ -219,7 +219,7 @@ export default function EditDeleteProductPage() {
               <div>
                 <h4 className="text-[11px] font-black uppercase tracking-widest">Catalog Guidelines</h4>
                 <p className="text-[10px] text-muted-foreground font-medium uppercase leading-relaxed mt-1">
-                  Deleting a product is permanent. We recommend setting a product to "Draft" status instead of deleting to preserve sales history. 
+                  Deleting a product is permanent. We recommend setting a product to &quot;Draft&quot; status instead of deleting to preserve sales history. 
                   Products with active pending orders cannot be removed until fulfillment is complete.
                 </p>
               </div>

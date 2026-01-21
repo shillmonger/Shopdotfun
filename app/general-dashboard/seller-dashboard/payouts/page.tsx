@@ -2,20 +2,16 @@
 
 import React, { useState } from "react";
 import { 
-  DollarSign, 
   Clock, 
   CheckCircle2, 
   ArrowDownCircle, 
   Info, 
-  Search, 
-  Filter,
   ShieldAlert,
-  ArrowRightLeft,
   Banknote,
   Download,
   AlertCircle
 } from "lucide-react";
-import { toast } from "sonner";
+// import { toast } from "sonner";
 
 import SellerHeader from "@/components/seller-dashboard/SellerHeader";
 import SellerSidebar from "@/components/seller-dashboard/SellerSidebar";

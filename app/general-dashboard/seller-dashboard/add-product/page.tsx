@@ -1,19 +1,15 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { 
   Plus, 
   Upload, 
-  Trash2, 
-  Info, 
   Image as ImageIcon, 
   Eye, 
-  Zap, 
-  ShieldCheck,
+  Zap,
   Coins,
-  Box,
-  Clock,
-  Truck
+  ShieldCheck,
+  Box
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -34,7 +30,6 @@ export default function AddProductPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sku, setSku] = useState("");
-
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -47,15 +42,6 @@ export default function AddProductPage() {
     processingTime: "1-2 Days",
     images: [] as File[],
   });
-
-  // Auto-generate SKU logic
-  useEffect(() => {
-    if (formData.name.length > 2) {
-      const prefix = formData.name.substring(0, 3).toUpperCase();
-      const random = Math.floor(1000 + Math.random() * 9000);
-      setSku(`${prefix}-${random}`);
-    }
-  }, [formData.name]);
 
   const handlePublish = (status: "Active" | "Draft") => {
     if (!formData.name || !formData.price || !formData.category) {
@@ -124,7 +110,19 @@ export default function AddProductPage() {
                         placeholder="e.g. Sony WH-1000XM5 Headphones"
                         className="w-full bg-background border border-border rounded-xl px-4 py-4 text-sm font-bold focus:ring-2 ring-primary/20 outline-none"
                         value={formData.name}
-                        onChange={(e) => setFormData({...formData, name: e.target.value})}
+                        onChange={(e) => {
+                          const name = e.target.value;
+                          let newSku = "";
+                          
+                          if (name.length > 2) {
+                            const prefix = name.substring(0, 3).toUpperCase();
+                            const random = Math.floor(1000 + Math.random() * 9000);
+                            newSku = `${prefix}-${random}`;
+                          }
+                          
+                          setFormData({ ...formData, name });
+                          setSku(newSku);
+                        }}
                       />
                     </div>
                     
