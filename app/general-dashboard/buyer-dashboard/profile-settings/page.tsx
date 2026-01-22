@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   Camera,
@@ -21,14 +22,26 @@ import {
   Trash2,
   CheckCircle2,
   Mail,
-  Phone
+  Phone,
+  Loader2
 } from "lucide-react";
 
 import BuyerHeader from "@/components/buyer-dashboard/BuyerHeader";
 import BuyerSidebar from "@/components/buyer-dashboard/BuyerSidebar";
 import BuyerNav from "@/components/buyer-dashboard/BuyerNav";
+import { signOut } from "next-auth/react";
+
+interface BuyerProfile {
+  _id: string;
+  name: string;
+  email: string;
+  phone: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export default function UserSettingsPage() {
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   
@@ -37,32 +50,148 @@ export default function UserSettingsPage() {
   
   // Personal Info State
   const [personalInfo, setPersonalInfo] = useState({
-    fullName: "Alex Johnson",
-    email: "alex.j@example.com",
-    phone: "+234 801 234 5678",
+    name: "",
+    email: "",
+    phone: "",
   });
+  
+  // Loading states
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
-  // Address State
-  const [addresses, setAddresses] = useState([
-    { id: 1, label: "Home", address: "123 Lagos Street, Ikeja, Lagos", isDefault: true },
-    { id: 2, label: "Office", address: "45 Business Way, Victoria Island", isDefault: false },
-  ]);
-
-  // Form states
+  // Password states
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [profileImage, setProfileImage] = useState<string | null>("https://github.com/shadcn.png");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  // Static profile image URL
+  const profileImage = "https://github.com/shadcn.png";
+  
+  // Fetch buyer profile data
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch('/api/buyer/profile');
+        if (!response.ok) {
+          throw new Error('Failed to fetch profile');
+        }
+        const data = await response.json();
+        setPersonalInfo({
+          name: data.name || "",
+          email: data.email || "",
+          phone: data.phone || "",
+        });
+        
+        // Format and set the member since date
+        if (data.createdAt) {
+          const createdAt = new Date(data.createdAt);
+          const formattedDate = createdAt.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'short' 
+          }).toUpperCase();
+          setMemberSince(formattedDate);
+        }
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+        toast.error('Failed to load profile data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchProfile();
+  }, []);
+  
+  // Member since state
+  const [memberSince, setMemberSince] = useState("");
+  
+  // Handle profile update
+  const handleProfileUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsUpdating(true);
+    
+    try {
+      const response = await fetch('/api/buyer/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(personalInfo),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update profile');
+      }
+      
+      toast.success('Profile updated successfully');
+    } catch (error: any) {
+      console.error('Error updating profile:', error);
+      toast.error(error.message || 'Failed to update profile');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+  
+  // Handle password update
+  const handlePasswordUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (newPassword !== confirmPassword) {
+      toast.error('New passwords do not match');
+      return;
+    }
+    
+    setIsUpdatingPassword(true);
+    
+    try {
+      const response = await fetch('/api/buyer/update-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          currentPassword,
+          newPassword,
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update password');
+      }
+      
+      // Clear password fields on success
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      
+      toast.success('Password updated successfully');
+    } catch (error: any) {
+      console.error('Error updating password:', error);
+      toast.error(error.message || 'Failed to update password');
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };
+  
+  // Handle input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setPersonalInfo(prev => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
-  };
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setProfileImage(reader.result as string);
-      reader.readAsDataURL(file);
-    }
   };
 
   return (
@@ -98,20 +227,10 @@ export default function UserSettingsPage() {
                   <div className="flex flex-col items-center">
                     <div className="relative mb-6">
                       <div className="w-32 h-32 rounded-2xl overflow-hidden border-2 border-primary bg-muted shadow-2xl">
-                        {profileImage ? (
-                          <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <User className="w-12 h-12 text-muted-foreground/40" />
-                          </div>
-                        )}
+                        <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
                       </div>
-                      <label htmlFor="profile-upload" className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground p-2.5 rounded-xl cursor-pointer shadow-xl border border-background hover:scale-110 transition-transform">
-                        <Camera className="w-5 h-5" />
-                      </label>
-                      <input id="profile-upload" type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
                     </div>
-                    <p className="text-sm font-black uppercase">{personalInfo.fullName}</p>
+                    <p className="text-sm font-black uppercase">{personalInfo.name || 'Loading...'}</p>
                     <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight">Buyer Account</p>
                   </div>
                 </div>
@@ -129,11 +248,11 @@ export default function UserSettingsPage() {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-xs font-bold text-muted-foreground uppercase">Member Since</span>
-                      <span className="text-xs font-black">OCT 2024</span>
+                      <span className="text-xs font-black">{memberSince || 'N/A'}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-xs font-bold text-muted-foreground uppercase">Trust Score</span>
-                      <span className="text-xs font-black">98%</span>
+                      <span className="text-xs font-black">0%</span>
                     </div>
                   </div>
                 </div>
@@ -161,34 +280,71 @@ export default function UserSettingsPage() {
               <div className="lg:col-span-2 space-y-6">
                 
                 {/* Personal Information */}
-                <div className="bg-card rounded-2xl shadow-lg border border-border p-6">
+                <form onSubmit={handleProfileUpdate} className="bg-card rounded-2xl shadow-lg border border-border p-6">
                   <h3 className="text-sm font-black uppercase tracking-widest mb-6 flex items-center gap-2">
                     <User className="w-4 h-4 text-primary" /> Personal Information
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Full Name</label>
+                      <label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Full Name</label>
                       <div className="relative">
                         <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <input type="text" defaultValue={personalInfo.fullName} className="w-full bg-muted/30 border border-border rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none" />
+                        <input 
+                          id="name"
+                          name="name"
+                          type="text" 
+                          value={personalInfo.name} 
+                          onChange={handleInputChange}
+                          className="w-full bg-muted/30 border border-border rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none" 
+                          required
+                        />
                       </div>
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Email Address</label>
+                      <label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Email Address</label>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <input type="email" value={personalInfo.email} readOnly className="w-full bg-muted/50 border border-border rounded-xl pl-10 pr-4 py-3 text-sm cursor-not-allowed opacity-70" />
+                        <input 
+                          id="email"
+                          name="email"
+                          type="email" 
+                          value={personalInfo.email} 
+                          readOnly 
+                          className="w-full bg-muted/50 border border-border rounded-xl pl-10 pr-4 py-3 text-sm cursor-not-allowed opacity-70" 
+                        />
                       </div>
                     </div>
                     <div className="space-y-1 md:col-span-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Phone Number</label>
+                      <label htmlFor="phone" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Phone Number</label>
                       <div className="relative">
                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <input type="tel" defaultValue={personalInfo.phone} className="w-full bg-muted/30 border border-border rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none" />
+                        <input 
+                          id="phone"
+                          name="phone"
+                          type="tel" 
+                          value={personalInfo.phone} 
+                          onChange={handleInputChange}
+                          className="w-full bg-muted/30 border border-border rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none" 
+                          required
+                        />
                       </div>
                     </div>
+                    <div className="md:col-span-2 pt-2">
+                      <button 
+                        type="submit" 
+                        disabled={isUpdating}
+                        className="w-full md:w-auto bg-primary cursor-pointer text-primary-foreground px-6 py-3 rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                      >
+                        {isUpdating ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Updating...
+                          </>
+                        ) : 'Update Profile'}
+                      </button>
+                    </div>
                   </div>
-                </div>
+                </form>
 
                 {/* Address Book */}
                 <div className="bg-card rounded-2xl shadow-lg border border-border p-6">
@@ -201,58 +357,111 @@ export default function UserSettingsPage() {
                     </button>
                   </div>
                   <div className="space-y-3">
-                    {addresses.map((addr) => (
-                      <div key={addr.id} className="group flex items-center justify-between p-4 rounded-xl border border-border hover:border-primary transition-all">
-                        <div className="flex items-start gap-3">
-                          <div className="mt-1 p-2 bg-muted rounded-lg group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                            <MapPin className="w-4 h-4" />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <p className="text-sm font-black uppercase">{addr.label}</p>
-                              {addr.isDefault && <span className="text-[9px] bg-foreground text-background px-1.5 py-0.5 rounded font-black">DEFAULT</span>}
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-1">{addr.address}</p>
-                          </div>
-                        </div>
-                        <button className="p-2 text-muted-foreground hover:text-destructive transition-colors">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                    <div className="flex flex-col items-center justify-center py-10 px-4 text-center border-2 border-dashed border-border rounded-xl">
+                      <div className="bg-primary/10 p-3 rounded-full mb-3">
+                        <MapPin className="w-6 h-6 text-primary" />
                       </div>
-                    ))}
+                      <h4 className="font-medium text-foreground mb-1">No saved addresses</h4>
+                      <p className="text-sm text-muted-foreground mb-4 max-w-md">You haven't added any addresses yet. Add your first address to make checkout faster.</p>
+                      <button className="text-xs font-medium cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-lg flex items-center gap-1.5 transition-colors">
+                        <Plus className="w-3.5 h-3.5" />
+                        Add Your First Address
+                      </button>
+                    </div>
                   </div>
                 </div>
 
-                {/* Security (Password Reset) */}
-                <div className="bg-card rounded-2xl shadow-lg border border-border p-6">
+                {/* Security */}
+                <form onSubmit={handlePasswordUpdate} className="bg-card rounded-2xl shadow-lg border border-border p-6">
                   <h3 className="text-sm font-black uppercase tracking-widest mb-6 flex items-center gap-2">
-                    <Lock className="w-4 h-4 text-primary" /> Security
+                    <Shield className="w-4 h-4 text-primary" /> Security
                   </h3>
-                  <form className="space-y-4">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Current Password</label>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label htmlFor="currentPassword" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Current Password</label>
                       <div className="relative">
-                        <input type={showCurrentPassword ? "text" : "password"} className="w-full bg-muted/30 border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none" />
-                        <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                          {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <input 
+                          id="currentPassword"
+                          type={showCurrentPassword ? "text" : "password"} 
+                          value={currentPassword}
+                          onChange={(e) => setCurrentPassword(e.target.value)}
+                          placeholder="Enter current password" 
+                          className="w-full bg-muted/30 border border-border rounded-xl pl-10 pr-10 py-3 text-sm focus:ring-2 ring-primary/20 outline-none"
+                          required
+                        />
+                        <button 
+                          type="button" 
+                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">New Password</label>
-                        <input type="password"  className="w-full bg-muted/30 border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none" />
+                    <div className="space-y-2">
+                      <label htmlFor="newPassword" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">New Password</label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <input 
+                          id="newPassword"
+                          type={showNewPassword ? "text" : "password"} 
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="Enter new password" 
+                          className="w-full bg-muted/30 border border-border rounded-xl pl-10 pr-10 py-3 text-sm focus:ring-2 ring-primary/20 outline-none"
+                          required
+                        />
+                        <button 
+                          type="button" 
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
                       </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Confirm New</label>
-                        <input type="password" className="w-full bg-muted/30 border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none" />
+                      <p className="text-xs text-muted-foreground">
+                        Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, and one number.
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="confirmPassword" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Confirm New Password</label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <input 
+                          id="confirmPassword"
+                          type={showConfirmPassword ? "text" : "password"} 
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="Confirm new password" 
+                          className="w-full bg-muted/30 border border-border rounded-xl pl-10 pr-10 py-3 text-sm focus:ring-2 ring-primary/20 outline-none"
+                          required
+                        />
+                        <button 
+                          type="button" 
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
                       </div>
                     </div>
-                    <button type="button" className="bg-primary text-primary-foreground px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-xl shadow-primary/10 cursor-pointer">
-                      Update Security
-                    </button>
-                  </form>
-                </div>
+                    <div className="pt-2">
+                      <button 
+                        type="submit" 
+                        disabled={isUpdatingPassword}
+                        className="w-full bg-primary text-primary-foreground px-6 py-3 rounded-xl cursor-pointer font-bold text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                      >
+                        {isUpdatingPassword ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Updating...
+                          </>
+                        ) : 'Update Password'}
+                      </button>
+                    </div>
+                  </div>
+                </form>
 
                 {/* Danger Zone */}
                 <div className="bg-card rounded-2xl shadow-lg border border-border p-6 overflow-hidden relative border-destructive/20">
