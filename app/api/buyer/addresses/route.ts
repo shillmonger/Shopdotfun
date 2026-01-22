@@ -52,8 +52,15 @@ export async function POST(request: Request) {
     // First, get the user to check if we need to set this as default
     const user = await db.collection('buyer-users').findOne({ email: session.user.email });
     
+    // Define type for MongoDB update operation
+    type MongoUpdateOperation = {
+      $push?: { [key: string]: any };
+      $set: { [key: string]: any };
+      $pull?: { [key: string]: any };
+    };
+
     // Prepare the update operation
-    const updateOperation: any = {
+    const updateOperation: MongoUpdateOperation = {
       $push: {},
       $set: { updatedAt: now }
     };
