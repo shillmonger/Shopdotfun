@@ -71,8 +71,11 @@ export async function POST(request: Request) {
       { email: session.user.email },
       {
         $set: { updatedAt: now },
-        $push: { addresses: addressToAdd }
-      } as any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        $push: {
+          addresses: addressToAdd
+        } as any
+      }
     );
 
     return NextResponse.json({ 
@@ -164,11 +167,12 @@ export async function DELETE(request: Request) {
     await collection.updateOne(
       { email: session.user.email },
       {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         $pull: {
           addresses: { _id: new ObjectId(addressId) }
-        },
+        } as any,
         $set: { updatedAt: now }
-      } as any
+      }
     );
 
     if (user) {
