@@ -89,12 +89,71 @@ export default function SellerProfilePage() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordsMatch, setPasswordsMatch] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>("https://github.com/shadcn.png");
 
   const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
+
+  const validatePassword = (password: string) => {
+    // At least 8 characters, 1 uppercase, 1 lowercase, 1 number
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/;
+    return passwordRegex.test(password);
+  };
+
+  const handlePasswordUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Reset states
+    setPasswordsMatch(newPassword === confirmPassword);
+    
+    // Validate passwords match
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords don't match");
+      return;
+    }
+    
+    // Validate password strength
+    if (!validatePassword(newPassword)) {
+      toast.error("Password must be at least 8 characters long and include uppercase, lowercase, and number");
+      return;
+    }
+    
+    try {
+      setIsUpdating(true);
+      
+      const response = await fetch('/api/seller/update-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          currentPassword,
+          newPassword,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update password');
+      }
+
+      // Clear form on success
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      toast.success('Password updated successfully');
+    } catch (error) {
+      console.error('Error updating password:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to update password');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -358,20 +417,27 @@ export default function SellerProfilePage() {
                   </button>
                 </div>
 
-                {/* Password & Security - Matches Buyer Layout */}
+                {/* Password & Security */}
                 <div className="bg-card rounded-2xl shadow-lg border border-border p-6">
                   <h3 className="text-sm font-black uppercase tracking-widest mb-6 flex items-center gap-2">
                     <Lock className="w-4 h-4 text-primary" /> Security
                   </h3>
-                  <div className="space-y-4">
+                  <form onSubmit={handlePasswordUpdate} className="space-y-4">
                     <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Current Password</label>
                       <div className="relative">
                         <input 
-                          type={showCurrentPassword ? "text" : "password"} 
-                          className="w-full bg-muted/30 border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none" 
+                          type={showCurrentPassword ? "text" : "password"}
+                          value={currentPassword}
+                          onChange={(e) => setCurrentPassword(e.target.value)}
+                          className="w-full bg-muted/30 border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none"
+                          required
                         />
-                        <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                        <button 
+                          type="button" 
+                          onClick={() => setShowCurrentPassword(!showCurrentPassword)} 
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
                           {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                       </div>
@@ -381,49 +447,76 @@ export default function SellerProfilePage() {
                         <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">New Password</label>
                         <div className="relative">
                           <input 
-                            type={showNewPassword ? "text" : "password"} 
+                            type={showNewPassword ? "text" : "password"}
                             value={newPassword}
                             onChange={(e) => {
                               setNewPassword(e.target.value);
                               setPasswordsMatch(e.target.value === confirmPassword);
                             }}
-                            className="w-full bg-muted/30 border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none" 
+                            className="w-full bg-muted/30 border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none"
+                            required
+                            minLength={8}
                           />
-                          <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                          <button 
+                            type="button" 
+                            onClick={() => setShowNewPassword(!showNewPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          >
                             {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                           </button>
                         </div>
+                        <p className="text-[10px] text-muted-foreground mt-1">
+                          Min 8 chars with uppercase, lowercase, and number
+                        </p>
                       </div>
                       <div className="space-y-1">
                         <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Confirm New</label>
                         <div className="relative">
                           <input 
-                            type={showConfirmPassword ? "text" : "password"} 
+                            type={showConfirmPassword ? "text" : "password"}
                             value={confirmPassword}
                             onChange={(e) => {
                               setConfirmPassword(e.target.value);
                               setPasswordsMatch(newPassword === e.target.value);
                             }}
-                            className={`w-full bg-muted/30 border ${passwordsMatch ? 'border-border' : 'border-destructive'} rounded-xl px-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none`} 
+                            className={`w-full bg-muted/30 border ${
+                              passwordsMatch ? 'border-border' : 'border-destructive'
+                            } rounded-xl px-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none`}
+                            required
                           />
-                          <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                          <button 
+                            type="button" 
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          >
                             {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                           </button>
                         </div>
+                        {!passwordsMatch && (
+                          <p className="text-[10px] font-bold text-destructive flex items-center gap-1 mt-1">
+                            <AlertCircle className="w-3 h-3" /> Passwords don't match
+                          </p>
+                        )}
                       </div>
                     </div>
-                    {!passwordsMatch && (
-                      <p className="text-[10px] font-bold text-destructive flex items-center gap-1 uppercase tracking-tight">
-                        <AlertCircle className="w-3 h-3" /> Passwords don&apost; match
-                      </p>
-                    )}
                     <button 
-                      disabled={!passwordsMatch || !newPassword}
-                      className="bg-primary text-primary-foreground px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-xl shadow-primary/10 disabled:opacity-50"
+                      type="submit" 
+                      disabled={isUpdating || !currentPassword || !newPassword || !confirmPassword}
+                      className="bg-primary text-primary-foreground cursor-pointer px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-xl shadow-primary/10 disabled:opacity-50 flex items-center justify-center gap-2"
                     >
-                      Update Security
+                      {isUpdating ? (
+                        <>
+                          <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Updating...
+                        </>
+                      ) : (
+                        'Update Security'
+                      )}
                     </button>
-                  </div>
+                  </form>
                 </div>
 
                 {/* Danger Zone - Same as Buyer */}
