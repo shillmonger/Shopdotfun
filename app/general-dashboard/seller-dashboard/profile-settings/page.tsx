@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
+import { useSession } from "next-auth/react";
 import { 
   Camera, 
   Lock, 
@@ -35,15 +36,55 @@ export default function SellerProfilePage() {
   // Verification Status State
   const [verificationStatus, setVerificationStatus] = useState<"Pending" | "Approved" | "Rejected">("Pending");
 
+  const { data: session } = useSession();
+  const [isLoading, setIsLoading] = useState(true);
+
   // Seller Details State
   const [businessInfo, setBusinessInfo] = useState({
-    businessName: "Elite Gear Hub",
-    ownerName: "Alex Johnson",
-    email: "alex.j@elitegear.com",
-    phone: "+234 801 234 5678",
-    country: "Nigeria",
-    address: "123 Business Plaza, Ikeja, Lagos",
+    businessName: "",
+    name: "",
+    email: "",
+    phone: "",
+    country: "",
+    businessAddress: "",
   });
+
+  // Fetch seller data
+  useEffect(() => {
+    const fetchSellerData = async () => {
+      if (!session?.user?.email) return;
+      
+      try {
+        const response = await fetch('/api/seller/profile', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch seller data');
+        }
+
+        const data = await response.json();
+        setBusinessInfo({
+          businessName: data.businessName || "",
+          name: data.name || "",
+          email: data.email || "",
+          phone: data.phone || "",
+          country: data.country || "",
+          businessAddress: data.businessAddress || "",
+        });
+      } catch (error) {
+        console.error('Error fetching seller data:', error);
+        toast.error('Failed to load seller information');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSellerData();
+  }, [session]);
 
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -117,7 +158,7 @@ export default function SellerProfilePage() {
                       </label>
                       <input id="profile-upload" type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
                     </div>
-                    <p className="text-sm font-black uppercase">{businessInfo.businessName}</p>
+                    <p className="text-sm font-black uppercase text-center">{businessInfo.businessName || 'Your Business'}</p>
                     <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight">Verified Merchant</p>
                   </div>
                 </div>
@@ -140,7 +181,7 @@ export default function SellerProfilePage() {
                       </span>
                     </div>
                     {verificationStatus === "Rejected" && (
-                      <p className="text-[10px] text-destructive font-bold uppercase leading-tight bg-destructive/5 p-2 rounded-lg">
+                      <p className="text-[10px] font-bold text-destructive flex items-center gap-1 uppercase tracking-tight">
                         Reason: Blurred document images. Please re-upload.
                       </p>
                     )}
@@ -180,12 +221,22 @@ export default function SellerProfilePage() {
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Store Name</label>
-                      <input type="text" defaultValue={businessInfo.businessName} className="w-full bg-muted/30 border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none" />
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Business Name</label>
+                      <input 
+                        type="text" 
+                        value={businessInfo.businessName} 
+                        onChange={(e) => setBusinessInfo({...businessInfo, businessName: e.target.value})}
+                        className="w-full bg-muted/30 border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none" 
+                      />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Owner Name</label>
-                      <input type="text" defaultValue={businessInfo.ownerName} className="w-full bg-muted/30 border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none" />
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Your Name</label>
+                      <input 
+                        type="text" 
+                        value={businessInfo.name} 
+                        onChange={(e) => setBusinessInfo({...businessInfo, name: e.target.value})}
+                        className="w-full bg-muted/30 border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none" 
+                      />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Business Email</label>
@@ -198,29 +249,77 @@ export default function SellerProfilePage() {
                       <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Phone Number</label>
                       <div className="relative">
                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <input type="tel" defaultValue={businessInfo.phone} className="w-full bg-muted/30 border border-border rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none" />
+                        <input 
+                          type="tel" 
+                          value={businessInfo.phone} 
+                          onChange={(e) => setBusinessInfo({...businessInfo, phone: e.target.value})}
+                          className="w-full bg-muted/30 border border-border rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none" 
+                        />
                       </div>
                     </div>
-                    {/* Added Country */}
                     <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Country</label>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Country/Region</label>
                       <div className="relative">
                         <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <input type="text" defaultValue={businessInfo.country} className="w-full bg-muted/30 border border-border rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none" />
+                        <input 
+                          type="text" 
+                          value={businessInfo.country} 
+                          onChange={(e) => setBusinessInfo({...businessInfo, country: e.target.value})}
+                          className="w-full bg-muted/30 border border-border rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none" 
+                        />
                       </div>
                     </div>
-                    {/* Added Business Address */}
                     <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Business Address</label>
                       <div className="relative">
                         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <input type="text" defaultValue={businessInfo.address} className="w-full bg-muted/30 border border-border rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none" />
+                        <input 
+                          type="text" 
+                          value={businessInfo.businessAddress} 
+                          onChange={(e) => setBusinessInfo({...businessInfo, businessAddress: e.target.value})}
+                          className="w-full bg-muted/30 border border-border rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none" 
+                        />
                       </div>
                     </div>
                   </div>
-                  <button className="mt-6 bg-foreground text-background px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all cursor-pointer">
-                    Update Profile
-                  </button>
+                  <div className="flex mt-6">
+                    <button 
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        try {
+                          setIsLoading(true);
+                          const response = await fetch('/api/seller/profile', {
+                            method: 'PUT',
+                            headers: {
+                              'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                              businessName: businessInfo.businessName,
+                              name: businessInfo.name,
+                              phone: businessInfo.phone,
+                              country: businessInfo.country,
+                              businessAddress: businessInfo.businessAddress
+                            }),
+                          });
+
+                          if (!response.ok) {
+                            throw new Error('Failed to update profile');
+                          }
+
+                          toast.success('Profile updated successfully');
+                        } catch (error) {
+                          console.error('Error updating profile:', error);
+                          toast.error('Failed to update profile');
+                        } finally {
+                          setIsLoading(false);
+                        }
+                      }}
+                      disabled={isLoading}
+                      className="bg-foreground text-background px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isLoading ? 'Saving...' : 'Update Profile'}
+                    </button>
+                  </div>
                 </div>
 
                 {/* Verification Documents */}

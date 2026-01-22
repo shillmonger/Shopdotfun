@@ -69,7 +69,7 @@ export default function SellerOverviewPage() {
                   )}
                 </div>
               </div>
-              <Link href="/seller/products/add" className="bg-primary text-primary-foreground px-8 py-4 rounded-xl text-xs font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-primary/20">
+              <Link href="general-dashboard/seller-dashboard/add-product" className="bg-primary text-primary-foreground px-8 py-4 rounded-xl text-xs font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-primary/20">
                 + Add New Product
               </Link>
             </section>
@@ -85,7 +85,11 @@ export default function SellerOverviewPage() {
                         <p className="text-[10px] font-bold uppercase opacity-80">Upload your government ID to enable wallet withdrawals.</p>
                       </div>
                     </div>
-                    <button className="w-full md:w-auto bg-black text-white px-6 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest">Complete Now</button>
+                      <Link href="/general-dashboard/seller-dashboard/profile-settings">       
+                    <button className="w-full md:w-auto cursor-pointer bg-black text-white px-6 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest">
+                      Complete Now
+                    </button>
+                    </Link>
                   </div>
                )}
                
