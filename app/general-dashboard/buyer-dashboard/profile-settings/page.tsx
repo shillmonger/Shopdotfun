@@ -14,6 +14,7 @@ import {
   Moon,
   Sun,
   Shield,
+  AlertCircle,
   LogOut,
   Eye,
   EyeOff,
@@ -67,6 +68,7 @@ export default function UserSettingsPage() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordsMatch, setPasswordsMatch] = useState(true);
   
   // Static profile image URL
   const profileImage = "https://github.com/shadcn.png";
@@ -372,96 +374,109 @@ export default function UserSettingsPage() {
                 </div>
 
                 {/* Security */}
-                <form onSubmit={handlePasswordUpdate} className="bg-card rounded-2xl shadow-lg border border-border p-6">
+                <div className="bg-card rounded-2xl shadow-lg border border-border p-6">
                   <h3 className="text-sm font-black uppercase tracking-widest mb-6 flex items-center gap-2">
-                    <Shield className="w-4 h-4 text-primary" /> Security
+                    <Lock className="w-4 h-4 text-primary" /> Security
                   </h3>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label htmlFor="currentPassword" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Current Password</label>
+                  <form onSubmit={handlePasswordUpdate} className="space-y-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Current Password</label>
                       <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <input 
-                          id="currentPassword"
-                          type={showCurrentPassword ? "text" : "password"} 
+                          type={showCurrentPassword ? "text" : "password"}
                           value={currentPassword}
                           onChange={(e) => setCurrentPassword(e.target.value)}
-                          placeholder="Enter current password" 
-                          className="w-full bg-muted/30 border border-border rounded-xl pl-10 pr-10 py-3 text-sm focus:ring-2 ring-primary/20 outline-none"
+                          className="w-full bg-muted/30 border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none"
+                          placeholder="Enter current password"
                           required
                         />
                         <button 
                           type="button" 
-                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                          onClick={() => setShowCurrentPassword(!showCurrentPassword)} 
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                         >
-                          {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <label htmlFor="newPassword" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">New Password</label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <input 
-                          id="newPassword"
-                          type={showNewPassword ? "text" : "password"} 
-                          value={newPassword}
-                          onChange={(e) => setNewPassword(e.target.value)}
-                          placeholder="Enter new password" 
-                          className="w-full bg-muted/30 border border-border rounded-xl pl-10 pr-10 py-3 text-sm focus:ring-2 ring-primary/20 outline-none"
-                          required
-                        />
-                        <button 
-                          type="button" 
-                          onClick={() => setShowNewPassword(!showNewPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        >
-                          {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">New Password</label>
+                        <div className="relative">
+                          <input 
+                            type={showNewPassword ? "text" : "password"}
+                            value={newPassword}
+                            onChange={(e) => {
+                              setNewPassword(e.target.value);
+                              setPasswordsMatch(e.target.value === confirmPassword);
+                            }}
+                            className="w-full bg-muted/30 border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none"
+                            placeholder="Enter new password"
+                            required
+                            minLength={8}
+                          />
+                          <button 
+                            type="button" 
+                            onClick={() => setShowNewPassword(!showNewPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          >
+                            {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground mt-1">
+                          Min 8 chars with uppercase, lowercase, and number
+                        </p>
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, and one number.
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <label htmlFor="confirmPassword" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Confirm New Password</label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <input 
-                          id="confirmPassword"
-                          type={showConfirmPassword ? "text" : "password"} 
-                          value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                          placeholder="Confirm new password" 
-                          className="w-full bg-muted/30 border border-border rounded-xl pl-10 pr-10 py-3 text-sm focus:ring-2 ring-primary/20 outline-none"
-                          required
-                        />
-                        <button 
-                          type="button" 
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        >
-                          {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Confirm New</label>
+                        <div className="relative">
+                          <input 
+                            type={showConfirmPassword ? "text" : "password"}
+                            value={confirmPassword}
+                            onChange={(e) => {
+                              setConfirmPassword(e.target.value);
+                              setPasswordsMatch(newPassword === e.target.value);
+                            }}
+                            className={`w-full bg-muted/30 border ${
+                              confirmPassword ? (passwordsMatch ? 'border-border' : 'border-destructive') : 'border-border'
+                            } rounded-xl px-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none`}
+                            placeholder="Confirm new password"
+                            required
+                          />
+                          <button 
+                            type="button" 
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          >
+                            {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
+                        {confirmPassword && !passwordsMatch && (
+                          <p className="text-[10px] font-bold text-destructive flex items-center gap-1 mt-1">
+                            <AlertCircle className="w-3 h-3" /> Passwords don't match
+                          </p>
+                        )}
                       </div>
                     </div>
-                    <div className="pt-2">
-                      <button 
-                        type="submit" 
-                        disabled={isUpdatingPassword}
-                        className="w-full bg-primary text-primary-foreground px-6 py-3 rounded-xl cursor-pointer font-bold text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-                      >
-                        {isUpdatingPassword ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            Updating...
-                          </>
-                        ) : 'Update Password'}
-                      </button>
-                    </div>
-                  </div>
-                </form>
+                    <button 
+                      type="submit" 
+                      disabled={isUpdatingPassword || !currentPassword || !newPassword || !confirmPassword || !passwordsMatch}
+                      className="bg-primary text-primary-foreground cursor-pointer px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-xl shadow-primary/10 disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {isUpdatingPassword ? (
+                        <>
+                          <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Updating...
+                        </>
+                      ) : (
+                        'Update Security'
+                      )}
+                    </button>
+                  </form>
+                </div>
 
                 {/* Danger Zone */}
                 <div className="bg-card rounded-2xl shadow-lg border border-border p-6 overflow-hidden relative border-destructive/20">
