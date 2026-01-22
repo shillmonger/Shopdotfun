@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import clientPromise from '@/lib/db';
-import { ObjectId, type UpdateFilter, type Document, type WithId } from 'mongodb';
+import { ObjectId, type UpdateFilter, type Document } from 'mongodb';
 import { authOptions } from '@/lib/auth';
 import { Address } from '@/models/User';
 
@@ -29,7 +29,7 @@ export async function GET() {
 
     const client = await clientPromise;
     const db = client.db(dbName);
-    const user = await db.collection('buyer-users').findOne({ email: session.user.email });
+    const user = await db.collection<UserDocument>('buyer-users').findOne({ email: session.user.email });
 
     if (!user) {
       return new NextResponse(JSON.stringify({ error: 'User not found' }), { status: 404 });
@@ -52,44 +52,41 @@ export async function POST(request: Request) {
     const addressData: Omit<Address, 'createdAt' | 'updatedAt' | 'isDefault'> = await request.json();
     const now = new Date();
     
-    const newAddress: Address = {
-      ...addressData,
-      isDefault: false, // New addresses are not default by default
-      createdAt: now,
-      updatedAt: now
-    };
-
     const client = await clientPromise;
     const db = client.db(dbName);
+    const collection = db.collection<UserDocument>('buyer-users');
 
     // First, get the user to check if we need to set this as default
-    const user = await db.collection('buyer-users').findOne({ email: session.user.email });
+    const user = await collection.findOne({ email: session.user.email });
     
     // Create the new address object
     const addressToAdd: UserAddress = {
+      ...addressData,
       _id: new ObjectId(),
-      ...newAddress,
       isDefault: !user?.addresses?.length, // true if first address, false otherwise
       createdAt: now,
       updatedAt: now
     };
     
-    // Prepare the update operation with proper typing
-    const updateOperation: UpdateFilter<UserDocument> = {
+    // FIX: Using 'as any' to bypass the nested $push type compatibility error
+    const updateOperation = {
       $set: { updatedAt: now },
       $push: {
         addresses: {
           $each: [addressToAdd]
         }
       }
-    };
+    } as any as UpdateFilter<UserDocument>;
     
-    await db.collection('buyer-users').updateOne(
+    await collection.updateOne(
       { email: session.user.email },
       updateOperation
     );
 
-    return NextResponse.json({ message: 'Address added successfully', address: newAddress });
+    return NextResponse.json({ 
+      message: 'Address added successfully', 
+      address: addressToAdd 
+    });
   } catch (error) {
     console.error('Error adding address:', error);
     return new NextResponse(JSON.stringify({ error: 'Internal server error' }), { status: 500 });
@@ -113,8 +110,7 @@ export async function PUT(request: Request) {
     const db = client.db(dbName);
     const now = new Date();
 
-    // Update the specific address
-    const result = await db.collection('buyer-users').updateOne(
+    const result = await db.collection<UserDocument>('buyer-users').updateOne(
       { 
         email: session.user.email,
         'addresses._id': new ObjectId(addressId)
@@ -159,10 +155,11 @@ export async function DELETE(request: Request) {
 
     const client = await clientPromise;
     const db = client.db(dbName);
+    const collection = db.collection<UserDocument>('buyer-users');
     const now = new Date();
 
-    // First check if the address is default
-    const user = await db.collection('buyer-users').findOne({
+    // Find the user and check if the address being deleted is the default one
+    const user = await collection.findOne({
       email: session.user.email,
       addresses: {
         $elemMatch: {
@@ -172,37 +169,24 @@ export async function DELETE(request: Request) {
       }
     });
 
-    // First, remove the address using a two-step process to avoid type issues
-    await db.collection('buyer-users').updateOne(
+    // Remove the address
+    await collection.updateOne(
       { email: session.user.email },
-      [
-        {
-          $set: {
-            addresses: {
-              $filter: {
-                input: '$addresses',
-                as: 'address',
-                cond: { $ne: ['$$address._id', new ObjectId(addressId)] }
-              }
-            },
-            updatedAt: now
-          }
-        }
-      ]
+      {
+        $pull: { addresses: { _id: new ObjectId(addressId) } } as any,
+        $set: { updatedAt: now }
+      }
     );
 
-    // If the deleted address was default, set another address as default if available
+    // If we deleted the default address, nominate a new one
     if (user) {
-      const updatedUser = await db.collection('buyer-users').findOne({ 
-        email: session.user.email,
-        addresses: { $exists: true, $not: { $size: 0 } }
-      });
+      const updatedUser = await collection.findOne({ email: session.user.email });
       
       if (updatedUser && updatedUser.addresses && updatedUser.addresses.length > 0) {
-        await db.collection('buyer-users').updateOne(
+        await collection.updateOne(
           { 
             email: session.user.email,
-            'addresses._id': new ObjectId(updatedUser.addresses[0]._id)
+            'addresses._id': updatedUser.addresses[0]._id
           },
           {
             $set: {
