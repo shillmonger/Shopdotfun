@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import clientPromise from '@/lib/db';
-import { ObjectId, type UpdateFilter, type Document } from 'mongodb';
+import { ObjectId, type Document } from 'mongodb';
 import { authOptions } from '@/lib/auth';
 import { Address } from '@/models/User';
 
@@ -71,7 +71,6 @@ export async function POST(request: Request) {
       { email: session.user.email },
       {
         $set: { updatedAt: now },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         $push: {
           addresses: addressToAdd
         } as any
@@ -167,7 +166,6 @@ export async function DELETE(request: Request) {
     await collection.updateOne(
       { email: session.user.email },
       {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         $pull: {
           addresses: { _id: new ObjectId(addressId) }
         } as any,
