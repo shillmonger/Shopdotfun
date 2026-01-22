@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { Loader2, MapPin, User, Phone, Home, Globe, RefreshCcw } from 'lucide-react';
 import { Address } from '@/models/User';
 
 interface AddressFormProps {
   initialData?: Partial<Address> & { _id?: string };
-  onSave?: (address: Address) => void;
+  onSave?: (address: Address) => void | Promise<void>; // Added Promise support
   onCancel?: () => void;
   isSaving?: boolean;
 }
@@ -16,8 +16,11 @@ export default function AddressForm({
   initialData, 
   onSave, 
   onCancel,
-  isSaving = false
+  isSaving: isSavingProp = false // Rename for internal use
 }: AddressFormProps) {
+  // Local loading state for immediate UI feedback
+  const [isLocalSaving, setIsLocalSaving] = useState(false);
+
   const [formData, setFormData] = useState<Partial<Address> & { _id?: string }>({
     fullName: '',
     phone: '',
@@ -29,6 +32,9 @@ export default function AddressForm({
     ...initialData
   });
 
+  // Combine prop and local state to determine if we are "loading"
+  const isLoading = isSavingProp || isLocalSaving;
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -37,8 +43,10 @@ export default function AddressForm({
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validation
     if (!formData.fullName || !formData.phone || !formData.street || !formData.city || !formData.state || !formData.country) {
       toast.error('Please fill in all required fields');
       return;
@@ -56,7 +64,18 @@ export default function AddressForm({
       updatedAt: new Date()
     };
     
-    onSave?.(addressData);
+    try {
+      setIsLocalSaving(true); // Start loading animation
+      if (onSave) {
+        // We await this so the "Saving..." stays until the parent finishes
+        await onSave(addressData); 
+      }
+    } catch (error) {
+      console.error("Failed to save address:", error);
+      toast.error("An error occurred while saving.");
+    } finally {
+      setIsLocalSaving(false); // Stop loading animation
+    }
   };
 
   return (
@@ -183,7 +202,7 @@ export default function AddressForm({
             type="checkbox"
             checked={formData.isDefault || false}
             onChange={handleChange}
-            required
+              required
             className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
           />
           <label htmlFor="isDefault" className="text-xs font-bold text-muted-foreground">
@@ -196,10 +215,10 @@ export default function AddressForm({
       <div className="flex flex-col sm:flex-row gap-3 pt-4">
         <button
           type="submit"
-          disabled={isSaving}
+          disabled={isLoading}
           className="flex-1 bg-foreground cursor-pointer text-background px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-xl shadow-primary/10 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isSaving ? (
+          {isLoading ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
               {initialData?._id ? 'UPDATING...' : 'SAVING...'}
@@ -216,7 +235,7 @@ export default function AddressForm({
           <button
             type="button"
             onClick={onCancel}
-            disabled={isSaving}
+            disabled={isLoading}
             className="flex-1 bg-muted/50 cursor-pointer text-foreground px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest border border-border transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             CANCEL

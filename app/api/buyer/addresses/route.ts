@@ -56,31 +56,23 @@ export async function POST(request: Request) {
     const db = client.db(dbName);
     const collection = db.collection<UserDocument>('buyer-users');
 
-    // First, get the user to check if we need to set this as default
     const user = await collection.findOne({ email: session.user.email });
     
-    // Create the new address object
     const addressToAdd: UserAddress = {
       ...addressData,
       _id: new ObjectId(),
-      isDefault: !user?.addresses?.length, // true if first address, false otherwise
+      isDefault: !user?.addresses?.length,
       createdAt: now,
       updatedAt: now
     };
     
-    // FIX: Using 'as any' to bypass the nested $push type compatibility error
-    const updateOperation = {
-      $set: { updatedAt: now },
-      $push: {
-        addresses: {
-          $each: [addressToAdd]
-        }
-      }
-    } as any as UpdateFilter<UserDocument>;
-    
+    // Using 'as any' to bypass the nested $push type compatibility error
     await collection.updateOne(
       { email: session.user.email },
-      updateOperation
+      {
+        $set: { updatedAt: now },
+        $push: { addresses: addressToAdd }
+      } as any
     );
 
     return NextResponse.json({ 
@@ -126,7 +118,7 @@ export async function PUT(request: Request) {
           'addresses.$.country': updateData.country,
           updatedAt: now
         }
-      }
+      } as any // Also useful here for dot-notation paths
     );
 
     if (result.matchedCount === 0) {
@@ -158,7 +150,6 @@ export async function DELETE(request: Request) {
     const collection = db.collection<UserDocument>('buyer-users');
     const now = new Date();
 
-    // Find the user and check if the address being deleted is the default one
     const user = await collection.findOne({
       email: session.user.email,
       addresses: {
@@ -166,19 +157,20 @@ export async function DELETE(request: Request) {
           _id: new ObjectId(addressId),
           isDefault: true
         }
-      }
+      } as any
     });
 
-    // Remove the address
+    // Remove the address - Added 'as any' to fix the error you were getting
     await collection.updateOne(
       { email: session.user.email },
       {
-        $pull: { addresses: { _id: new ObjectId(addressId) } } as any,
+        $pull: {
+          addresses: { _id: new ObjectId(addressId) }
+        },
         $set: { updatedAt: now }
-      }
+      } as any
     );
 
-    // If we deleted the default address, nominate a new one
     if (user) {
       const updatedUser = await collection.findOne({ email: session.user.email });
       
@@ -193,7 +185,7 @@ export async function DELETE(request: Request) {
               'addresses.$.isDefault': true,
               'addresses.$.updatedAt': now
             }
-          }
+          } as any
         );
       }
     }
