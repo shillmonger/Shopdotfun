@@ -23,36 +23,26 @@ import BuyerHeader from "@/components/buyer-dashboard/BuyerHeader";
 import BuyerSidebar from "@/components/buyer-dashboard/BuyerSidebar";
 import BuyerNav from "@/components/buyer-dashboard/BuyerNav";
 
-interface UserData {
-  name: string;
-  country: string;
-}
+type UserWithCountry = {
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  country?: string;
+};
 
 export default function BuyerOverviewPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [userData, setUserData] = useState<UserData | null>(null);
-  const [loading, setLoading] = useState(true);
   const { data: session, status } = useSession();
+  const loading = status === 'loading';
 
-  useEffect(() => {
-    if (status === 'loading') return;
-    
-    console.log('Session from useSession():', session); // Debug log
-    
-    if (session?.user) {
-      setUserData({
-        name: session.user.name || 'User',
-        country: (session.user as any).country || 'Unknown Location'
-      });
-    } else {
-      setUserData({
-        name: 'User',
-        country: 'Unknown Location'
-      });
-    }
-    
-    setLoading(false);
-  }, [session, status]);
+  // Derive userData directly from session
+  const userData = React.useMemo(() => {
+    const user = session?.user as UserWithCountry | undefined;
+    return {
+      name: user?.name ?? 'User',
+      country: user?.country ?? 'Unknown Location'
+    };
+  }, [session]);
 
   // Mock Stats
   const stats = [
