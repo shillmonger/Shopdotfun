@@ -132,9 +132,10 @@ export default function UserSettingsPage() {
       }
       
       toast.success('Profile updated successfully');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating profile:', error);
-      toast.error(error.message || 'Failed to update profile');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update profile';
+      toast.error(errorMessage);
     } finally {
       setIsUpdating(false);
     }
@@ -175,9 +176,10 @@ export default function UserSettingsPage() {
       setConfirmPassword('');
       
       toast.success('Password updated successfully');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating password:', error);
-      toast.error(error.message || 'Failed to update password');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update password';
+      toast.error(errorMessage);
     } finally {
       setIsUpdatingPassword(false);
     }
@@ -364,7 +366,7 @@ export default function UserSettingsPage() {
                         <MapPin className="w-6 h-6 text-primary" />
                       </div>
                       <h4 className="font-medium text-foreground mb-1">No saved addresses</h4>
-                      <p className="text-sm text-muted-foreground mb-4 max-w-md">You haven't added any addresses yet. Add your first address to make checkout faster.</p>
+                      <p className="text-sm text-muted-foreground mb-4 max-w-md">You haven&apos;t added any addresses yet. Add your first address to make checkout faster.</p>
                       <button className="text-xs font-medium cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-lg flex items-center gap-1.5 transition-colors">
                         <Plus className="w-3.5 h-3.5" />
                         Add Your First Address
@@ -453,7 +455,7 @@ export default function UserSettingsPage() {
                         </div>
                         {confirmPassword && !passwordsMatch && (
                           <p className="text-[10px] font-bold text-destructive flex items-center gap-1 mt-1">
-                            <AlertCircle className="w-3 h-3" /> Passwords don't match
+                            <AlertCircle className="w-3 h-3" /> Passwords don&apos;t match
                           </p>
                         )}
                       </div>
