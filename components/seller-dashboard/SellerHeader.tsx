@@ -45,7 +45,7 @@ export default function SellerHeader({ sidebarOpen, setSidebarOpen }: HeaderProp
               {session?.user?.name || 'Seller'}
             </p>
             <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter mt-1">
-              Store Verified
+              {session?.user?.email || 'Seller mail'}
             </p>
           </div>
           
