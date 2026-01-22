@@ -1,11 +1,24 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import clientPromise from '@/lib/db';
-import { ObjectId } from 'mongodb';
+import { ObjectId, type UpdateFilter, type Document, type WithId } from 'mongodb';
 import { authOptions } from '@/lib/auth';
 import { Address } from '@/models/User';
 
 const dbName = 'shpdotfun';
+
+interface UserAddress extends Omit<Address, 'createdAt' | 'updatedAt'> {
+  _id: ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
+  isDefault: boolean;
+}
+
+interface UserDocument extends Document {
+  email: string;
+  addresses: UserAddress[];
+  updatedAt: Date;
+}
 
 export async function GET() {
   try {
@@ -52,31 +65,22 @@ export async function POST(request: Request) {
     // First, get the user to check if we need to set this as default
     const user = await db.collection('buyer-users').findOne({ email: session.user.email });
     
-    // Define type for MongoDB update operation
-    type MongoUpdateOperation = {
-      $push?: { [key: string]: any };
-      $set: { [key: string]: any };
-      $pull?: { [key: string]: any };
-    };
-
-    // Prepare the update operation
-    const updateOperation: MongoUpdateOperation = {
-      $push: {},
-      $set: { updatedAt: now }
+    // Create the new address object
+    const addressToAdd: UserAddress = {
+      _id: new ObjectId(),
+      ...newAddress,
+      isDefault: !user?.addresses?.length, // true if first address, false otherwise
+      createdAt: now,
+      updatedAt: now
     };
     
-    // If this is the first address, make it default
-    if (!user?.addresses || user.addresses.length === 0) {
-      newAddress.isDefault = true;
-    }
-    
-    // Add the new address with a new ObjectId
-    updateOperation.$push = {
-      addresses: {
-        _id: new ObjectId(),
-        ...newAddress,
-        createdAt: now,
-        updatedAt: now
+    // Prepare the update operation with proper typing
+    const updateOperation: UpdateFilter<UserDocument> = {
+      $set: { updatedAt: now },
+      $push: {
+        addresses: {
+          $each: [addressToAdd]
+        }
       }
     };
     
