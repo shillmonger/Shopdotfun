@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   ShoppingBag, 
   Package, 
@@ -16,13 +16,43 @@ import {
   ExternalLink
 } from "lucide-react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { getGreeting } from "@/lib/utils";
 
 import BuyerHeader from "@/components/buyer-dashboard/BuyerHeader";
 import BuyerSidebar from "@/components/buyer-dashboard/BuyerSidebar";
 import BuyerNav from "@/components/buyer-dashboard/BuyerNav";
 
+interface UserData {
+  name: string;
+  country: string;
+}
+
 export default function BuyerOverviewPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const { data: session, status } = useSession();
+
+  useEffect(() => {
+    if (status === 'loading') return;
+    
+    console.log('Session from useSession():', session); // Debug log
+    
+    if (session?.user) {
+      setUserData({
+        name: session.user.name || 'User',
+        country: (session.user as any).country || 'Unknown Location'
+      });
+    } else {
+      setUserData({
+        name: 'User',
+        country: 'Unknown Location'
+      });
+    }
+    
+    setLoading(false);
+  }, [session, status]);
 
   // Mock Stats
   const stats = [
@@ -45,19 +75,27 @@ export default function BuyerOverviewPage() {
             {/* 1️⃣ Welcome & Account Snapshot */}
             <section className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
               <div>
-                <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tighter italic leading-none">
-                  Good morning, John
+                <h1 className="text-2xl md:text-4xl font-black uppercase tracking-tighter italic leading-none">
+                  {loading ? (
+                    <div className="h-10 w-64 bg-muted rounded animate-pulse"></div>
+                  ) : (
+                    getGreeting(userData?.name || 'User')
+                  )}
                 </h1>
                 <div className="flex items-center gap-4 mt-3">
                   <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest bg-green-500/10 text-green-500 px-2 py-1 rounded-md border border-green-500/20">
                     <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> Status: Active
                   </span>
-                  <span className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                    <MapPin className="w-3 h-3" /> Ikeja, Lagos
-                  </span>
+                  {loading ? (
+                    <div className="h-4 w-24 bg-muted rounded animate-pulse"></div>
+                  ) : (
+                    <span className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                      <MapPin className="w-3 h-3" /> {userData?.country || 'Unknown Location'}
+                    </span>
+                  )}
                 </div>
               </div>
-              <Link href="/buyer/browse" className="bg-primary text-primary-foreground px-8 py-4 rounded-xl text-xs font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-primary/20">
+              <Link href="/general-dashboard/buyer-dashboard/browse-product" className="bg-primary text-primary-foreground px-8 py-4 rounded-xl text-xs font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-primary/20">
                 Continue Shopping
               </Link>
             </section>

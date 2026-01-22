@@ -31,7 +31,8 @@ export const authOptions: NextAuthOptions = {
             id: user._id.toString(),
             email: user.email,
             name: user.name,
-            role: user.role
+            role: user.role,
+            country: user.country
           };
         } catch (error) {
           console.error('Authentication error:', error);
@@ -45,6 +46,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = user.role;
         token.id = user.id;
+        token.country = user.country;
       }
       return token;
     },
@@ -52,6 +54,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.role = token.role as string;
         session.user.id = token.id as string;
+        session.user.country = token.country as string;
       }
       return session;
     }
@@ -69,12 +72,14 @@ declare module "next-auth" {
   interface User {
     role?: string;
     id?: string;
+    country?: string;
   }
 
   interface Session extends DefaultSession {
     user: {
       role?: string;
       id?: string;
+      country?: string;
     } & DefaultSession['user']
   }
 }
@@ -83,5 +88,6 @@ declare module "next-auth/jwt" {
   interface JWT {
     role?: string;
     id?: string;
+    country?: string;
   }
 }
