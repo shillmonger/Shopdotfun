@@ -97,7 +97,8 @@ export default function UserSettingsPage() {
           const createdAt = new Date(data.createdAt);
           const formattedDate = createdAt.toLocaleDateString('en-US', { 
             year: 'numeric', 
-            month: 'short' 
+            month: 'short',
+            day: 'numeric'
           }).toUpperCase();
           setMemberSince(formattedDate);
         }

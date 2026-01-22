@@ -238,62 +238,77 @@ export default function AddressBook({ userId }: AddressBookProps) {
               </button>
             </div>
           ) : (
-            <div className="grid md:grid-cols-2 gap-4">
-              {addresses.map((address) => (
-                <div
-                  key={address._id}
-                  className={`p-4 rounded-xl border ${
-                    address.isDefault ? 'border-primary/50 bg-primary/5' : 'border-border'
-                  }`}
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-bold">{address.fullName}</h4>
-                        {address.isDefault && (
-                          <span className="bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-full font-bold">
-                            DEFAULT
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-sm mt-1">{address.street}</p>
-                      <p className="text-sm">
-                        {address.city}, {address.state}
-                      </p>
-                      <p className="text-sm">{address.country}</p>
-                      <p className="text-sm mt-2 font-medium">{address.phone}</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => startEditing(address)}
-                        className="p-2 text-muted-foreground hover:text-foreground transition-colors"
-                        aria-label="Edit address"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      {!address.isDefault && (
-                        <>
-                          <button
-                            onClick={() => handleSetDefault(address._id)}
-                            className="p-2 text-muted-foreground hover:text-foreground transition-colors"
-                            aria-label="Set as default"
-                          >
-                            <CheckCircle className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteAddress(address._id)}
-                            className="p-2 text-destructive/70 hover:text-destructive transition-colors"
-                            aria-label="Delete address"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <div className="grid md:grid-cols-2 gap-6">
+  {addresses.map((address) => (
+    <div
+      key={address._id}
+      className={`relative flex flex-col justify-between p-5 rounded-2xl border transition-all ${
+        address.isDefault 
+          ? 'border-primary bg-primary/[0.03] ring-1 ring-primary/20' 
+          : 'border-border bg-card'
+      }`}
+    >
+      {/* Top Section: Header & Badge */}
+      <div className="flex justify-between items-start mb-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <h4 className="font-bold text-lg tracking-tight text-foreground">
+              {address.fullName}
+            </h4>
+            {/* {address.isDefault && (
+              <span className="bg-primary text-primary-foreground text-[10px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">
+                Default
+              </span>
+            )} */}
+          </div>
+          
+          <div className="text-sm text-muted-foreground leading-relaxed">
+            <p className="font-medium text-foreground/80">{address.street}</p>
+            <p>{address.city}, {address.state}, {address.country}</p>
+          </div>
+        </div>
+
+        {/* Action Buttons: Fixed Position */}
+        <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
+          <button
+            onClick={() => startEditing(address)}
+            className="p-2 rounded-md hover:bg-background cursor-pointer hover:text-primary transition-colors text-muted-foreground"
+            title="Edit"
+          >
+            <Edit className="w-4 h-4" />
+          </button>
+          
+          {!address.isDefault && (
+            <>
+              <button
+                onClick={() => handleSetDefault(address._id)}
+                className="p-2 rounded-md hover:bg-background cursor-pointer hover:text-primary transition-colors text-muted-foreground"
+                title="Make Default"
+              >
+                <CheckCircle className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => handleDeleteAddress(address._id)}
+                className="p-2 rounded-md hover:bg-destructive/10 cursor-pointer hover:text-destructive transition-colors text-destructive/70"
+                title="Delete"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Bottom Section: Contact Info */}
+      <div className="pt-4 border-t border-border/50 flex justify-between items-center">
+        <p className="text-sm font-semibold text-muted-foreground">
+          <span className="text-[10px] uppercase opacity-50 mr-2">Phone</span>
+          {address.phone}
+        </p>
+      </div>
+    </div>
+  ))}
+</div>
           )}
         </div>
       )}
