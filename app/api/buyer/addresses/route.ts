@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import clientPromise from '@/lib/db';
-import { ObjectId, type UpdateFilter, type Document } from 'mongodb';
+import { ObjectId, type Document } from 'mongodb'; // Removed unused UpdateFilter
 import { authOptions } from '@/lib/auth';
 import { Address } from '@/models/User';
 
@@ -66,9 +66,9 @@ export async function POST(request: Request) {
       updatedAt: now
     };
     
-    // Using 'as any' to bypass the nested $push type compatibility error
     await collection.updateOne(
       { email: session.user.email },
+      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
       {
         $set: { updatedAt: now },
         $push: { addresses: addressToAdd }
@@ -107,6 +107,7 @@ export async function PUT(request: Request) {
         email: session.user.email,
         'addresses._id': new ObjectId(addressId)
       },
+      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
       {
         $set: {
           'addresses.$.updatedAt': now,
@@ -118,7 +119,7 @@ export async function PUT(request: Request) {
           'addresses.$.country': updateData.country,
           updatedAt: now
         }
-      } as any // Also useful here for dot-notation paths
+      } as any
     );
 
     if (result.matchedCount === 0) {
@@ -152,6 +153,7 @@ export async function DELETE(request: Request) {
 
     const user = await collection.findOne({
       email: session.user.email,
+      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
       addresses: {
         $elemMatch: {
           _id: new ObjectId(addressId),
@@ -160,9 +162,9 @@ export async function DELETE(request: Request) {
       } as any
     });
 
-    // Remove the address - Added 'as any' to fix the error you were getting
     await collection.updateOne(
       { email: session.user.email },
+      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
       {
         $pull: {
           addresses: { _id: new ObjectId(addressId) }
@@ -180,6 +182,7 @@ export async function DELETE(request: Request) {
             email: session.user.email,
             'addresses._id': updatedUser.addresses[0]._id
           },
+          /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
           {
             $set: {
               'addresses.$.isDefault': true,
