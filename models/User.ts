@@ -15,9 +15,21 @@ export interface UserBase {
   updatedAt: Date;
 }
 
+export interface Address {
+  fullName: string;
+  phone: string;
+  street: string;
+  city: string;
+  state: string;
+  country: string;
+  isDefault: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface Buyer extends UserBase {
   role: 'buyer';
-  // Add any buyer-specific fields here
+  addresses?: Address[];
 }
 
 export interface Seller extends UserBase {

@@ -33,7 +33,8 @@ import {
 import BuyerHeader from "@/components/buyer-dashboard/BuyerHeader";
 import BuyerSidebar from "@/components/buyer-dashboard/BuyerSidebar";
 import BuyerNav from "@/components/buyer-dashboard/BuyerNav";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
+import AddressBook from "@/components/buyer-dashboard/AddressBook";
 
 interface BuyerProfile {
   _id: string;
@@ -113,6 +114,9 @@ export default function UserSettingsPage() {
   
   // Member since state
   const [memberSince, setMemberSince] = useState("");
+  
+  // Get user session
+  const { data: session } = useSession();
   
   // Handle profile update
   const handleProfileUpdate = async (e: React.FormEvent) => {
@@ -354,108 +358,11 @@ export default function UserSettingsPage() {
                 </form>
 
                 {/* Address Book */}
-<div className="bg-card rounded-[2rem] shadow-lg border border-border p-8">
-  <div className="flex items-center justify-between mb-8">
-    <div>
-      <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2 italic">
-        <MapPin className="w-4 h-4 text-primary" /> Shipping Address
-      </h3>
-      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight mt-1">
-        Primary delivery location &bull; Used for checkout
-      </p>
-    </div>
-    <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-[9px] font-black uppercase italic tracking-tighter">
-      Verified Location
-    </div>
-  </div>
-
-  <div className="space-y-6">
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* Full Name */}
-      <div className="space-y-2">
-        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Full Name</label>
-        <div className="relative">
-          <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
-          <input 
-            type="text" 
-            placeholder="e.g. John Doe"
-            className="w-full bg-muted/50  border border-border rounded-xl pl-12 pr-4 py-3.5 text-xs font-bold outline-none focus:ring-2 ring-primary/20 transition-all"
-          />
-        </div>
-      </div>
-
-      {/* Phone Number */}
-      <div className="space-y-2">
-        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Phone Number</label>
-        <div className="relative">
-          <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
-          <input 
-            type="tel" 
-            placeholder="+234 801 234 5678"
-            className="w-full bg-muted/50  border border-border rounded-xl pl-12 pr-4 py-3.5 text-xs font-bold outline-none focus:ring-2 ring-primary/20 transition-all"
-          />
-        </div>
-      </div>
-
-      {/* Street Address */}
-      <div className="md:col-span-2 space-y-2">
-        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Street Address</label>
-        <div className="relative">
-          <Home className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
-          <input 
-            type="text" 
-            placeholder="12 Allen Avenue, House/Flat Number"
-            className="w-full bg-muted/50  border border-border rounded-xl pl-12 pr-4 py-3.5 text-xs font-bold outline-none focus:ring-2 ring-primary/20 transition-all"
-          />
-        </div>
-      </div>
-
-      {/* City / Town */}
-      <div className="space-y-2">
-        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">City / Town</label>
-        <input 
-          type="text" 
-          placeholder="Ikeja"
-          className="w-full bg-muted/50  border border-border rounded-xl px-4 py-3.5 text-xs font-bold outline-none focus:ring-2 ring-primary/20 transition-all"
-        />
-      </div>
-
-      {/* State / Region */}
-      <div className="space-y-2">
-        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">State / Region</label>
-        <input 
-          type="text" 
-          placeholder="Lagos State"
-          className="w-full bg-muted/50  border border-border rounded-xl px-4 py-3.5 text-xs font-bold outline-none focus:ring-2 ring-primary/20 transition-all"
-        />
-      </div>
-
-      {/* Country */}
-      <div className="md:col-span-2 space-y-2">
-        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Country</label>
-        <div className="relative">
-          <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
-          <input 
-            type="text" 
-            placeholder="My Country"
-            className="w-full bg-muted/50  border border-border rounded-xl pl-12 pr-4 py-3.5 text-xs font-bold outline-none focus:ring-2 ring-primary/20 transition-all"
-          />
-        </div>
-      </div>
-    </div>
-
-    {/* Update Button */}
-    <div className="pt-4">
-      <button className="w-full bg-foreground text-background py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-primary hover:text-white transition-all shadow-xl shadow-primary/10 flex items-center justify-center gap-2 group">
-        <RefreshCcw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
-        Update Address Information
-      </button>
-      <p className="text-center text-[8px] font-bold text-muted-foreground uppercase tracking-widest mt-4 opacity-50">
-        Changes will be applied to future orders immediately
-      </p>
-    </div>
-  </div>
-</div>
+                <div className="bg-card rounded-2xl shadow-lg border border-border p-6">
+                  {session?.user?.email && (
+                    <AddressBook userId={session.user.email} />
+                  )}
+                </div>
 
                 {/* Security */}
                 <div className="bg-card rounded-2xl shadow-lg border border-border p-6">
@@ -545,7 +452,7 @@ export default function UserSettingsPage() {
                     <button 
                       type="submit" 
                       disabled={isUpdatingPassword || !currentPassword || !newPassword || !confirmPassword || !passwordsMatch}
-                      className="bg-primary text-primary-foreground cursor-pointer px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-xl shadow-primary/10 disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="bg-primary text-primary-foreground cursor-pointer px-6 py-4 rounded-xl text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-xl shadow-primary/10 disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       {isUpdatingPassword ? (
                         <>
