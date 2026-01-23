@@ -107,6 +107,7 @@ export default function SellerProfilePage() {
   });
   const [cryptoWallets, setCryptoWallets] = useState<any[]>([]);
   const [isLoadingCrypto, setIsLoadingCrypto] = useState(false);
+  const [isWalletConnected, setIsWalletConnected] = useState(false);
 
   const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
 
@@ -175,6 +176,8 @@ export default function SellerProfilePage() {
         if (response.ok) {
           const data = await response.json();
           setCryptoWallets(data.cryptoPayoutDetails || []);
+          // Update connected status based on existing wallets
+          setIsWalletConnected((data.cryptoPayoutDetails?.length || 0) > 0);
         }
       } catch (error) {
         console.error('Error fetching crypto wallets:', error);
@@ -206,8 +209,11 @@ export default function SellerProfilePage() {
         throw new Error(data.error || 'Failed to save crypto details');
       }
 
-      // Update the wallets list
-      setCryptoWallets(data.cryptoPayoutDetails || []);
+      // Update the wallets list and set connected status
+      const updatedWallets = data.cryptoPayoutDetails || [];
+      setCryptoWallets(updatedWallets);
+      setIsWalletConnected(updatedWallets.length > 0);
+      
       // Reset form
       setCryptoPayout({
         walletName: '',
@@ -515,9 +521,22 @@ export default function SellerProfilePage() {
 
     {/* Wallet Address */}
     <div>
-      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block">
-        Destination Wallet Address
-      </label>
+      <div className="flex items-center justify-between mb-2">
+        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+          Wallet Address
+        </label>
+        {isWalletConnected ? (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 text-green-500 text-[10px] font-bold uppercase tracking-wider">
+            <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+            Connected - {cryptoWallets.length}
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-500 text-[10px] font-bold uppercase tracking-wider">
+            <span className="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
+            Not Connected
+          </span>
+        )}
+      </div>
       <input 
         type="text" 
         placeholder="0x... or Wallet Address" 
@@ -526,9 +545,19 @@ export default function SellerProfilePage() {
         onChange={(e) => setCryptoPayout({...cryptoPayout, walletAddress: e.target.value})}
         required
       />
-      <p className="text-[9px] text-destructive uppercase font-bold mt-2 tracking-tighter">
-        * Ensure the address matches the selected network to avoid loss of funds.
-      </p>
+      {isWalletConnected ? (
+        <p className="text-[10px] text-green-500 font-medium mt-2 flex items-center gap-1">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+          {cryptoWallets.length} {cryptoWallets.length === 1 ? 'wallet' : 'wallets'} connected
+        </p>
+      ) : (
+        <p className="text-[9px] text-destructive uppercase font-bold mt-2 tracking-tighter">
+          * Ensure the address matches the selected network to avoid loss of funds.
+        </p>
+      )}
     </div>
 
     {/* Default Wallet Toggle */}
