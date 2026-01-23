@@ -16,6 +16,7 @@ import {
   Mail, 
   Phone,
   Upload,
+  Wallet,
   AlertCircle,
   FileText,
   Globe,
@@ -96,6 +97,17 @@ export default function SellerProfilePage() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>("https://github.com/shadcn.png");
 
+  // Crypto Payout State
+  const [cryptoPayout, setCryptoPayout] = useState({
+    walletName: '',
+    walletAddress: '',
+    network: 'Ethereum',
+    currency: 'USDT',
+    isDefault: false
+  });
+  const [cryptoWallets, setCryptoWallets] = useState<any[]>([]);
+  const [isLoadingCrypto, setIsLoadingCrypto] = useState(false);
+
   const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
 
   const validatePassword = (password: string) => {
@@ -152,6 +164,65 @@ export default function SellerProfilePage() {
       toast.error(error instanceof Error ? error.message : 'Failed to update password');
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  // Fetch crypto wallets on component mount
+  useEffect(() => {
+    const fetchCryptoWallets = async () => {
+      try {
+        const response = await fetch('/api/seller/crypto-payout');
+        if (response.ok) {
+          const data = await response.json();
+          setCryptoWallets(data.cryptoPayoutDetails || []);
+        }
+      } catch (error) {
+        console.error('Error fetching crypto wallets:', error);
+        toast.error('Failed to load crypto wallets');
+      }
+    };
+
+    if (session?.user?.email) {
+      fetchCryptoWallets();
+    }
+  }, [session]);
+
+  const handleCryptoSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoadingCrypto(true);
+    
+    try {
+      const response = await fetch('/api/seller/crypto-payout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(cryptoPayout),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to save crypto details');
+      }
+
+      // Update the wallets list
+      setCryptoWallets(data.cryptoPayoutDetails || []);
+      // Reset form
+      setCryptoPayout({
+        walletName: '',
+        walletAddress: '',
+        network: 'Ethereum',
+        currency: 'USDT',
+        isDefault: false
+      });
+      
+      toast.success('Crypto payout details saved successfully');
+    } catch (error) {
+      console.error('Error saving crypto details:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to save crypto details');
+    } finally {
+      setIsLoadingCrypto(false);
     }
   };
 
@@ -381,41 +452,109 @@ export default function SellerProfilePage() {
                   </div>
                 </div>
 
-                {/* Verification Documents */}
-                <div className="bg-card rounded-2xl shadow-lg border border-border p-6">
-                  <h3 className="text-sm font-black uppercase tracking-widest mb-6 flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-primary" /> Verification documents
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="border-2 border-dashed border-border rounded-xl p-6 flex flex-col items-center justify-center text-center hover:bg-muted/30 transition-all cursor-pointer group">
-                      <Upload className="w-6 h-6 text-muted-foreground group-hover:text-primary mb-2" />
-                      <p className="text-[10px] font-black uppercase tracking-widest">Any Government ID</p>
-                    </div>
-                    <div className="border-2 border-dashed border-border rounded-xl p-6 flex flex-col items-center justify-center text-center hover:bg-muted/30 transition-all cursor-pointer group">
-                      <FileText className="w-6 h-6 text-muted-foreground group-hover:text-primary mb-2" />
-                      <p className="text-[10px] font-black uppercase tracking-widest">Utility Bill (Last 3   Months Only)</p>
-                    </div>
-                  </div>
+               {/* Crypto Payout Details */}
+<div className="bg-card rounded-2xl shadow-lg border border-border p-6">
+  <h3 className="text-sm font-black uppercase tracking-widest mb-6 flex items-center gap-2">
+    <Wallet className="w-4 h-4 text-primary" /> Crypto Payout Settings
+  </h3>
 
-                  <div className="mt-8 pt-6 border-t border-border">
-                    <h4 className="text-[10px] font-black uppercase tracking-widest text-primary mb-4">Payout Bank Account</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                       {/* Added Account Name */}
-                       <div className="md:col-span-2">
-                        <input type="text" placeholder="Account Holder Name" className="w-full bg-muted/30 border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none" />
-                       </div>
-                       <input type="text" placeholder="Bank Name" className="w-full bg-muted/30 border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none" />
-                       <input type="text" placeholder="Account Number" className="w-full bg-muted/30 border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none" />
-                    </div>
-                  </div>
+  <div className="space-y-4">
+    {/* Wallet Label/Name */}
+    <div>
+      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block">
+        Wallet Name (e.g. My Solana Wallet, Binance)
+      </label>
+      <input 
+        type="text" 
+        placeholder="e.g. My Main Wallet" 
+        className="w-full bg-muted/30 border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none"
+        value={cryptoPayout.walletName}
+        onChange={(e) => setCryptoPayout({...cryptoPayout, walletName: e.target.value})}
+        required
+      />
+    </div>
 
-                  <button 
-                    onClick={handleSubmitVerification}
-                    className="mt-6 w-full bg-primary text-primary-foreground cursor-pointer py-4 rounded-xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary/10 hover:opacity-90 transition-all"
-                  >
-                    Submit for Review
-                  </button>
-                </div>
+    {/* Network and Currency Row */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block">
+          Network
+        </label>
+        <select 
+          className="w-full bg-muted/30 border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none appearance-none"
+          value={cryptoPayout.network}
+          onChange={(e) => setCryptoPayout({...cryptoPayout, network: e.target.value})}
+          required
+        >
+          <option value="Ethereum">ERC-20 (Ethereum)</option>
+          <option value="Tron">TRC-20 (Tron)</option>
+          <option value="BSC">BEP-20 (BSC)</option>
+          <option value="Bitcoin">Bitcoin</option>
+          <option value="Solana">Solana</option>
+        </select>
+      </div>
+
+      <div>
+        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block">
+          Currency
+        </label>
+        <select 
+          className="w-full bg-muted/30 border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none"
+          value={cryptoPayout.currency}
+          onChange={(e) => setCryptoPayout({...cryptoPayout, currency: e.target.value})}
+          required
+        >
+          <option value="USDT">USDT</option>
+          <option value="BTC">BTC</option>
+          <option value="ETH">ETH</option>
+          <option value="SOL">SOL</option>
+          <option value="TRX">TRX</option>
+        </select>
+      </div>
+    </div>
+
+    {/* Wallet Address */}
+    <div>
+      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block">
+        Destination Wallet Address
+      </label>
+      <input 
+        type="text" 
+        placeholder="0x... or Wallet Address" 
+        className="w-full bg-muted/30 border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none font-mono"
+        value={cryptoPayout.walletAddress}
+        onChange={(e) => setCryptoPayout({...cryptoPayout, walletAddress: e.target.value})}
+        required
+      />
+      <p className="text-[9px] text-destructive uppercase font-bold mt-2 tracking-tighter">
+        * Ensure the address matches the selected network to avoid loss of funds.
+      </p>
+    </div>
+
+    {/* Default Wallet Toggle */}
+    <div className="flex items-center space-x-2 pt-2">
+      <input
+        type="checkbox"
+        id="defaultWallet"
+        checked={cryptoPayout.isDefault}
+        onChange={(e) => setCryptoPayout({...cryptoPayout, isDefault: e.target.checked})}
+        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+      />
+      <label htmlFor="defaultWallet" className="text-sm font-medium text-foreground">
+        Set as default wallet
+      </label>
+    </div>
+  </div>
+
+  <button 
+    type="button"
+    onClick={handleCryptoSubmit}
+    disabled={isLoadingCrypto}
+    className="mt-8 w-full bg-primary text-primary-foreground cursor-pointer py-4 rounded-xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary/10 hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+  >
+    {isLoadingCrypto ? 'Saving...' : 'Save Payout Details'}
+  </button>
+</div>
 
                 {/* Password & Security */}
                 <div className="bg-card rounded-2xl shadow-lg border border-border p-6">
