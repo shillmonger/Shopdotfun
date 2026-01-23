@@ -56,11 +56,11 @@ export default function SellerHeader({ sidebarOpen, setSidebarOpen }: HeaderProp
 
         <div className="flex items-center gap-3 sm:pl-6 sm:border-l border-border">
           <div className="text-right hidden lg:block">
-            <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter mt-1">
-              Verified Merchant
-            </p>
             <p className="text-xs font-black uppercase tracking-tight leading-none text-foreground">
               {session?.user?.name || 'Admin'}
+            </p>
+            <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter mt-1">
+              Verified Merchant
             </p>
           </div>
           

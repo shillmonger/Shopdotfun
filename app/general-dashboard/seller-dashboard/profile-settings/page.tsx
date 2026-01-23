@@ -389,11 +389,11 @@ export default function SellerProfilePage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="border-2 border-dashed border-border rounded-xl p-6 flex flex-col items-center justify-center text-center hover:bg-muted/30 transition-all cursor-pointer group">
                       <Upload className="w-6 h-6 text-muted-foreground group-hover:text-primary mb-2" />
-                      <p className="text-[10px] font-black uppercase tracking-widest">Government ID</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest">Any Government ID</p>
                     </div>
                     <div className="border-2 border-dashed border-border rounded-xl p-6 flex flex-col items-center justify-center text-center hover:bg-muted/30 transition-all cursor-pointer group">
                       <FileText className="w-6 h-6 text-muted-foreground group-hover:text-primary mb-2" />
-                      <p className="text-[10px] font-black uppercase tracking-widest">Utility Bill</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest">Utility Bill (Last 3   Months Only)</p>
                     </div>
                   </div>
 
@@ -411,7 +411,7 @@ export default function SellerProfilePage() {
 
                   <button 
                     onClick={handleSubmitVerification}
-                    className="mt-6 w-full bg-primary text-primary-foreground py-4 rounded-xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary/10 hover:opacity-90 transition-all"
+                    className="mt-6 w-full bg-primary text-primary-foreground cursor-pointer py-4 rounded-xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary/10 hover:opacity-90 transition-all"
                   >
                     Submit for Review
                   </button>
