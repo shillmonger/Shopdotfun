@@ -267,7 +267,7 @@ export default function SellerOverviewPage() {
                       Excellent
                     </span>
                   </div>
-                  <div className="w-full h-1.5 bg-muted/50 dark:bg-muted/70 rounded-full mt-4 overflow-hidden">
+                  <div className="w-full h-1.5 bg-muted/40 dark:bg-muted/60 rounded-full mt-4 overflow-hidden">
                     <div className="h-full bg-primary w-[98%]" />
                   </div>
 

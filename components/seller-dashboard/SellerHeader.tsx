@@ -1,17 +1,19 @@
 "use client";
 
 import React from "react";
-import { Menu, X, Bell } from "lucide-react"; // Added X
+import { Menu, X, Bell, Sun, Moon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSession } from "next-auth/react";
+import { useTheme } from "next-themes";
 
 interface HeaderProps {
-  sidebarOpen: boolean; // Added this
+  sidebarOpen: boolean; 
   setSidebarOpen: (open: boolean) => void;
 }
 
 export default function SellerHeader({ sidebarOpen, setSidebarOpen }: HeaderProps) {
   const { data: session } = useSession();
+  const { theme, setTheme } = useTheme();
   
   return (
     <header className="h-15 border-b border-border flex items-center justify-between gap-4 px-4 sm:px-10 bg-background/80 backdrop-blur-md sticky top-0 z-50">
@@ -20,7 +22,7 @@ export default function SellerHeader({ sidebarOpen, setSidebarOpen }: HeaderProp
       <div className="flex items-center gap-3 flex-shrink-0">
         <button
           className="lg:hidden p-2 rounded-xl hover:bg-secondary transition-colors cursor-pointer"
-          onClick={() => setSidebarOpen(!sidebarOpen)} // Toggles state
+          onClick={() => setSidebarOpen(!sidebarOpen)} 
         >
           {/* Toggle between Menu and X icon */}
           {sidebarOpen ? (
@@ -39,6 +41,19 @@ export default function SellerHeader({ sidebarOpen, setSidebarOpen }: HeaderProp
 
       {/* RIGHT: Profile & Actions */}
       <div className="flex items-center gap-2 sm:gap-6 flex-shrink-0">
+        {/* THEME TOGGLE BUTTON */}
+        <button
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          className="p-2.5 rounded-xl border border-border hover:bg-secondary transition-all cursor-pointer group"
+          aria-label="Toggle Theme"
+        >
+          {theme === "dark" ? (
+            <Sun className="h-5 w-5 text-amber-400 group-hover:rotate-45 transition-transform duration-300" />
+          ) : (
+            <Moon className="h-5 w-5 text-slate-700 group-hover:-rotate-12 transition-transform duration-300" />
+          )}
+        </button>
+
         <div className="flex items-center gap-3 sm:pl-6 sm:border-l border-border">
           <div className="text-right hidden lg:block">
             <p className="text-xs font-black uppercase tracking-tight leading-none text-foreground">
