@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import clientPromise from '@/lib/db';
+import { clientPromise } from '@/lib/db';
 import { authOptions } from '@/lib/auth';
 
 export async function POST(request: Request) {
   try {
     console.log('\n=== API Route: Starting product creation ===');
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user?.email) {
       console.error('❌ Unauthorized - No session or email');
       return NextResponse.json(
@@ -19,10 +19,10 @@ export async function POST(request: Request) {
     console.log('🔌 Connecting to database...');
     const client = await clientPromise;
     console.log('✅ Database connection established');
-    
+
     const db = client.db();
     console.log('📊 Using database:', db.databaseName);
-    
+
     // List all collections for debugging
     try {
       const allCollections = await db.listCollections().toArray();
@@ -55,11 +55,11 @@ export async function POST(request: Request) {
 
     // Validate required fields
     if (!data.name || !data.price || !data.category || !data.images?.length) {
-      console.error('❌ Missing required fields:', { 
-        name: !!data.name, 
-        price: !!data.price, 
-        category: !!data.category, 
-        hasImages: data.images?.length > 0 
+      console.error('❌ Missing required fields:', {
+        name: !!data.name,
+        price: !!data.price,
+        category: !!data.category,
+        hasImages: data.images?.length > 0
       });
       return NextResponse.json(
         { error: 'Missing required fields' },
@@ -128,7 +128,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user?.email) {
       return NextResponse.json(
         { error: 'Unauthorized - Please log in' },
@@ -137,8 +137,13 @@ export async function GET(request: Request) {
     }
 
     const client = await clientPromise;
-    const db = client.db();
-    
+    const db = client.db(); // uses DB from connection string
+    // const db = client.db(dbName);
+
+    // Debug: Log database connection info
+    console.log('Connected to database:', db.databaseName);
+    console.log('MongoDB URI:', process.env.MONGODB_URI);
+
     // Get query parameters
     const status = searchParams.get('status');
     const search = searchParams.get('search') || '';
@@ -146,13 +151,25 @@ export async function GET(request: Request) {
     const limit = parseInt(searchParams.get('limit') || '10');
     const skip = (page - 1) * limit;
 
-    // Build query
-    const query: any = { sellerEmail: session.user.email };
-    
-    if (status && status !== 'all') {
+    // Debug logging
+    console.log('Session user email:', session.user.email);
+    console.log('Query params:', { status, search, page, limit });
+
+    // Get products collection
+    const productsCollection = db.collection('products');
+
+    // Build the base query to find products for the current seller
+    const query: any = {
+      seller: session.user.email
+    };
+
+
+    // Add status filter if provided
+    if (status) {
       query.status = status;
     }
 
+    // Add search filter if provided
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: 'i' } },
@@ -169,6 +186,21 @@ export async function GET(request: Request) {
       .skip(skip)
       .limit(limit)
       .toArray();
+
+    // Debug: Check if any products exist for any seller
+    console.log('Found products for query:', products.length);
+    if (products.length === 0) {
+      const allProducts = await db.collection('products').find({}).toArray();
+      console.log('Total products in database:', allProducts.length);
+      if (allProducts.length > 0) {
+        console.log('Sample product:', JSON.stringify({
+          _id: allProducts[0]._id,
+          name: allProducts[0].name,
+          sellerEmail: allProducts[0].sellerEmail || 'No sellerEmail field',
+          status: allProducts[0].status
+        }, null, 2));
+      }
+    }
 
     // Get total count for pagination
     const total = await db.collection('products').countDocuments(query);
@@ -189,11 +221,14 @@ export async function GET(request: Request) {
         limit
       }
     });
-    
+
   } catch (error) {
     console.error('Error fetching products:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch products' },
+      {
+        error: 'Failed to fetch products',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }

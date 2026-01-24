@@ -16,7 +16,7 @@ export interface IProduct extends Document {
     thumbnailUrl: string;
     publicId: string;
   }>;
-  seller: string;
+  sellerEmail: string;
   status: 'pending' | 'approved' | 'rejected';
   createdAt: Date;
   updatedAt: Date;
@@ -38,7 +38,7 @@ const ProductSchema = new Schema<IProduct>(
       thumbnailUrl: { type: String, required: true },
       publicId: { type: String, required: true }
     }],
-    seller: { type: String, required: true },
+    sellerEmail: { type: String, required: true, index: true },
     status: { 
       type: String, 
       enum: ['pending', 'approved', 'rejected'], 

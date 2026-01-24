@@ -72,7 +72,7 @@ export async function createProduct(formData: FormData) {
         thumbnailUrl: img.thumbnail_url,
         publicId: img.publicId
       })),
-      seller: session.user.email,
+      sellerEmail: session.user.email,
       status: 'pending',
     });
 

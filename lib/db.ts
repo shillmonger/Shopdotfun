@@ -55,3 +55,14 @@ export async function connectDB() {
 
 // Export the mongoose instance for type support
 export const db = mongoose;
+
+// Export MongoDB client promise for direct MongoDB access
+export const clientPromise = (async () => {
+  try {
+    await connectDB();
+    return mongoose.connection.getClient();
+  } catch (error) {
+    console.error('Failed to get MongoDB client:', error);
+    throw error;
+  }
+})();
