@@ -259,7 +259,7 @@ export default function MyProductsPage() {
                         </div>
                         
                         <div className="flex items-center gap-2 pt-2">
-                          <Link href={`/general-dashboard/seller-dashboard/edit-product/${product._id}`} className="flex-1 bg-muted hover:bg-foreground hover:text-background py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2">
+                          <Link href={`/general-dashboard/seller-dashboard/my-products/${product._id}`} className="flex-1 bg-muted hover:bg-foreground hover:text-background py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2">
                             <Edit2 className="w-3 h-3" /> Edit
                           </Link>
                           {/* DELETE TRIGGER */}
