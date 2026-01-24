@@ -1,5 +1,6 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
+import { getToken } from 'next-auth/jwt';
 
 // List of public paths that don't require authentication
 const publicPaths = [
@@ -9,13 +10,20 @@ const publicPaths = [
   "/landing-page/top-stores",
   "/privacy",
   "/terms",
+  "/api/auth",
+];
+
+// List of API routes that require authentication
+const protectedApiRoutes = [
+  "/api/seller/products"
 ];
 
 export default withAuth(
-  function middleware(req) {
-    const token = req.nextauth.token;
+  async function middleware(req) {
+    const token = await getToken({ req });
     const isAuth = !!token;
     const isAuthPage = req.nextUrl.pathname.startsWith("/auth");
+    const isApiRoute = req.nextUrl.pathname.startsWith("/api");
     const isPublicPath = publicPaths.some(path => 
       req.nextUrl.pathname === path || 
       req.nextUrl.pathname.startsWith(`${path}/`)
@@ -71,7 +79,14 @@ export default withAuth(
 
 export const config = {
   matcher: [
-    // Match all routes except for static files and API routes
-    "/((?!api|_next/static|_next/image|favicon.ico).*)",
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder
+     * - api/auth (auth routes)
+     */
+    '/((?!_next/static|_next/image|favicon.ico|public/).*)',
   ],
 };
