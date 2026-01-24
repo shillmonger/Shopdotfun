@@ -36,6 +36,30 @@ export default function SellerProfilePage() {
 
   // Verification Status State
   const [verificationStatus, setVerificationStatus] = useState<"Pending" | "Approved" | "Rejected">("Pending");
+  const [lastUpdate, setLastUpdate] = useState<string>("");
+  const [isWalletConnected, setIsWalletConnected] = useState(false);
+
+  // Update verification status based on crypto wallet connection
+  useEffect(() => {
+    if (isWalletConnected) {
+      setVerificationStatus("Approved");
+    } else {
+      setVerificationStatus("Pending");
+    }
+  }, [isWalletConnected]);
+
+  // Initialize last update time on component mount
+  useEffect(() => {
+    const now = new Date();
+    setLastUpdate(now.toLocaleString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    }));
+  }, []);
 
   const { data: session } = useSession();
   const [isLoading, setIsLoading] = useState(true);
@@ -107,7 +131,6 @@ export default function SellerProfilePage() {
   });
   const [cryptoWallets, setCryptoWallets] = useState<any[]>([]);
   const [isLoadingCrypto, setIsLoadingCrypto] = useState(false);
-  const [isWalletConnected, setIsWalletConnected] = useState(false);
 
   const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
 
@@ -168,6 +191,31 @@ export default function SellerProfilePage() {
     }
   };
 
+  // Update last update timestamp when business info or crypto settings change
+  const updateLastModified = () => {
+    const now = new Date();
+    setLastUpdate(now.toLocaleString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    }));
+  };
+
+  // Update last modified when business info changes
+  useEffect(() => {
+    updateLastModified();
+  }, [businessInfo]);
+
+  // Update last modified when crypto settings change
+  useEffect(() => {
+    if (cryptoPayout.walletAddress) {
+      updateLastModified();
+    }
+  }, [cryptoPayout]);
+
   // Fetch crypto wallets on component mount
   useEffect(() => {
     const fetchCryptoWallets = async () => {
@@ -175,9 +223,16 @@ export default function SellerProfilePage() {
         const response = await fetch('/api/seller/crypto-payout');
         if (response.ok) {
           const data = await response.json();
+          const hasWallets = (data.cryptoPayoutDetails?.length || 0) > 0;
           setCryptoWallets(data.cryptoPayoutDetails || []);
-          // Update connected status based on existing wallets
-          setIsWalletConnected((data.cryptoPayoutDetails?.length || 0) > 0);
+          setIsWalletConnected(hasWallets);
+          
+          // Update verification status based on wallet connection
+          if (hasWallets) {
+            setVerificationStatus("Approved");
+          } else {
+            setVerificationStatus("Pending");
+          }
         }
       } catch (error) {
         console.error('Error fetching crypto wallets:', error);
@@ -323,7 +378,7 @@ export default function SellerProfilePage() {
                     )}
                     <div className="flex justify-between items-center pt-2 border-t border-border">
                       <span className="text-xs font-bold text-muted-foreground uppercase">Last Update</span>
-                      <span className="text-xs font-black uppercase">Today</span>
+                      <span className="text-xs font-black uppercase">{lastUpdate || 'Never'}</span>
                     </div>
                   </div>
                 </div>
