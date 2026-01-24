@@ -100,6 +100,11 @@ export default function SellerProfilePage() {
           country: data.country || "",
           businessAddress: data.businessAddress || "",
         });
+
+        // Set last update time if available from server
+        if (data.updatedAt) {
+          setLastUpdate(formatDate(data.updatedAt));
+        }
       } catch (error) {
         console.error('Error fetching seller data:', error);
         toast.error('Failed to load seller information');
@@ -191,30 +196,18 @@ export default function SellerProfilePage() {
     }
   };
 
-  // Update last update timestamp when business info or crypto settings change
-  const updateLastModified = () => {
-    const now = new Date();
-    setLastUpdate(now.toLocaleString('en-US', { 
+  // Format date helper function
+  const formatDate = (dateString: string | Date) => {
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', { 
       month: 'short', 
       day: 'numeric', 
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
       hour12: true
-    }));
+    });
   };
-
-  // Update last modified when business info changes
-  useEffect(() => {
-    updateLastModified();
-  }, [businessInfo]);
-
-  // Update last modified when crypto settings change
-  useEffect(() => {
-    if (cryptoPayout.walletAddress) {
-      updateLastModified();
-    }
-  }, [cryptoPayout]);
 
   // Fetch crypto wallets on component mount
   useEffect(() => {
@@ -230,6 +223,10 @@ export default function SellerProfilePage() {
           // Update verification status based on wallet connection
           if (hasWallets) {
             setVerificationStatus("Approved");
+            // If we have wallets, use the most recent update time
+            if (data.lastUpdated) {
+              setLastUpdate(formatDate(data.lastUpdated));
+            }
           } else {
             setVerificationStatus("Pending");
           }
@@ -267,7 +264,19 @@ export default function SellerProfilePage() {
       // Update the wallets list and set connected status
       const updatedWallets = data.cryptoPayoutDetails || [];
       setCryptoWallets(updatedWallets);
-      setIsWalletConnected(updatedWallets.length > 0);
+      const hasWallets = updatedWallets.length > 0;
+      setIsWalletConnected(hasWallets);
+      
+      // Update verification status and last update time
+      if (hasWallets) {
+        setVerificationStatus("Approved");
+        // Update last update time from server response if available
+        if (data.lastUpdated) {
+          setLastUpdate(formatDate(data.lastUpdated));
+        }
+      } else {
+        setVerificationStatus("Pending");
+      }
       
       // Reset form
       setCryptoPayout({
