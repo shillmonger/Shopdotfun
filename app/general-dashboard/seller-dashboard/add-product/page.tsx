@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { 
   Plus, 
   Upload, 
@@ -9,9 +9,21 @@ import {
   Zap,
   Coins,
   ShieldCheck,
-  Box
+  Box,
+  ChevronDown,
+  Clock,
+  LayoutGrid,
+  X
 } from "lucide-react";
 import { toast } from "sonner";
+
+// Shadcn UI Components
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import SellerHeader from "@/components/seller-dashboard/SellerHeader";
 import SellerSidebar from "@/components/seller-dashboard/SellerSidebar";
@@ -24,31 +36,55 @@ const CRYPTO_OPTIONS = [
   { label: "ETH (Ethereum)", value: "ETH" },
 ];
 
-const CATEGORIES = ["Electronics", "Fashion", "Gaming", "Home", "Health", "Digital"];
+const JUMIA_CATEGORIES = [
+  "Supermarket", "Health & Beauty", "Home & Office", 
+  "Phones & Tablets", "Computing", "Electronics", 
+  "Fashion", "Baby Products", "Gaming", "Sporting Goods"
+];
+
+const PROCESSING_TIMES = ["1-2 Days", "3-5 Days", "7-10 Days", "Immediate / Digital"];
 
 export default function AddProductPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sku, setSku] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     price: "",
     discount: "",
     crypto: "USDT",
-    category: "",
+    category: "Select Category",
     stock: "",
     shippingFee: "0",
     processingTime: "1-2 Days",
-    images: [] as File[],
+    images: [] as string[], // Storing URLs/base64 for preview
   });
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (formData.images.length + files.length > 4) {
+      return toast.error("Maximum 4 images allowed");
+    }
+    
+    // Create preview URLs
+    const newImages = files.map(file => URL.createObjectURL(file));
+    setFormData({ ...formData, images: [...formData.images, ...newImages] });
+  };
+
+  const removeImage = (index: number) => {
+    const filtered = formData.images.filter((_, i) => i !== index);
+    setFormData({ ...formData, images: filtered });
+  };
+
   const handlePublish = (status: "Active" | "Draft") => {
-    if (!formData.name || !formData.price || !formData.category) {
+    if (!formData.name || !formData.price || formData.category === "Select Category") {
       return toast.error("Missing required fields");
     }
-    if (Number(formData.price) <= 0) {
-      return toast.error("Price must be a positive value");
+    if (formData.images.length < 2) {
+      return toast.error("Please upload at least 2 images");
     }
     
     setIsSubmitting(true);
@@ -59,7 +95,7 @@ export default function AddProductPage() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background text-foreground">
+    <div className="flex h-screen overflow-hidden bg-background text-foreground font-sans">
       <SellerSidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -79,13 +115,10 @@ export default function AddProductPage() {
                 </p>
               </div>
               <div className="flex gap-2">
-                <button 
-                  onClick={() => handlePublish("Draft")}
-                  className="px-6 py-3 rounded-xl border border-border text-[10px] font-black uppercase tracking-widest hover:bg-muted transition-all"
-                >
+                <button onClick={() => handlePublish("Draft")} className="px-6 py-3 rounded-xl cursor-pointer border border-border text-[10px] font-black uppercase tracking-widest hover:bg-muted transition-all">
                   Save Draft
                 </button>
-                <button className="px-6 py-3 rounded-xl bg-muted text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                <button className="px-6 py-3 rounded-xl bg-muted cursor-pointer text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
                   <Eye className="w-4 h-4" /> Preview
                 </button>
               </div>
@@ -103,25 +136,43 @@ export default function AddProductPage() {
                   </h3>
                   
                   <div className="grid grid-cols-1 gap-6">
+                    {/* Category Dropdown */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Product Category</label>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="w-full flex justify-between items-center bg-background border border-border rounded-xl px-4 py-4 text-sm font-bold outline-none ring-primary/20 focus:ring-2">
+                            <span className="flex items-center gap-2">
+                                <LayoutGrid className="w-4 h-4 text-primary" /> {formData.category}
+                            </span>
+                            <ChevronDown className="w-4 h-4 opacity-50" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] bg-card border-border">
+                          {JUMIA_CATEGORIES.map((cat) => (
+                            <DropdownMenuItem 
+                                key={cat} 
+                                className="font-bold text-xs uppercase cursor-pointer"
+                                onClick={() => setFormData({...formData, category: cat})}
+                            >
+                              {cat}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+
                     <div className="space-y-2">
                       <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Product Name</label>
                       <input 
                         type="text" 
-                        placeholder="e.g. Sony WH-1000XM5 Headphones"
+                        placeholder="e.g. Headphones"
                         className="w-full bg-background border border-border rounded-xl px-4 py-4 text-sm font-bold focus:ring-2 ring-primary/20 outline-none"
                         value={formData.name}
                         onChange={(e) => {
                           const name = e.target.value;
-                          let newSku = "";
-                          
-                          if (name.length > 2) {
-                            const prefix = name.substring(0, 3).toUpperCase();
-                            const random = Math.floor(1000 + Math.random() * 9000);
-                            newSku = `${prefix}-${random}`;
-                          }
-                          
                           setFormData({ ...formData, name });
-                          setSku(newSku);
+                          if (name.length > 2) setSku(`${name.substring(0, 3).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`);
                         }}
                       />
                     </div>
@@ -139,17 +190,45 @@ export default function AddProductPage() {
                   </div>
                 </section>
 
-                {/* 2. Media Upload */}
+                {/* 2. Media Upload (Min 2, Max 4) */}
                 <section className="bg-card border border-border rounded-[2rem] p-8">
-                  <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2 border-b border-border pb-4 mb-6">
-                    <ImageIcon className="w-4 h-4 text-primary" /> Media Assets
-                  </h3>
+                  <div className="flex justify-between items-center border-b border-border pb-4 mb-6">
+                    <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                      <ImageIcon className="w-4 h-4 text-primary" /> Media Assets
+                    </h3>
+                    <span className={`text-[9px] font-bold px-3 py-1 rounded-full ${formData.images.length < 2 ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary'}`}>
+                       {formData.images.length} / 4 Images (Min 2)
+                    </span>
+                  </div>
+
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="aspect-square rounded-2xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary/50 transition-all bg-muted/20">
-                      <Upload className="w-6 h-6 text-muted-foreground" />
-                      <span className="text-[8px] font-black uppercase opacity-60 text-center px-2">Click to Upload (Max 5MB)</span>
-                    </div>
-                    {[1, 2, 3].map((i) => (
+                    {/* Upload Trigger */}
+                    {formData.images.length < 4 && (
+                        <div 
+                          onClick={() => fileInputRef.current?.click()}
+                          className="aspect-square rounded-2xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary/50 transition-all bg-muted/20 group"
+                        >
+                          <Upload className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
+                          <span className="text-[8px] font-black uppercase opacity-60 text-center px-2">Click to Upload</span>
+                          <input type="file" hidden ref={fileInputRef} multiple onChange={handleImageUpload} accept="image/*" />
+                        </div>
+                    )}
+
+                    {/* Image Previews */}
+                    {formData.images.map((img, idx) => (
+                      <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden border border-border group">
+                        <img src={img} alt="preview" className="w-full h-full object-cover" />
+                        <button 
+                           onClick={() => removeImage(idx)}
+                           className="absolute top-2 right-2 p-1 bg-destructive text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+
+                    {/* Empty Slots */}
+                    {Array.from({ length: Math.max(0, 4 - formData.images.length - (formData.images.length < 4 ? 1 : 0)) }).map((_, i) => (
                       <div key={i} className="aspect-square rounded-2xl bg-muted/10 border border-border flex items-center justify-center">
                         <ImageIcon className="w-6 h-6 opacity-10" />
                       </div>
@@ -161,54 +240,61 @@ export default function AddProductPage() {
               {/* Sidebar Constraints */}
               <div className="lg:col-span-4 space-y-6">
                 
-                {/* Pricing & Crypto */}
-<section className="bg-primary text-primary-foreground rounded-[2rem] p-6 shadow-xl shadow-primary/20">
-  <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2 mb-6">
-    <Coins className="w-4 h-4" /> Settlement
-  </h3>
-  <div className="space-y-4">
-    <div className="space-y-2">
-      <label className="text-[9px] font-black uppercase opacity-70">Payout Currency</label>
-      <select 
-        className="w-full bg-primary-foreground/10 border border-primary-foreground/20 rounded-xl px-4 py-3 text-sm font-bold outline-none cursor-pointer appearance-none"
-        value={formData.crypto}
-        onChange={(e) => setFormData({...formData, crypto: e.target.value})}
-      >
-        {CRYPTO_OPTIONS.map(opt => (
-          /* Use theme colors for the options so they are readable in dark/light dropdowns */
-          <option key={opt.value} value={opt.value} className="bg-background text-foreground">
-            {opt.label}
-          </option>
-        ))}
-      </select>
-    </div>
+                {/* Settlement Dropdown */}
+                <section className="bg-primary text-primary-foreground rounded-[2rem] p-6 shadow-xl shadow-primary/20">
+                  <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2 mb-6">
+                    <Coins className="w-4 h-4" /> Settlement
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black uppercase opacity-70">Payout Currency</label>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="w-full flex justify-between items-center bg-primary-foreground/10 border border-primary-foreground/20 rounded-xl px-4 py-3 text-sm font-bold outline-none">
+                            {CRYPTO_OPTIONS.find(o => o.value === formData.crypto)?.label}
+                            <ChevronDown className="w-4 h-4 opacity-50" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)]">
+                          {CRYPTO_OPTIONS.map((opt) => (
+                            <DropdownMenuItem 
+                                key={opt.value} 
+                                onClick={() => setFormData({...formData, crypto: opt.value})}
+                                className="font-bold text-xs uppercase"
+                            >
+                              {opt.label}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
 
-    <div className="grid grid-cols-2 gap-4">
-      <div className="space-y-2">
-        <label className="text-[9px] font-black uppercase opacity-70">Price ({formData.crypto})</label>
-        <input 
-          type="number" 
-          placeholder="0.00"
-          className="w-full bg-primary-foreground/10 border border-primary-foreground/20 rounded-xl px-4 py-3 text-sm font-bold outline-none placeholder:text-primary-foreground/40"
-          value={formData.price}
-          onChange={(e) => setFormData({...formData, price: e.target.value})}
-        />
-      </div>
-      <div className="space-y-2">
-        <label className="text-[9px] font-black uppercase opacity-70">Discount %</label>
-        <input 
-          type="number" 
-          placeholder="Optional"
-          className="w-full bg-primary-foreground/10 border border-primary-foreground/20 rounded-xl px-4 py-3 text-sm font-bold outline-none placeholder:text-primary-foreground/40"
-          value={formData.discount}
-          onChange={(e) => setFormData({...formData, discount: e.target.value})}
-        />
-      </div>
-    </div>
-  </div>
-</section>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-[9px] font-black uppercase opacity-70">Price ({formData.crypto})</label>
+                        <input 
+                          type="number" 
+                          placeholder="0.00"
+                          className="w-full bg-primary-foreground/10 border border-primary-foreground/20 rounded-xl px-4 py-3 text-sm font-bold outline-none placeholder:text-primary-foreground/40"
+                          value={formData.price}
+                          onChange={(e) => setFormData({...formData, price: e.target.value})}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[9px] font-black uppercase opacity-70">Discount %</label>
+                        <input 
+                          type="number" 
+                          placeholder="Opt."
+                          className="w-full bg-primary-foreground/10 border border-primary-foreground/20 rounded-xl px-4 py-3 text-sm font-bold outline-none placeholder:text-primary-foreground/40"
+                          value={formData.discount}
+                          onChange={(e) => setFormData({...formData, discount: e.target.value})}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </section>
 
-                {/* Inventory & Shipping */}
+                {/* Inventory & Processing Dropdown */}
                 <section className="bg-card border border-border rounded-[2rem] p-6 space-y-5">
                   <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
@@ -223,7 +309,7 @@ export default function AddProductPage() {
                     <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Stock Units</label>
                     <input 
                       type="number" 
-                      className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm font-bold outline-none"
+                      className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 ring-primary/20"
                       value={formData.stock}
                       onChange={(e) => setFormData({...formData, stock: e.target.value})}
                     />
@@ -231,22 +317,34 @@ export default function AddProductPage() {
 
                   <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Processing Time</label>
-                    <select 
-                      className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm font-bold outline-none"
-                      value={formData.processingTime}
-                      onChange={(e) => setFormData({...formData, processingTime: e.target.value})}
-                    >
-                      <option>1-2 Days</option>
-                      <option>3-5 Days</option>
-                      <option>Immediate / Digital</option>
-                    </select>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="w-full flex justify-between items-center bg-background border border-border rounded-xl px-4 py-3 text-sm font-bold outline-none ring-primary/20 focus:ring-2">
+                          <span className="flex items-center gap-2">
+                              <Clock className="w-4 h-4 text-primary" /> {formData.processingTime}
+                          </span>
+                          <ChevronDown className="w-4 h-4 opacity-50" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)]">
+                        {PROCESSING_TIMES.map((time) => (
+                          <DropdownMenuItem 
+                              key={time} 
+                              onClick={() => setFormData({...formData, processingTime: time})}
+                              className="font-bold text-xs uppercase"
+                          >
+                            {time}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </section>
 
                 <button 
                   onClick={() => handlePublish("Active")}
                   disabled={isSubmitting}
-                  className="w-full bg-foreground text-background py-6 rounded-3xl text-xs font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all shadow-2xl disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full bg-foreground cursor-pointer text-background py-6 rounded-3xl text-xs font-black uppercase tracking-widest hover:bg-primary transition-all shadow-2xl disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {isSubmitting ? "Uploading..." : "Publish Listing"} <ShieldCheck className="w-4 h-4" />
                 </button>
