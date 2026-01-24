@@ -17,6 +17,7 @@ import {
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 import SellerHeader from "@/components/seller-dashboard/SellerHeader";
 import SellerSidebar from "@/components/seller-dashboard/SellerSidebar";
@@ -101,11 +102,22 @@ export default function MyProductsPage() {
         method: 'DELETE',
       });
       if (response.ok) {
+        const result = await response.json();
         setProducts(products.filter(p => p._id !== deleteId));
         setDeleteId(null);
+        toast.success('Product deleted successfully', {
+          description: 'The product has been removed from your inventory.',
+          duration: 3000,
+        });
+      } else {
+        throw new Error('Failed to delete product');
       }
     } catch (err) {
       console.error("Delete error:", err);
+      toast.error('Failed to delete product', {
+        description: 'Please try again later.',
+        duration: 3000,
+      });
     } finally {
       setIsDeleting(false);
     }
