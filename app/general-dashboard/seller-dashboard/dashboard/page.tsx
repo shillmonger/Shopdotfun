@@ -43,34 +43,34 @@ export default function SellerOverviewPage() {
   useEffect(() => {
     const checkWalletStatus = async () => {
       try {
-        const response = await fetch('/api/seller/wallet-status', {
-          method: 'GET',
+        const response = await fetch("/api/seller/wallet-status", {
+          method: "GET",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
-          cache: 'no-store', // Prevent caching
+          cache: "no-store", // Prevent caching
         });
 
         if (!response.ok) {
-          throw new Error('Failed to fetch wallet status');
+          throw new Error("Failed to fetch wallet status");
         }
 
         const data = await response.json();
-        console.log('Wallet status response:', data); // Debug log
+        console.log("Wallet status response:", data); // Debug log
         setIsWalletConnected(data.isConnected);
       } catch (error) {
-        console.error('Error checking wallet status:', error);
+        console.error("Error checking wallet status:", error);
         // Default to false if there's an error
         setIsWalletConnected(false);
       }
     };
-    
+
     // Initial check
     checkWalletStatus();
-    
+
     // Set up polling to check every 5 seconds (optional, remove if not needed)
     const interval = setInterval(checkWalletStatus, 5000);
-    
+
     // Clean up interval on component unmount
     return () => clearInterval(interval);
   }, []);
@@ -93,26 +93,9 @@ export default function SellerOverviewPage() {
             {/* A. Welcome & Store Status */}
             <section className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
               <div>
-                <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter italic leading-none">
+                <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tighter italic leading-none">
                   Elite Gear Hub
                 </h1>
-                <div className="flex items-center gap-4 mt-3">
-                  <span
-                    className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md border ${
-                      isVerified
-                        ? "bg-green-500/10 text-green-500 border-green-500/20"
-                        : "bg-amber-500/10 text-amber-500 border-amber-500/20"
-                    }`}
-                  >
-                    <ShieldAlert className="w-3 h-3" />{" "}
-                    {isVerified ? "Verified Seller" : "Verification Pending"}
-                  </span>
-                  {!isVerified && (
-                    <span className="text-[10px] font-bold text-destructive uppercase tracking-widest flex items-center gap-1">
-                      <AlertTriangle className="w-3 h-3" /> Payouts Restricted
-                    </span>
-                  )}
-                </div>
               </div>
               <Link
                 href="general-dashboard/seller-dashboard/add-product"
@@ -157,7 +140,7 @@ export default function SellerOverviewPage() {
                       </p>
                     </div>
                   </div>
-                  <button 
+                  <button
                     className="w-full md:w-auto cursor-pointer bg-black text-white px-6 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest"
                     disabled
                   >
@@ -271,34 +254,6 @@ export default function SellerOverviewPage() {
 
               {/* Sidebar info (Account Health / Stock) */}
               <div className="lg:col-span-4 space-y-8">
-                {/* Low Stock Warning */}
-                <section className="bg-card border border-border rounded-3xl p-6">
-                  <div className="flex justify-between items-start mb-6">
-                    <h2 className="text-xs font-black uppercase tracking-widest">
-                      Inventory Alerts
-                    </h2>
-                    <TrendingUp className="w-4 h-4 text-muted-foreground" />
-                  </div>
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-4 p-3 bg-destructive/5 rounded-2xl border border-destructive/10">
-                      <div className="w-10 h-10 bg-destructive/10 rounded-lg flex items-center justify-center text-destructive">
-                        <AlertCircle className="w-5 h-5" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-[10px] font-black uppercase tracking-tighter">
-                          Hyper-X Keyboard
-                        </p>
-                        <p className="text-[9px] font-bold text-destructive uppercase">
-                          Only 2 left in stock
-                        </p>
-                      </div>
-                    </div>
-                    <button className="w-full py-3 text-[10px] font-black uppercase tracking-widest border border-border rounded-xl hover:bg-muted transition-colors">
-                      Manage Inventory
-                    </button>
-                  </div>
-                </section>
-
                 {/* Account Health */}
                 <section className="bg-foreground text-background rounded-3xl p-6">
                   <h2 className="text-xs font-black uppercase tracking-widest mb-4 flex items-center gap-2 opacity-60">
@@ -306,15 +261,16 @@ export default function SellerOverviewPage() {
                   </h2>
                   <div className="flex items-end justify-between">
                     <p className="text-4xl font-black italic tracking-tighter">
-                      98%
+                      50%
                     </p>
                     <span className="text-[10px] font-black uppercase text-primary">
                       Excellent
                     </span>
                   </div>
-                  <div className="w-full h-1.5 bg-background/20 rounded-full mt-4 overflow-hidden">
+                  <div className="w-full h-1.5 bg-muted/50 dark:bg-muted/70 rounded-full mt-4 overflow-hidden">
                     <div className="h-full bg-primary w-[98%]" />
                   </div>
+
                   <p className="text-[9px] font-medium uppercase mt-4 opacity-50 leading-relaxed">
                     Maintain a high health score to get boosted in search
                     results.

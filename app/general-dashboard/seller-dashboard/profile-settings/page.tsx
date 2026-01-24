@@ -3,6 +3,17 @@
 import React, { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { useSession } from "next-auth/react";
+
+interface CryptoWallet {
+  walletName: string;
+  walletAddress: string;
+  network: string;
+  currency: string;
+  isDefault: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  _id?: string; // Adding _id as it's commonly used in MongoDB
+}
 import { 
   Camera, 
   Lock, 
@@ -134,7 +145,7 @@ export default function SellerProfilePage() {
     currency: 'USDT',
     isDefault: false
   });
-  const [cryptoWallets, setCryptoWallets] = useState<any[]>([]);
+  const [cryptoWallets, setCryptoWallets] = useState<CryptoWallet[]>([]);
   const [isLoadingCrypto, setIsLoadingCrypto] = useState(false);
 
   const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
@@ -216,8 +227,9 @@ export default function SellerProfilePage() {
         const response = await fetch('/api/seller/crypto-payout');
         if (response.ok) {
           const data = await response.json();
-          const hasWallets = (data.cryptoPayoutDetails?.length || 0) > 0;
-          setCryptoWallets(data.cryptoPayoutDetails || []);
+          const wallets: CryptoWallet[] = data.cryptoPayoutDetails || [];
+          const hasWallets = wallets.length > 0;
+          setCryptoWallets(wallets);
           setIsWalletConnected(hasWallets);
           
           // Update verification status based on wallet connection
@@ -262,7 +274,7 @@ export default function SellerProfilePage() {
       }
 
       // Update the wallets list and set connected status
-      const updatedWallets = data.cryptoPayoutDetails || [];
+      const updatedWallets: CryptoWallet[] = data.cryptoPayoutDetails || [];
       setCryptoWallets(updatedWallets);
       const hasWallets = updatedWallets.length > 0;
       setIsWalletConnected(hasWallets);
