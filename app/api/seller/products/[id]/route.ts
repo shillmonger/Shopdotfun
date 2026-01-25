@@ -12,10 +12,11 @@ const isValidObjectId = (id: string) => {
 // GET: Fetch a single product by ID
 export async function GET(
   request: Request,
-  context: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await context.params;
+    const { id } = params;
+
 
     // Validate ObjectId
     if (!isValidObjectId(id)) {
@@ -240,10 +241,11 @@ export async function PUT(
 // DELETE: Delete a product
 export async function DELETE(
   request: Request,
-  context: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await context.params;
+    const { id } = params;
+
 
     // Validate ObjectId
     if (!isValidObjectId(id)) {
