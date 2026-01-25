@@ -11,9 +11,9 @@ const isValidObjectId = (id: string) => {
 
 // GET: Fetch a single product by ID
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
-) {
+): Promise<NextResponse> {
   try {
     const { id } = params;
 
