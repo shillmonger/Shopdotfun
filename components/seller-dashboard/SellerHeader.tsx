@@ -1,9 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Menu, X, Bell, Sun, Moon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
 
 interface HeaderProps {
@@ -11,10 +10,39 @@ interface HeaderProps {
   setSidebarOpen: (open: boolean) => void;
 }
 
+interface SellerData {
+  name: string;
+  email: string;
+  businessName?: string;
+}
+
 export default function SellerHeader({ sidebarOpen, setSidebarOpen }: HeaderProps) {
-  const { data: session } = useSession();
+  const [seller, setSeller] = useState<SellerData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { theme, setTheme } = useTheme();
-  
+
+  useEffect(() => {
+    const fetchSellerData = async () => {
+      try {
+        const response = await fetch('/api/seller/profile');
+        if (response.ok) {
+          const data = await response.json();
+          setSeller({
+            name: data.name,
+            email: data.email,
+            businessName: data.businessName
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching seller data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSellerData();
+  }, []);
+
   return (
     <header className="h-15 border-b border-border flex items-center justify-between gap-4 px-4 sm:px-10 bg-background/80 backdrop-blur-md sticky top-0 z-50">
       
@@ -57,17 +85,17 @@ export default function SellerHeader({ sidebarOpen, setSidebarOpen }: HeaderProp
         <div className="flex items-center gap-3 sm:pl-6 sm:border-l border-border">
           <div className="text-right hidden lg:block">
             <p className="text-xs font-black uppercase tracking-tight leading-none text-foreground">
-              {session?.user?.name || 'Seller'}
+              {isLoading ? 'Loading...' : seller?.name || 'Seller'}
             </p>
             <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter mt-1">
-              {session?.user?.email || 'Seller mail'}
+              {isLoading ? 'Loading...' : seller?.email || 'Seller email'}
             </p>
           </div>
           
           <Avatar className="h-9 w-9 md:h-11 md:w-11 border-2 border-foreground/20 hover:border-foreground transition-all rounded-xl p-0.5 cursor-pointer">
             <AvatarImage src="https://github.com/shadcn.png" className="rounded-lg" />
             <AvatarFallback className="rounded-lg bg-foreground text-background font-bold">
-              {session?.user?.name?.charAt(0) || 'S'}
+              {isLoading ? '...' : seller?.name?.charAt(0) || 'S'}
             </AvatarFallback>
           </Avatar>
         </div>

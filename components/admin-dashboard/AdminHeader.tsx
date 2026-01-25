@@ -1,9 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Menu, X, Sun, Moon } from "lucide-react"; 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useSession } from "next-auth/react";
 import { useTheme } from "next-themes"; // Import useTheme
 
 interface HeaderProps {
@@ -11,9 +10,38 @@ interface HeaderProps {
   setSidebarOpen: (open: boolean) => void;
 }
 
-export default function SellerHeader({ sidebarOpen, setSidebarOpen }: HeaderProps) {
-  const { data: session } = useSession();
+interface AdminData {
+  name: string;
+  email: string;
+  role?: string;
+}
+
+export default function AdminHeader({ sidebarOpen, setSidebarOpen }: HeaderProps) {
+  const [admin, setAdmin] = useState<AdminData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { theme, setTheme } = useTheme();
+
+  useEffect(() => {
+    const fetchAdminData = async () => {
+      try {
+        const response = await fetch('/api/admin/profile');
+        if (response.ok) {
+          const data = await response.json();
+          setAdmin({
+            name: data.name,
+            email: data.email,
+            role: data.role
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching admin data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAdminData();
+  }, []);
 
   return (
     <header className="h-15 border-b border-border flex items-center justify-between gap-4 px-4 sm:px-10 bg-background/80 backdrop-blur-md sticky top-0 z-50">
@@ -57,17 +85,17 @@ export default function SellerHeader({ sidebarOpen, setSidebarOpen }: HeaderProp
         <div className="flex items-center gap-3 sm:pl-6 sm:border-l border-border">
           <div className="text-right hidden lg:block">
             <p className="text-xs font-black uppercase tracking-tight leading-none text-foreground">
-              {session?.user?.name || 'Admin'}
+              {isLoading ? 'Loading...' : admin?.name || 'Admin'}
             </p>
             <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter mt-1">
-              Verified Merchant
+              {isLoading ? 'Loading...' : admin?.role || 'Admin'}
             </p>
           </div>
           
           <Avatar className="h-9 w-9 md:h-11 md:w-11 border-2 border-foreground/20 hover:border-foreground transition-all rounded-xl p-0.5 cursor-pointer">
             <AvatarImage src="https://github.com/shadcn.png" className="rounded-lg" />
             <AvatarFallback className="rounded-lg bg-foreground text-background font-bold">
-              {session?.user?.name?.charAt(0) || 'S'}
+              {isLoading ? '...' : admin?.name?.charAt(0) || 'A'}
             </AvatarFallback>
           </Avatar>
         </div>

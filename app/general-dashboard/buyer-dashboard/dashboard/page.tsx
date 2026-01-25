@@ -16,33 +16,46 @@ import {
   ExternalLink
 } from "lucide-react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
 import { getGreeting } from "@/lib/utils";
 
 import BuyerHeader from "@/components/buyer-dashboard/BuyerHeader";
 import BuyerSidebar from "@/components/buyer-dashboard/BuyerSidebar";
 import BuyerNav from "@/components/buyer-dashboard/BuyerNav";
 
-type UserWithCountry = {
-  name?: string | null;
-  email?: string | null;
-  image?: string | null;
+interface UserData {
+  name: string;
+  email: string;
   country?: string;
-};
+  image?: string;
+}
 
 export default function BuyerOverviewPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { data: session, status } = useSession();
-  const loading = status === 'loading';
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Derive userData directly from session
-  const userData = React.useMemo(() => {
-    const user = session?.user as UserWithCountry | undefined;
-    return {
-      name: user?.name ?? 'User',
-      country: user?.country ?? 'Unknown Location'
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch('/api/buyer/profile');
+        if (response.ok) {
+          const data = await response.json();
+          setUserData({
+            name: data.name || 'User',
+            email: data.email,
+            country: data.country || 'Unknown Location',
+            image: data.image
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      } finally {
+        setLoading(false);
+      }
     };
-  }, [session]);
+
+    fetchUserData();
+  }, []);
 
   // Mock Stats
   const stats = [
