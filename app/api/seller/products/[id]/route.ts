@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { clientPromise } from '@/lib/db';
@@ -99,9 +99,15 @@ interface ProductUpdateData {
 }
 
 // PUT: Update a product
+type RouteContext = {
+  params: {
+    id: string;
+  };
+};
+
 export async function PUT(
-  request: Request,
-  context: { params: { id: string } }
+  request: NextRequest,
+  context: RouteContext
 ) {
   try {
     const { id } = await context.params;
