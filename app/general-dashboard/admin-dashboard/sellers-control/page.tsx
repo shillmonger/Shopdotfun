@@ -336,6 +336,18 @@ export default function AdminProductManagement() {
                             {selectedProduct.shippingFee}
                           </div>
                         </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-[10px] font-bold uppercase">
+                            <Layers className="w-3 h-3 text-primary" />
+                            Category: {selectedProduct.category}
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-[10px] font-bold uppercase">
+                            <Banknote className="w-3 h-3 text-primary" />
+                            Currency: {selectedProduct.currency || "N/A"}
+                          </div>
+                        </div>
                       </div>
                     </div>
 
@@ -354,7 +366,7 @@ export default function AdminProductManagement() {
                               onClick={() =>
                                 handleAction(selectedProduct.id, "Active")
                               }
-                              className="bg-green-600 hover:bg-green-500 text-white py-4 rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer flex items-center justify-center gap-2 transition-all"
+                              className="bg-green-500 hover:bg-green-600 text-white py-4 rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer flex items-center justify-center gap-2 transition-all"
                             >
                               <CheckCircle2 className="w-4 h-4" /> Approve
                             </button>
@@ -362,7 +374,7 @@ export default function AdminProductManagement() {
                               onClick={() =>
                                 handleAction(selectedProduct.id, "Rejected")
                               }
-                              className="bg-red-600 hover:bg-red-500 text-white py-4 rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer flex items-center justify-center gap-2 transition-all"
+                              className="bg-red-500 hover:bg-red-600 text-white py-4 rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer flex items-center justify-center gap-2 transition-all"
                             >
                               <XCircle className="w-4 h-4" /> Reject
                             </button>
