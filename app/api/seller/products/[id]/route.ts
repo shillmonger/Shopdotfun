@@ -108,10 +108,11 @@ type RouteContext = {
 
 export async function PUT(
   request: NextRequest,
-  context: RouteContext
+  { params }: RouteContext
 ) {
   try {
-    const { id } = await context.params;
+    const { id } = params; // ✅ CORRECT
+
 
     // Validate ObjectId
     if (!isValidObjectId(id)) {
