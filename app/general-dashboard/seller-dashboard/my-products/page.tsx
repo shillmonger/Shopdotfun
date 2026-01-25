@@ -62,10 +62,10 @@ export default function MyProductsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
   const [stats, setStats] = useState({
+    total: 0,
+    rejected: 0,
     active: 0,
-    outOfStock: 0,
-    drafts: 0,
-    totalSales: 0,
+    pending: 0,
   });
 
   const { status } = useSession();
@@ -81,11 +81,11 @@ export default function MyProductsPage() {
       const data: ApiResponse = await response.json();
       if (data.success) {
         setProducts(data.data);
+        const total = data.data.length;
+        const rejected = data.data.filter((p) => p.status === "rejected").length;
         const active = data.data.filter((p) => p.status === "active").length;
-        const outOfStock = data.data.filter((p) => p.status === "sold_out").length;
-        const drafts = data.data.filter((p) => p.status === "pending").length;
-        const totalSales = data.data.reduce((sum, p) => sum + (p.sales || 0), 0);
-        setStats({ active, outOfStock, drafts, totalSales });
+        const pending = data.data.filter((p) => p.status === "pending").length;
+        setStats({ total, rejected, active, pending });
       }
     } catch (err) {
       toast.error("Failed to load products");
@@ -186,10 +186,10 @@ export default function MyProductsPage() {
             {/* RESTORED STATS */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
               {[
+                { label: "Total Products", count: stats.total, color: "text-primary" },
+                { label: "Rejected", count: stats.rejected, color: "text-destructive" },
                 { label: "Active", count: stats.active, color: "text-green-500" },
-                { label: "Out of Stock", count: stats.outOfStock, color: "text-destructive" },
-                { label: "Pending", count: stats.drafts, color: "text-amber-500" },
-                { label: "Total Sales", count: stats.totalSales, color: "text-primary" },
+                { label: "Pending", count: stats.pending, color: "text-amber-500" },
               ].map((s, i) => (
                 <div key={i} className="bg-card border border-border p-4 rounded-2xl">
                   <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">{s.label}</p>
