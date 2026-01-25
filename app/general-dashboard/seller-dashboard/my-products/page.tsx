@@ -227,70 +227,88 @@ export default function MyProductsPage() {
             </div>
 
             {/* Listings */}
-            {loading ? (
-              <div className="grid grid-cols-1 gap-4 animate-pulse">
-                {[...Array(4)].map((_, i) => <div key={i} className="bg-card border border-border rounded-2xl h-16 opacity-50" />)}
+          {loading ? (
+            <div className="grid grid-cols-1 gap-4 animate-pulse">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="bg-card border border-border rounded-2xl h-16 opacity-50" />
+              ))}
+            </div>
+          ) : filteredProducts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+              <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                <Box className="w-12 h-12 text-primary" strokeWidth={1.5} />
               </div>
-            ) : (
-              <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" : "flex flex-col gap-2"}>
-                {filteredProducts.map((product) => (
-                  viewMode === "grid" ? (
-                    <div key={product._id} className="group bg-card border border-border rounded-[2rem] overflow-hidden hover:border-primary/50 transition-all">
-                      <div className="relative aspect-square overflow-hidden bg-muted">
-                        <img src={product.images?.[0]?.url} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-all duration-500" />
-                        <div className="absolute top-4 left-4">
-                          <span className={`text-[9px] font-black uppercase px-3 py-1.5 rounded-full border shadow-sm backdrop-blur-md ${getStatusBadgeClass(product.status)}`}>
-                            {product.status.replace("_", " ")}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="p-6">
-                        <h3 className="text-sm font-black uppercase italic tracking-tighter line-clamp-1">{product.name}</h3>
-                        <div className="flex items-center justify-between mt-2">
-                          <p className="text-lg font-black text-primary italic">${product.price}</p>
-                          <p className="text-[10px] font-bold text-muted-foreground uppercase">{product.category}</p>
-                        </div>
-                        <div className="flex gap-2 mt-4">
-                          <Link href={`/general-dashboard/seller-dashboard/my-products/${product._id}`} className="flex-1 bg-muted py-2.5  rounded-xl text-[12px] font-black uppercase text-center hover:bg-foreground hover:text-background transition-all">
-                           Edit Product
-                          </Link>
-                          <button onClick={() => setDeleteId(product._id)} className="p-2.5 cursor-pointer border border-border rounded-xl hover:bg-destructive hover:text-white transition-all">
-                            <Trash2 className="w-4 h-4" />
-                            </button>
-                        </div>
+              <h3 className="text-2xl font-black uppercase tracking-tight mb-2">NO PRODUCTS YET</h3>
+              <p className="text-muted-foreground mb-6 max-w-md">
+                You haven't added any products to your store yet. Start by adding your first product to get noticed by potential buyers.
+              </p>
+              <Link
+                href="/general-dashboard/seller-dashboard/add-product"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-full font-black text-sm uppercase tracking-wider hover:bg-primary/90 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                Add Your First Product
+              </Link>
+            </div>
+          ) : (
+            <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" : "flex flex-col gap-2"}>
+              {filteredProducts.map((product) =>
+                viewMode === "grid" ? (
+                  <div key={product._id} className="group bg-card border border-border rounded-[2rem] overflow-hidden hover:border-primary/50 transition-all">
+                    <div className="relative aspect-square overflow-hidden bg-muted">
+                      <img src={product.images?.[0]?.url} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-all duration-500" />
+                      <div className="absolute top-4 left-4">
+                        <span className={`text-[9px] font-black uppercase px-3 py-1.5 rounded-full border shadow-sm backdrop-blur-md ${getStatusBadgeClass(product.status)}`}>
+                          {product.status.replace("_", " ")}
+                        </span>
                       </div>
                     </div>
-                  ) : (
-                    /* COMPACT LIST VIEW */
-                    <div key={product._id} className="flex items-center gap-4 bg-card border border-border p-2 pr-4 rounded-xl hover:border-primary/30 transition-all">
-                      <div className="w-12 h-12 rounded-lg bg-muted overflow-hidden shrink-0">
-                        <img src={product.images?.[0]?.url} className="w-full h-full object-cover" />
+                    <div className="p-6">
+                      <h3 className="text-sm font-black uppercase italic tracking-tighter line-clamp-1">{product.name}</h3>
+                      <div className="flex items-center justify-between mt-2">
+                        <p className="text-lg font-black text-primary italic">${product.price}</p>
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase">{product.category}</p>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-[10px] font-black uppercase italic truncate leading-tight">{product.name}</h4>
-                        <p className="text-[9px] font-bold text-muted-foreground uppercase">{product.category}</p>
-                      </div>
-                      <div className="hidden sm:block">
-                         <span className={`text-[7px] font-black uppercase px-2 py-0.5 rounded border ${getStatusBadgeClass(product.status)}`}>{product.status}</span>
-                      </div>
-                      <div className="text-right min-w-[60px]">
-                        <p className="text-xs font-black text-primary">${product.price}</p>
-                      </div>
-                      <div className="flex gap-1">
-                         <Link href={`/general-dashboard/seller-dashboard/my-products/${product._id}`} className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-all">
-                         <Edit2 className="w-3.5 h-3.5" />
-                         </Link>
-                         <button onClick={() => setDeleteId(product._id)} className="p-2 hover:bg-destructive/10 rounded-lg text-muted-foreground cursor-pointer hover:text-destructive transition-all">
-                          <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                      <div className="flex gap-2 mt-4">
+                        <Link href={`/general-dashboard/seller-dashboard/my-products/${product._id}`} className="flex-1 bg-muted py-2.5 rounded-xl text-[12px] font-black uppercase text-center hover:bg-foreground hover:text-background transition-all">
+                          Edit Product
+                        </Link>
+                        <button onClick={() => setDeleteId(product._id)} className="p-2.5 cursor-pointer border border-border rounded-xl hover:bg-destructive hover:text-white transition-all">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
-                  )
-                ))}
-              </div>
-            )}
-          </div>
-        </main>
+                  </div>
+                ) : (
+                  <div key={product._id} className="flex items-center gap-4 bg-card border border-border p-2 pr-4 rounded-xl hover:border-primary/30 transition-all">
+                    <div className="w-12 h-12 rounded-lg bg-muted overflow-hidden shrink-0">
+                      <img src={product.images?.[0]?.url} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-[10px] font-black uppercase italic truncate leading-tight">{product.name}</h4>
+                      <p className="text-[9px] font-bold text-muted-foreground uppercase">{product.category}</p>
+                    </div>
+                    <div className="hidden sm:block">
+                      <span className={`text-[7px] font-black uppercase px-2 py-0.5 rounded border ${getStatusBadgeClass(product.status)}`}>{product.status}</span>
+                    </div>
+                    <div className="text-right min-w-[60px]">
+                      <p className="text-xs font-black text-primary">${product.price}</p>
+                    </div>
+                    <div className="flex gap-1">
+                      <Link href={`/general-dashboard/seller-dashboard/my-products/${product._id}`} className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-all">
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </Link>
+                      <button onClick={() => setDeleteId(product._id)} className="p-2 hover:bg-destructive/10 rounded-lg text-muted-foreground cursor-pointer hover:text-destructive transition-all">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                )
+              )}
+            </div>
+          )}
+        </div>
+      </main>
         <SellerNav />
       </div>
     </div>
