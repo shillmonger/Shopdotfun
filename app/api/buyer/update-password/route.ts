@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import bcrypt from 'bcrypt';
-import clientPromise from '@/lib/db';
+import { clientPromise } from '@/lib/db';
 import { authOptions } from '@/lib/auth';
 
 const SALT_ROUNDS = 10;

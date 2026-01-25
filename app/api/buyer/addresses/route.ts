@@ -3,7 +3,7 @@
 
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import clientPromise from '@/lib/db';
+import { clientPromise } from '@/lib/db';
 import { ObjectId, type Document } from 'mongodb';
 import { authOptions } from '@/lib/auth';
 import { Address } from '@/models/User';
