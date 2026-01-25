@@ -122,7 +122,7 @@ export default function EditProductPage() {
           stock: productData.stock ? productData.stock.toString() : "1",
           shippingFee: productData.shippingFee ? productData.shippingFee.toString() : "0",
           processingTime: productData.processingTime || "1-2 Days",
-          images: productData.images?.map((img: any) => ({
+          images: (productData.images as ProductImage[])?.map((img) => ({
             url: img.url,
             publicId: img.publicId,
             thumbnailUrl: img.thumbnailUrl || img.url

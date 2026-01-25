@@ -1,5 +1,5 @@
 // lib/db.ts
-import mongoose from 'mongoose';
+import mongoose, { type Mongoose } from 'mongoose';
 
 const MONGODB_URI = process.env.MONGODB_URI as string;
 
@@ -7,33 +7,39 @@ if (!MONGODB_URI) {
   throw new Error('Please define the MONGODB_URI environment variable');
 }
 
-// Initialize a cache object to store the connection
-let cached = (global as any).mongoose;
-
-// If no cache exists, create it
-if (!cached) {
-  cached = (global as any).mongoose = { conn: null, promise: null };
+declare global {
+  // eslint-disable-next-line no-var
+  var mongoose:
+    | {
+        conn: Mongoose | null;
+        promise: Promise<Mongoose> | null;
+      }
+    | undefined;
 }
 
-export async function connectDB() {
-  // If we have a cached connection, return it
-  if (cached.conn) {
-    return cached.conn;
+let cached = global.mongoose;
+
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
+
+export async function connectDB(): Promise<Mongoose> {
+  if (cached!.conn) {
+    return cached!.conn;
   }
 
-  // If no promise exists, create a new connection
-  if (!cached.promise) {
-    const opts = {
-      bufferCommands: false, // Disable mongoose buffering
-      serverSelectionTimeoutMS: 10000, // Timeout after 10s instead of 30s
-      socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
+  if (!cached!.promise) {
+    const opts: mongoose.ConnectOptions = {
+      bufferCommands: false,
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
     };
 
-    cached.promise = mongoose
+    cached!.promise = mongoose
       .connect(MONGODB_URI, opts)
-      .then((mongoose) => {
+      .then((mongooseInstance) => {
         console.log('MongoDB connected successfully');
-        return mongoose;
+        return mongooseInstance;
       })
       .catch((err) => {
         console.error('MongoDB connection error:', err);
@@ -42,15 +48,13 @@ export async function connectDB() {
   }
 
   try {
-    // Wait for the connection promise to resolve
-    cached.conn = await cached.promise;
+    cached!.conn = await cached!.promise;
   } catch (e) {
-    // If there's an error, reset the promise so we can try again
-    cached.promise = null;
+    cached!.promise = null;
     throw e;
   }
 
-  return cached.conn;
+  return cached!.conn!;
 }
 
 // Export the mongoose instance for type support
