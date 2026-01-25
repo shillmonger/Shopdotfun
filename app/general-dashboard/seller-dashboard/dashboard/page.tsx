@@ -7,6 +7,7 @@ import {
   Clock,
   CheckCircle2,
   AlertTriangle,
+  MapPin,
   TrendingUp,
   ChevronRight,
   Truck,
@@ -16,14 +17,24 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+import { getGreeting, getDayGreeting } from "@/lib/utils";
 import SellerHeader from "@/components/seller-dashboard/SellerHeader";
 import SellerSidebar from "@/components/seller-dashboard/SellerSidebar";
 import SellerNav from "@/components/seller-dashboard/SellerNav";
 
+interface UserData {
+  name: string;
+  email: string;
+  country?: string;
+  image?: string;
+}
+
 export default function SellerOverviewPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isVerified, setIsVerified] = useState(false); // Mock verification status
+  const [isVerified, setIsVerified] = useState(false);
   const [isWalletConnected, setIsWalletConnected] = useState(false);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(true);
 
   // Mock Stats
   const stats = [
@@ -39,8 +50,29 @@ export default function SellerOverviewPage() {
     { id: "ORD-1115", buyer: "Mike Ross", total: 210.0, status: "Delivered" },
   ];
 
-  // Check wallet connection status
   useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch('/api/seller/profile');
+        if (response.ok) {
+          const data = await response.json();
+          setUserData({
+            name: data.name || 'Seller',
+            email: data.email,
+            country: data.country,
+            image: data.image
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+
+    // Check wallet connection status
     const checkWalletStatus = async () => {
       try {
         const response = await fetch("/api/seller/wallet-status", {
@@ -93,16 +125,26 @@ export default function SellerOverviewPage() {
             {/* A. Welcome & Store Status */}
             <section className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
               <div>
-                <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tighter italic leading-none">
-                  Elite Gear Hub
+                <h1 className="text-2xl md:text-4xl mb-5 font-black uppercase tracking-tighter italic leading-none">
+                  {loading ? (
+                    <div className="h-10 w-64 bg-muted rounded animate-pulse"></div>
+                  ) : (
+                    getGreeting(userData?.name || 'Seller')
+                  )}
                 </h1>
+
+                <p className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
+                  {getDayGreeting()}
+                </p>
               </div>
+
               <Link
-                href="general-dashboard/seller-dashboard/add-product"
-                className="bg-primary text-primary-foreground px-8 py-4 rounded-xl text-xs font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-primary/20"
-              >
-                + Add New Product
-              </Link>
+  href="general-dashboard/seller-dashboard/add-product"
+  className="bg-primary text-primary-foreground px-8 py-4 rounded-xl text-xs font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-primary/20 w-full md:w-auto block text-center"
+>
+  + Add New Product
+</Link>
+
             </section>
 
             {/* D. Alerts & Actions (Sticky Notifications) */}
@@ -110,7 +152,7 @@ export default function SellerOverviewPage() {
               {!isWalletConnected ? (
                 <div className="bg-amber-500 text-black p-5 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4 shadow-lg border-2 border-black/10">
                   <div className="flex gap-4">
-                    <AlertCircle className="w-6 h-6 shrink-0 mt-1" />
+                    <AlertCircle className="w-6 h-6 shrink-0 mt-1 hidden md:block" />
                     <div>
                       <h3 className="font-black uppercase italic text-sm tracking-tight">
                         Add your crypto wallet for payouts
@@ -130,7 +172,7 @@ export default function SellerOverviewPage() {
               ) : (
                 <div className="bg-green-500 text-black p-5 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4 shadow-lg border-2 border-black/10">
                   <div className="flex gap-4">
-                    <CheckCircle2 className="w-6 h-6 shrink-0 mt-1" />
+                    <CheckCircle2 className="w-6 h-6 shrink-0 mt-1 hidden md:block" />
                     <div>
                       <h3 className="font-black uppercase italic text-sm tracking-tight">
                         Crypto Wallet Connected

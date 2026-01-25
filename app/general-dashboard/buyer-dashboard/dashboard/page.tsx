@@ -98,7 +98,7 @@ export default function BuyerOverviewPage() {
                   )}
                 </div>
               </div>
-              <Link href="/general-dashboard/buyer-dashboard/browse-product" className="bg-primary text-primary-foreground px-8 py-4 rounded-xl text-xs font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-primary/20">
+              <Link href="/general-dashboard/buyer-dashboard/browse-product" className="bg-primary text-primary-foreground px-8 py-4 rounded-xl text-xs font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-primary/20 w-full md:w-auto block text-center">
                 Continue Shopping
               </Link>
             </section>

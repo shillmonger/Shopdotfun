@@ -16,3 +16,12 @@ export function getGreeting(name: string): string {
     return `Good evening, ${name}`;
   }
 }
+
+export function getDayGreeting(): string {
+  const days = [
+    'Sunday', 'Monday', 'Tuesday', 'Wednesday', 
+    'Thursday', 'Friday', 'Saturday'
+  ];
+  const dayName = days[new Date().getDay()];
+  return `How is your ${dayName} going?`;
+}
