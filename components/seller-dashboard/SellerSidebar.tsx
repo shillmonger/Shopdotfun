@@ -41,7 +41,7 @@ export default function SellerSidebar({ sidebarOpen, setSidebarOpen }: SidebarPr
     { name: "Dashboard", icon: LayoutDashboard, href: `${basePath}/dashboard` },
     { name: "Add Product", icon: PlusCircle, href: `${basePath}/add-product` },
     { name: "My Products", icon: Package, href: `${basePath}/my-products` },
-    { name: "Edit Products", icon: Edit, href: `${basePath}/edit-products` },
+    // { name: "Edit Products", icon: Edit, href: `${basePath}/edit-products` },
     { name: "Orders/Received", icon: Truck, href: `${basePath}/orders-received` },
     { name: "Mark as Shipped", icon: ClipboardCheck, href: `${basePath}/mark-shipped` },
     { name: "My Inventory", icon: Boxes, href: `${basePath}/inventory` },

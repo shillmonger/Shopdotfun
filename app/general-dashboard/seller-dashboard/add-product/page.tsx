@@ -82,6 +82,8 @@ export default function AddProductPage() {
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
 
+  const MAX_TOTAL_SIZE = 1 * 1024 * 1024; // 1MB in bytes
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     const totalFiles = formData.images.length + files.length;
@@ -90,10 +92,18 @@ export default function AddProductPage() {
       return toast.error("Maximum 4 images allowed");
     }
 
+    // Calculate total size of new files
+    const totalNewSize = files.reduce((total, file) => total + file.size, 0);
+    const currentTotalSize = imageFiles.reduce((total, file) => total + file.size, 0);
+    
+    if (currentTotalSize + totalNewSize > MAX_TOTAL_SIZE) {
+      return toast.error(`Total size of all images must be less than 1MB. Current size: ${(currentTotalSize / (1024 * 1024)).toFixed(2)}MB`);
+    }
+
     // Validate file types and sizes
     const validFiles = files.filter(file => {
       const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
-      const maxSize = 10 * 1024 * 1024; // 10MB
+      const maxSize = 10 * 1024 * 1024; // 10MB per file
       
       if (!validTypes.includes(file.type)) {
         toast.error(`Invalid file type: ${file.name}. Only JPG, PNG, and WEBP are allowed.`);
@@ -134,8 +144,6 @@ export default function AddProductPage() {
 
     setFormData((prev) => ({ ...prev, images: filteredImages }));
     setImageFiles(filteredFiles);
-    
-    toast.info('Image removed');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -403,13 +411,13 @@ export default function AddProductPage() {
                         <img
                           src={img}
                           alt="preview"
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover cursor-pointer"
                         />
                         <button
                           onClick={() => removeImage(idx)}
-                          className="absolute top-2 right-2 p-1 bg-destructive text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute top-2 right-2 cursor-pointer p-1 bg-destructive text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
                         >
-                          <X className="w-3 h-3" />
+                          <X className="w-5 h-5" />
                         </button>
                       </div>
                     ))}
@@ -473,7 +481,7 @@ export default function AddProductPage() {
                       </DropdownMenu>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-3 gap-4">
                       <div className="space-y-2">
                         <label className="text-[9px] font-black uppercase opacity-70">
                           Price ({formData.crypto})
@@ -501,6 +509,23 @@ export default function AddProductPage() {
                             setFormData({
                               ...formData,
                               discount: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[9px] font-black uppercase opacity-70">
+                          Shipping Fee
+                        </label>
+                        <input
+                          type="number"
+                          placeholder="0.00"
+                          className="w-full bg-primary-foreground/10 border border-primary-foreground/20 rounded-xl px-4 py-3 text-sm font-bold outline-none placeholder:text-primary-foreground/40"
+                          value={formData.shippingFee}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              shippingFee: e.target.value,
                             })
                           }
                         />

@@ -160,7 +160,7 @@ export async function GET(request: Request) {
 
     // Build the base query to find products for the current seller
     const query: any = {
-      seller: session.user.email
+      sellerEmail: session.user.email
     };
 
 

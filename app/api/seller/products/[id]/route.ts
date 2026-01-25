@@ -41,7 +41,7 @@ export async function GET(
     // Find the product
     const product = await db.collection('products').findOne({
       _id: new ObjectId(id),
-      seller: session.user.email // Ensure the product belongs to the logged-in seller
+      sellerEmail: session.user.email // Ensure the product belongs to the logged-in seller
     });
 
     if (!product) {
@@ -132,7 +132,7 @@ export async function PUT(
     // Check if product exists and belongs to the seller
     const existingProduct = await db.collection('products').findOne({
       _id: new ObjectId(id),
-      seller: session.user.email
+      sellerEmail: session.user.email
     });
 
     if (!existingProduct) {
@@ -242,7 +242,7 @@ export async function DELETE(
     // Delete the product
     const result = await db.collection('products').deleteOne({
       _id: new ObjectId(id),
-      seller: session.user.email
+      sellerEmail: session.user.email
     });
 
     if (result.deletedCount === 0) {

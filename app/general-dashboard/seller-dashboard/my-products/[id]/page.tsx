@@ -32,7 +32,7 @@ import {
 
 import SellerHeader from "@/components/seller-dashboard/SellerHeader";
 import SellerSidebar from "@/components/seller-dashboard/SellerSidebar";
-// import { updateProduct } from "../actions";
+import SellerNav from "@/components/seller-dashboard/SellerNav";
 
 const CRYPTO_OPTIONS = [
   { label: "USDT (Tether)", value: "USDT" },
@@ -80,7 +80,7 @@ export default function EditProductPage() {
     name: "",
     description: "",
     price: "",
-    discount: "",
+    discount: "0",
     crypto: "USDT",
     category: "Select Category",
     stock: "1",
@@ -98,31 +98,45 @@ export default function EditProductPage() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
+        setIsLoading(true);
         const response = await fetch(`/api/seller/products/${id}`);
         if (!response.ok) {
           throw new Error('Failed to fetch product');
         }
-        const data = await response.json();
+        const result = await response.json();
         
-        // In the fetchProduct function, update the form data setting part
-setFormData({
-  name: data.name || "",
-  description: data.description || "",
-  price: data.price ? data.price.toString() : "0",
-  discount: data.discount ? data.discount.toString() : "",
-  crypto: data.crypto || "USDT",
-  category: data.category || "Select Category",
-  stock: data.stock ? data.stock.toString() : "1",
-  shippingFee: data.shippingFee ? data.shippingFee.toString() : "0",
-  processingTime: data.processingTime || "1-2 Days",
-  images: data.images || [],
-});
+        if (!result.success || !result.data) {
+          throw new Error('Invalid product data received');
+        }
         
-        setExistingImages(data.images || []);
+        const productData = result.data;
         
-        // Generate SKU based on product name
-        if (data.name?.length > 2) {
-          setSku(`${data.name.substring(0, 3).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`);
+        // Format the product data for the form
+        const formattedData = {
+          name: productData.name || "",
+          description: productData.description || "",
+          price: productData.price ? productData.price.toString() : "0",
+          discount: productData.discount ? productData.discount.toString() : "0",
+          crypto: productData.crypto || "USDT",
+          category: productData.category || "Select Category",
+          stock: productData.stock ? productData.stock.toString() : "1",
+          shippingFee: productData.shippingFee ? productData.shippingFee.toString() : "0",
+          processingTime: productData.processingTime || "1-2 Days",
+          images: productData.images?.map((img: any) => ({
+            url: img.url,
+            publicId: img.publicId,
+            thumbnailUrl: img.thumbnailUrl || img.url
+          })) || []
+        };
+        
+        setFormData(formattedData);
+        setExistingImages(formattedData.images);
+        
+        // Generate SKU if not exists
+        if (!productData.sku && productData.name) {
+          setSku(`${productData.name.substring(0, 3).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`);
+        } else if (productData.sku) {
+          setSku(productData.sku);
         }
       } catch (error) {
         console.error('Error fetching product:', error);
@@ -140,7 +154,11 @@ setFormData({
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const totalFiles = formData.images.length + files.length - removedImageIds.length;
+    const currentImageCount = formData.images.filter(img => 
+      !('isNew' in img) || !removedImageIds.includes(img.publicId || '')
+    ).length;
+    
+    const totalFiles = currentImageCount + files.length;
     
     if (totalFiles > 4) {
       return toast.error("Maximum 4 images allowed");
@@ -737,6 +755,9 @@ setFormData({
             </form>
           </div>
         </main>
+
+                <SellerNav />
+        
       </div>
     </div>
   );
