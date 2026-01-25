@@ -11,6 +11,9 @@ const publicPaths = [
   "/privacy",
   "/terms",
   "/api/auth",
+  "/auth/login",
+  "/auth/register",
+  "/auth/logout"
 ];
 
 // List of API routes that require authentication
@@ -34,28 +37,21 @@ export default withAuth(
       return NextResponse.next();
     }
 
-    // Handle auth pages
+    // Allow all auth page access (login, register, logout)
+    // These are now handled by the publicPaths check above
     if (isAuthPage) {
-      if (isAuth) {
-        // If user is already logged in, redirect to appropriate dashboard
-        let redirectPath = "/general-dashboard/buyer-dashboard/dashboard";
-        
-        if (token.roles?.includes("admin")) {
-          redirectPath = "/general-dashboard/admin-dashboard";
-        } else if (token.roles?.includes("seller")) {
-          redirectPath = "/general-dashboard/seller-dashboard/dashboard";
-        }
-        
-        return NextResponse.redirect(new URL(redirectPath, req.url));
-      }
       return NextResponse.next();
     }
 
-    // Redirect to login if not authenticated
+    // Redirect to login if not authenticated and trying to access protected route
     if (!isAuth) {
-      const loginUrl = new URL("/auth/login", req.url);
-      loginUrl.searchParams.set("callbackUrl", req.nextUrl.pathname);
-      return NextResponse.redirect(loginUrl);
+      // Skip redirect for public paths and API routes
+      if (!isPublicPath && !isApiRoute) {
+        const loginUrl = new URL("/auth/login", req.url);
+        loginUrl.searchParams.set("callbackUrl", req.nextUrl.pathname);
+        return NextResponse.redirect(loginUrl);
+      }
+      return NextResponse.next();
     }
 
     // Check role-based access for dashboard routes
