@@ -4,6 +4,40 @@ import { authOptions } from '@/lib/auth';
 import { clientPromise } from '@/lib/db';
 import { ObjectId } from 'mongodb';
 
+// Define the RouteContext type for params
+type RouteContext = {
+  params: {
+    id: string;
+  };
+};
+
+// Define interfaces for data structures
+interface ProductImage {
+  url: string;
+  thumbnailUrl?: string;
+  publicId: string;
+}
+
+interface CloudinaryUploadResult {
+  secure_url: string;
+  thumbnail_url?: string;
+  publicId: string;
+}
+
+interface ProductUpdateData {
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  stock: number;
+  shippingFee: number;
+  processingTime: string;
+  crypto: string;
+  discount: number;
+  images: ProductImage[];
+  updatedAt: Date;
+}
+
 // Helper function to handle MongoDB ObjectId validation
 const isValidObjectId = (id: string) => {
   return ObjectId.isValid(id) && new ObjectId(id).toString() === id;
@@ -12,7 +46,7 @@ const isValidObjectId = (id: string) => {
 // GET: Fetch a single product by ID
 export async function GET(
   request: Request,
-  { params }: any
+  { params }: RouteContext
 ) {
   try {
     const { id } = params;
@@ -71,43 +105,10 @@ export async function GET(
   }
 }
 
-// Define interfaces for our data structures
-interface ProductImage {
-  url: string;
-  thumbnailUrl?: string;
-  publicId: string;
-}
-
-interface CloudinaryUploadResult {
-  secure_url: string;
-  thumbnail_url?: string;
-  publicId: string;
-}
-
-interface ProductUpdateData {
-  name: string;
-  description: string;
-  price: number;
-  category: string;
-  stock: number;
-  shippingFee: number;
-  processingTime: string;
-  crypto: string;
-  discount: number;
-  images: ProductImage[];
-  updatedAt: Date;
-}
-
 // PUT: Update a product
-type RouteContext = {
-  params: {
-    id: string;
-  };
-};
-
 export async function PUT(
   request: NextRequest,
-  { params }: any
+  { params }: RouteContext
 ) {
   try {
     const { id } = params;
@@ -175,7 +176,6 @@ export async function PUT(
       );
     }
 
-
     // Handle image uploads if there are new images
     let uploadedImages: CloudinaryUploadResult[] = [];
     if (imageFiles.length > 0) {
@@ -240,7 +240,7 @@ export async function PUT(
 // DELETE: Delete a product
 export async function DELETE(
   request: Request,
-  { params }: any
+  { params }: RouteContext
 ) {
   try {
     const { id } = params;
