@@ -71,6 +71,7 @@ export async function POST(request: Request) {
     const product = {
       ...data,
       sellerEmail: session.user.email,
+      sellerName: session.user.name, // Add seller name from session
       status: 'pending',
       createdAt: new Date(),
       updatedAt: new Date(),

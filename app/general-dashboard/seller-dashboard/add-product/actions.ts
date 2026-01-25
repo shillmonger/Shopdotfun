@@ -73,6 +73,7 @@ export async function createProduct(formData: FormData) {
         publicId: img.publicId
       })),
       sellerEmail: session.user.email,
+      sellerName: session.user.name, // Add seller's name from session
       status: 'pending',
     });
 

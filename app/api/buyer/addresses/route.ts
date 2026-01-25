@@ -8,7 +8,7 @@ import { ObjectId, type Document } from 'mongodb';
 import { authOptions } from '@/lib/auth';
 import { Address } from '@/models/User';
 
-const dbName = 'shpdotfun';
+const dbName = 'shop_dot_fun';
 
 interface UserAddress extends Omit<Address, 'createdAt' | 'updatedAt'> {
   _id: ObjectId;
@@ -32,7 +32,7 @@ export async function GET() {
 
     const client = await clientPromise;
     const db = client.db(dbName);
-    const user = await db.collection<UserDocument>('buyer-users').findOne({ email: session.user.email });
+    const user = await db.collection<UserDocument>('buyers').findOne({ email: session.user.email });
 
     if (!user) {
       return new NextResponse(JSON.stringify({ error: 'User not found' }), { status: 404 });
@@ -57,7 +57,7 @@ export async function POST(request: Request) {
     
     const client = await clientPromise;
     const db = client.db(dbName);
-    const collection = db.collection<UserDocument>('buyer-users');
+    const collection = db.collection<UserDocument>('buyers');
 
     const user = await collection.findOne({ email: session.user.email });
     
@@ -107,7 +107,7 @@ export async function PUT(request: Request) {
     const db = client.db(dbName);
     const now = new Date();
 
-    const result = await db.collection<UserDocument>('buyer-users').updateOne(
+    const result = await db.collection<UserDocument>('buyers').updateOne(
       { 
         email: session.user.email,
         'addresses._id': new ObjectId(addressId)
@@ -152,7 +152,7 @@ export async function DELETE(request: Request) {
 
     const client = await clientPromise;
     const db = client.db(dbName);
-    const collection = db.collection<UserDocument>('buyer-users');
+    const collection = db.collection<UserDocument>('buyers');
     const now = new Date();
 
     const user = await collection.findOne({

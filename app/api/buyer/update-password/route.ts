@@ -38,8 +38,8 @@ export async function POST(req: Request) {
     }
 
     const client = await clientPromise;
-    const db = client.db('shpdotfun');
-    const collection = db.collection('buyer-users');
+    const db = client.db('shop_dot_fun');
+    const collection = db.collection('buyers');
 
     // Find the user
     const user = await collection.findOne({ email: session.user.email });

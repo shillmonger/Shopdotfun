@@ -12,10 +12,10 @@ export async function GET() {
     }
 
     const client = await clientPromise;
-    const db = client.db('shpdotfun');
+    const db = client.db('shop_dot_fun');
     
     // Find the buyer in the database
-    const buyer = await db.collection('buyer-users').findOne({ 
+    const buyer = await db.collection('buyers').findOne({ 
       email: session.user.email 
     });
 
@@ -50,10 +50,10 @@ export async function PUT(request: Request) {
     }
 
     const client = await clientPromise;
-    const db = client.db('shpdotfun');
+    const db = client.db('shop_dot_fun');
     
     // Update the buyer's information
-    const result = await db.collection('buyer-users').updateOne(
+    const result = await db.collection('buyers').updateOne(
       { email: session.user.email },
       {
         $set: {

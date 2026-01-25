@@ -38,9 +38,14 @@ export default withAuth(
     if (isAuthPage) {
       if (isAuth) {
         // If user is already logged in, redirect to appropriate dashboard
-        const redirectPath = token.role === "buyer" 
-          ? "/general-dashboard/buyer-dashboard/dashboard" 
-          : "/general-dashboard/seller-dashboard/dashboard";
+        let redirectPath = "/general-dashboard/buyer-dashboard/dashboard";
+        
+        if (token.roles?.includes("admin")) {
+          redirectPath = "/general-dashboard/admin-dashboard";
+        } else if (token.roles?.includes("seller")) {
+          redirectPath = "/general-dashboard/seller-dashboard/dashboard";
+        }
+        
         return NextResponse.redirect(new URL(redirectPath, req.url));
       }
       return NextResponse.next();
@@ -56,13 +61,24 @@ export default withAuth(
     // Check role-based access for dashboard routes
     const isBuyerPath = req.nextUrl.pathname.startsWith("/general-dashboard/buyer-dashboard");
     const isSellerPath = req.nextUrl.pathname.startsWith("/general-dashboard/seller-dashboard");
+    const isAdminPath = req.nextUrl.pathname.startsWith("/general-dashboard/admin-dashboard");
 
-    // If user is trying to access a role-specific dashboard without the right role, redirect
-    if ((isBuyerPath && token.role !== "buyer") || (isSellerPath && token.role !== "seller")) {
-      const redirectPath = token.role === "buyer" 
-        ? "/general-dashboard/buyer-dashboard/dashboard" 
-        : "/general-dashboard/seller-dashboard/dashboard";
-      return NextResponse.redirect(new URL(redirectPath, req.url));
+    // Get user roles from token
+    const userRoles = token.roles || [];
+
+    // Check admin access
+    if (isAdminPath && !userRoles.includes('admin')) {
+      return NextResponse.redirect(new URL("/auth/unauthorized", req.url));
+    }
+
+    // Check seller access
+    if (isSellerPath && !userRoles.includes('seller') && !userRoles.includes('admin')) {
+      return NextResponse.redirect(new URL("/auth/unauthorized", req.url));
+    }
+
+    // Check buyer access
+    if (isBuyerPath && !userRoles.includes('buyer') && !userRoles.includes('admin')) {
+      return NextResponse.redirect(new URL("/auth/unauthorized", req.url));
     }
 
     return NextResponse.next();

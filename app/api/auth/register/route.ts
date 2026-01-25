@@ -9,7 +9,7 @@ type RegisterRequestBody = {
   password: string;
   phone: string;
   country: string;
-  role: UserRole;
+  role: UserRole; // Default role during registration
   businessName?: string;
   businessAddress?: string;
 }
@@ -27,11 +27,11 @@ export async function POST(req: Request) {
       );
     }
 
-    // Check if user already exists
+    // Check if user already exists with the same role
     const existingUser = await UserModel.findUserByEmail(email, role);
     if (existingUser) {
       return NextResponse.json(
-        { message: 'Email already in use' },
+        { message: 'Email already in use for this account type' },
         { status: 400 }
       );
     }
@@ -67,8 +67,9 @@ export async function POST(req: Request) {
       userData.businessAddress = businessAddress;
     }
 
-    // Create user
-    const user = await UserModel.createUser(userData, role);
+    // Create user with the specified role
+    // For new registrations, we only assign one role initially
+    const user = await UserModel.createUser(userData, [role]);
 
     return NextResponse.json(
       { message: 'User registered successfully', user },

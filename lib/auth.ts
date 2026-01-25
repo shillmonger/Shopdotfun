@@ -9,7 +9,7 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
-        role: { type: "text" } // Will be 'buyer' or 'seller'
+        role: { type: "text" } // Will be 'buyer' or 'seller' or 'admin'
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password || !credentials?.role) {
@@ -20,18 +20,18 @@ export const authOptions: NextAuthOptions = {
           const user = await UserModel.validateUser(
             credentials.email,
             credentials.password,
-            credentials.role as 'buyer' | 'seller'
+            credentials.role as 'buyer' | 'seller' | 'admin'
           );
 
           if (!user) {
-            throw new Error("Invalid credentials");
+            throw new Error("Invalid credentials or insufficient permissions");
           }
 
           return {
             id: user._id.toString(),
             email: user.email,
             name: user.name,
-            role: user.role,
+            roles: user.roles,
             country: user.country
           };
         } catch (error) {
@@ -44,7 +44,7 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = user.role;
+        token.roles = user.roles;
         token.id = user.id;
         token.country = user.country;
       }
@@ -52,7 +52,7 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.role = token.role as string;
+        session.user.roles = token.roles as string[];
         session.user.id = token.id as string;
         session.user.country = token.country as string;
       }
@@ -70,14 +70,14 @@ export const authOptions: NextAuthOptions = {
 
 declare module "next-auth" {
   interface User {
-    role?: string;
+    roles?: string[];
     id?: string;
     country?: string;
   }
 
   interface Session extends DefaultSession {
     user: {
-      role?: string;
+      roles?: string[];
       id?: string;
       country?: string;
     } & DefaultSession['user']
@@ -86,7 +86,7 @@ declare module "next-auth" {
 
 declare module "next-auth/jwt" {
   interface JWT {
-    role?: string;
+    roles?: string[];
     id?: string;
     country?: string;
   }
