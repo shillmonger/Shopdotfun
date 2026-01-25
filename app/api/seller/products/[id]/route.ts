@@ -11,12 +11,11 @@ const isValidObjectId = (id: string) => {
 
 // GET: Fetch a single product by ID
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-): Promise<NextResponse> {
+  request: Request,
+  { params }: any
+) {
   try {
     const { id } = params;
-
 
     // Validate ObjectId
     if (!isValidObjectId(id)) {
@@ -108,11 +107,10 @@ type RouteContext = {
 
 export async function PUT(
   request: NextRequest,
-  { params }: RouteContext
+  { params }: any
 ) {
   try {
-    const { id } = params; // ✅ CORRECT
-
+    const { id } = params;
 
     // Validate ObjectId
     if (!isValidObjectId(id)) {
@@ -242,11 +240,10 @@ export async function PUT(
 // DELETE: Delete a product
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: any
 ) {
   try {
     const { id } = params;
-
 
     // Validate ObjectId
     if (!isValidObjectId(id)) {
