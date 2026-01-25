@@ -159,7 +159,15 @@ export async function GET(request: Request) {
     const productsCollection = db.collection('products');
 
     // Build the base query to find products for the current seller
-    const query: any = {
+    interface ProductQuery {
+      sellerEmail: string;
+      status?: string;
+      $or?: Array<{
+        [key: string]: { $regex: string; $options: string };
+      }>;
+    }
+
+    const query: ProductQuery = {
       sellerEmail: session.user.email
     };
 

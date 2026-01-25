@@ -71,10 +71,37 @@ export async function GET(
   }
 }
 
+// Define interfaces for our data structures
+interface ProductImage {
+  url: string;
+  thumbnailUrl?: string;
+  publicId: string;
+}
+
+interface CloudinaryUploadResult {
+  secure_url: string;
+  thumbnail_url?: string;
+  publicId: string;
+}
+
+interface ProductUpdateData {
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  stock: number;
+  shippingFee: number;
+  processingTime: string;
+  crypto: string;
+  discount: number;
+  images: ProductImage[];
+  updatedAt: Date;
+}
+
 // PUT: Update a product
 export async function PUT(
   request: Request,
-  context: { params: Promise<{ id: string }> }
+  context: { params: { id: string } }
 ) {
   try {
     const { id } = await context.params;
@@ -142,12 +169,6 @@ export async function PUT(
       );
     }
 
-    // Define the Cloudinary upload result type
-    interface CloudinaryUploadResult {
-      secure_url: string;
-      thumbnail_url?: string;
-      publicId: string;
-    }
 
     // Handle image uploads if there are new images
     let uploadedImages: CloudinaryUploadResult[] = [];
@@ -158,16 +179,16 @@ export async function PUT(
     }
 
     // Filter out removed images
-    let updatedImages = existingProduct.images || [];
+    let updatedImages: ProductImage[] = existingProduct.images || [];
     if (removedImages.length > 0) {
       updatedImages = updatedImages.filter(
-        (img: any) => !removedImages.includes(img.publicId)
+        (img: ProductImage) => !removedImages.includes(img.publicId)
       );
     }
 
     // Add new images
     if (uploadedImages.length > 0) {
-      uploadedImages.forEach((img) => {
+      uploadedImages.forEach((img: CloudinaryUploadResult) => {
         updatedImages.push({
           url: img.secure_url,
           thumbnailUrl: img.thumbnail_url,
@@ -176,12 +197,12 @@ export async function PUT(
       });
     }
 
-    // Update the product
-    const updateData = {
-      name,
+    // Update the product with proper typing
+    const updateData: Partial<ProductUpdateData> = {
+      name: name as string,
       description,
       price,
-      category,
+      category: category as string,
       stock,
       shippingFee,
       processingTime,
