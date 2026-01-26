@@ -233,6 +233,9 @@ export default function AdminProductManagement() {
               </div>
             </div>
 
+
+
+{/* Product table  */}
             {loading ? (
               <div className="flex items-center justify-center h-64">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -291,7 +294,7 @@ export default function AdminProductManagement() {
                                 </div>
                                 <div>
                                   <div className="text-sm font-medium line-clamp-1">
-                                    {product.name}
+                                    {product.name.length > 15 ? `${product.name.substring(0, 15)}...` : product.name}
                                   </div>
                                   <div className="text-xs text-muted-foreground">
                                     {product.category}
@@ -441,6 +444,7 @@ export default function AdminProductManagement() {
                                 className="w-full bg-background border border-border rounded-xl p-3 text-xs font-medium outline-none focus:ring-2 ring-primary/20 min-h-[100px]"
                                 placeholder="Provide a reason for rejection..."
                                 value={reason}
+                                required
                                 onChange={(e) => setReason(e.target.value)}
                               />
                             </div>
@@ -448,7 +452,7 @@ export default function AdminProductManagement() {
                               <button
                                 onClick={() => handleAction(selectedProduct._id, 'approved')}
                                 disabled={isProcessing}
-                                className="bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                                className="bg-green-500 hover:bg-green-600 cursor-pointer text-white py-3 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all disabled:opacity-50"
                               >
                                 {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                                 Approve
@@ -456,7 +460,7 @@ export default function AdminProductManagement() {
                               <button
                                 onClick={() => handleAction(selectedProduct._id, 'rejected')}
                                 disabled={isProcessing || !reason.trim()}
-                                className="bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                                className="bg-red-500 hover:bg-red-600 cursor-pointer text-white py-3 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all disabled:opacity-50"
                               >
                                 <XCircle className="w-4 h-4" /> Reject
                               </button>
