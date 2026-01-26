@@ -86,14 +86,11 @@ export default function BuyerOverviewPage() {
                   )}
                 </h1>
                 <div className="flex items-center gap-4 mt-3">
-                  <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest bg-green-500/10 text-green-500 px-2 py-1 rounded-md border border-green-500/20">
-                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> Status: Active
-                  </span>
                   {loading ? (
                     <div className="h-4 w-24 bg-muted rounded animate-pulse"></div>
                   ) : (
                     <span className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                      <MapPin className="w-3 h-3" /> {userData?.country || 'Unknown Location'}
+                      <MapPin className="w-3 h-3" /> How is {userData?.country || 'Unknown Location'} doing  today?
                     </span>
                   )}
                 </div>
