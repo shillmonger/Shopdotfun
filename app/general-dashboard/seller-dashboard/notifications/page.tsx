@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Bell, 
   CheckCircle2, 
@@ -13,38 +13,56 @@ import {
   Lightbulb,
   Zap,
   ChevronRight,
-  Calendar
+  Calendar,
+  Loader2,
+  AlertCircle
 } from "lucide-react";
 import Link from "next/link";
 
 import SellerHeader from "@/components/seller-dashboard/SellerHeader";
 import SellerSidebar from "@/components/seller-dashboard/SellerSidebar";
 import SellerNav from "@/components/seller-dashboard/SellerNav";
+import { useAuth } from "@/hooks/useAuth";
 
-const INITIAL_NOTIFICATIONS = [
-  {
-    id: "NOTIF-001",
-    productId: "PROD-771",
-    productName: "Hyper-X Mechanical Keyboard",
-    status: "Rejected",
-    reason: "The product images provided are low resolution. Please upload high-quality 1000x1000px images.",
-    date: "Today",
-    isRead: false,
-  },
-  {
-    id: "NOTIF-002",
-    productId: "PROD-902",
-    productName: "Vintage Leather Jacket",
-    status: "Approved",
-    reason: "Your product is now live. Great job on the description!",
-    date: "Yesterday",
-    isRead: true,
+interface Notification {
+  id: string;
+  productId: string;
+  productName: string;
+  status: "Approved" | "Rejected";
+  reason: string;
+  date: string;
+  isRead: boolean;
+}
+
+const fetchNotifications = async () => {
+  const response = await fetch('/api/seller/notifications');
+  if (!response.ok) {
+    throw new Error('Failed to fetch notifications');
   }
-];
+  const result = await response.json();
+  return result.data || [];
+};
 
 export default function SellerNotificationsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const fetchNotificationsData = async () => {
+      try {
+        const data = await fetchNotifications();
+        setNotifications(data);
+      } catch (error) {
+        setError(error instanceof Error ? error.message : 'Unknown error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchNotificationsData();
+  }, []);
 
   const markAsRead = (id: string) => {
     setNotifications(notifications.map(n => n.id === id ? { ...n, isRead: true } : n));
@@ -66,9 +84,6 @@ export default function SellerNotificationsPage() {
                 Feed<span className="text-primary not-italic">back</span>
               </h1>
               <div className="flex items-center gap-4 mt-3">
-                <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
-                  {notifications.filter(n => !n.isRead).length} New Updates
-                </span>
                 <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                   Merchant Health: <span className="text-green-500">Excellent</span>
                 </span>
@@ -79,7 +94,18 @@ export default function SellerNotificationsPage() {
 
               {/* LEFT COLUMN: NOTIFICATIONS */}
               <div className="lg:col-span-8 space-y-4">
-                {notifications.length === 0 ? (
+                {loading ? (
+                  <div className="py-16 bg-card border-2 border-dashed border-border rounded-[2.5rem] flex flex-col items-center justify-center text-center">
+                    <Loader2 className="w-10 h-10 mb-3 animate-spin opacity-50" />
+                    <p className="text-[10px] font-black uppercase tracking-widest opacity-50">Loading notifications...</p>
+                  </div>
+                ) : error ? (
+                  <div className="py-16 bg-card border-2 border-dashed border-red-500/30 rounded-[2.5rem] flex flex-col items-center justify-center text-center">
+                    <AlertCircle className="w-10 h-10 mb-3 text-red-500" />
+                    <p className="text-[10px] font-black uppercase tracking-widest text-red-500 mb-2">Error loading notifications</p>
+                    <p className="text-[9px] text-muted-foreground">{error}</p>
+                  </div>
+                ) : notifications.length === 0 ? (
                   <div className="py-16 bg-card border-2 border-dashed border-border rounded-[2.5rem] flex flex-col items-center justify-center text-center">
                     <Inbox className="w-10 h-10 mb-3 opacity-30" />
                     <p className="text-[10px] font-black uppercase tracking-widest opacity-50">Zero notifications</p>
@@ -123,15 +149,7 @@ export default function SellerNotificationsPage() {
                             </span>
                           </div>
 
-                          <div className={`inline-block px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tight ${
-                            notif.status === "Approved" 
-                              ? "bg-green-600 text-white" 
-                              : "bg-red-600 text-white"
-                          }`}>
-                            {notif.status}
-                          </div>
-
-                          <div className="bg-muted/40 border-l-4 border-primary/60 p-3 rounded-lg">
+                          <div className="bg-muted/40 border-primary/60 p-3 rounded-lg">
                             <p className="text-[11px] font-medium leading-relaxed text-foreground/90">
                               {notif.reason}
                             </p>
@@ -151,6 +169,9 @@ export default function SellerNotificationsPage() {
                   ))
                 )}
               </div>
+
+
+
 
               {/* RIGHT COLUMN: ANALYTICS & TIPS */}
               <div className="lg:col-span-4 space-y-5">
