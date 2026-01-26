@@ -39,7 +39,7 @@ interface Product {
   crypto: string;
   stock: number;
   sales?: number;
-  status: "active" | "inactive" | "pending" | "rejected" | "sold_out" | "low_stock";
+  status: "approved" | "inactive" | "pending" | "rejected" | "sold_out" | "low_stock";
   images: Array<{ url: string; thumbnailUrl: string }>;
   category: string;
   createdAt: string;
@@ -83,7 +83,7 @@ export default function MyProductsPage() {
         setProducts(data.data);
         const total = data.data.length;
         const rejected = data.data.filter((p) => p.status === "rejected").length;
-        const active = data.data.filter((p) => p.status === "active").length;
+        const active = data.data.filter((p) => p.status === "approved").length;
         const pending = data.data.filter((p) => p.status === "pending").length;
         setStats({ total, rejected, active, pending });
       }
@@ -123,7 +123,7 @@ export default function MyProductsPage() {
 
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
-      case "active": return "bg-green-500/10 text-green-500 border-green-500/20";
+      case "approved": return "bg-green-500/10 text-green-500 border-green-500/20";
       case "pending": return "bg-amber-500/10 text-amber-500 border-amber-500/20";
       case "rejected": return "bg-red-500/10 text-red-500 border-red-500/20";
       case "sold_out": return "bg-destructive/10 text-destructive border-destructive/20";
@@ -188,7 +188,7 @@ export default function MyProductsPage() {
               {[
                 { label: "Total Products", count: stats.total, color: "text-primary" },
                 { label: "Rejected", count: stats.rejected, color: "text-destructive" },
-                { label: "Active", count: stats.active, color: "text-green-500" },
+                { label: "Approved", count: stats.active, color: "text-green-500" },
                 { label: "Pending", count: stats.pending, color: "text-amber-500" },
               ].map((s, i) => (
                 <div key={i} className="bg-card border border-border p-4 rounded-2xl">
@@ -219,7 +219,7 @@ export default function MyProductsPage() {
                   <DropdownMenuLabel className="text-[10px] font-black uppercase">Status</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => setStatusFilter("all")} className="text-[10px] font-bold uppercase cursor-pointer">All Status</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setStatusFilter("active")} className="text-[10px] font-bold uppercase cursor-pointer text-green-500">Approved</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setStatusFilter("approved")} className="text-[10px] font-bold uppercase cursor-pointer text-green-500">Approved</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setStatusFilter("pending")} className="text-[10px] font-bold uppercase cursor-pointer text-amber-500">Pending</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setStatusFilter("rejected")} className="text-[10px] font-bold uppercase cursor-pointer text-red-500">Rejected</DropdownMenuItem>
                 </DropdownMenuContent>

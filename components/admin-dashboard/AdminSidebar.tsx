@@ -57,11 +57,11 @@ export default function BuyerSidebar({
       icon: Truck,
       href: `${basePath}/order-monitoring`,
     },
-    {
-      name: "Product Moderation",
-      icon: Package,
-      href: `${basePath}/product-moderation`,
-    },
+    // {
+    //   name: "Product Moderation",
+    //   icon: Package,
+    //   href: `${basePath}/product-moderation`,
+    // },
     {
       name: "Payment Approvals",
       icon: CreditCard,
