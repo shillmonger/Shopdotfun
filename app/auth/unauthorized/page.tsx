@@ -11,7 +11,7 @@ export default function UnauthorizedPage() {
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       <ThemeAndScroll />
-      <main className="flex-grow flex items-center justify-center px-3 py-10 p-6 md:p-10 transition-colors duration-300">
+      <main className="flex-grow flex items-center justify-center px-3 py-10 p-6 md:p-10 transition-colors duration-300 mb-20">
         <div className="w-full max-w-md">
           <Card className="overflow-hidden bg-card border border-border rounded-3xl shadow-lg">
             <CardContent className="p-8">

@@ -14,9 +14,13 @@ export async function GET() {
     const client = await clientPromise;
     const db = client.db('shop_dot_fun');
     
-    // Find the admin in the database
-    const admin = await db.collection('admins').findOne({ 
-      email: session.user.email 
+    // Find the admin in either buyers or sellers collection
+    const admin = await db.collection('buyers').findOne({ 
+      email: session.user.email,
+      roles: { $in: ['admin'] }
+    }) || await db.collection('sellers').findOne({ 
+      email: session.user.email,
+      roles: { $in: ['admin'] }
     });
 
     if (!admin) {

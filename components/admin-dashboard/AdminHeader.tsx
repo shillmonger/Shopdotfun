@@ -88,7 +88,7 @@ export default function AdminHeader({ sidebarOpen, setSidebarOpen }: HeaderProps
               {isLoading ? 'Loading...' : admin?.name || 'Admin'}
             </p>
             <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter mt-1">
-              {isLoading ? 'Loading...' : admin?.role || 'Admin'}
+              {isLoading ? 'Loading...' : admin?.email || 'admin@example.com'}
             </p>
           </div>
           

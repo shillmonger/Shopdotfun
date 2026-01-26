@@ -104,12 +104,32 @@ class UserModel {
     return await db.collection('sellers').findOne({ email });
   }
 
+  static async findUserByEmailForAuth(email: string, selectedRole: UserRole) {
+    const client = await clientPromise;
+    const db = client.db(dbName);
+    
+    // First try the expected collection
+    const expectedCollection = selectedRole === 'buyer' ? 'buyers' : 'sellers';
+    let user = await db.collection(expectedCollection).findOne({ email });
+    
+    if (user) {
+      return user;
+    }
+    
+    // If not found in expected collection, search the other collection
+    // This allows admin users to authenticate regardless of stored collection
+    const otherCollection = selectedRole === 'buyer' ? 'sellers' : 'buyers';
+    user = await db.collection(otherCollection).findOne({ email });
+    
+    return user;
+  }
+
   static async validateUser(email: string, password: string, role: UserRole) {
-    const user = await this.findUserByEmail(email, role);
+    const user = await this.findUserByEmailForAuth(email, role);
     if (!user) return null;
     
-    // Check if user has the required role
-    if (!user.roles.includes(role)) {
+    // Check if user has the required role OR is admin (admin can authenticate as any role)
+    if (!user.roles.includes(role) && !user.roles.includes('admin')) {
       return null;
     }
     
