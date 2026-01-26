@@ -351,7 +351,7 @@ export default function BrowseProductsPage() {
                     <img
                       src="https://i.postimg.cc/LXSKYHG4/empty-box-removebg-preview.png"
                       alt="Empty Box"
-                      className="w-40 h-40 object-contain  grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500 ease-out"
+                      className="w-40 h-40 object-contain cursor-pointer grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500 ease-out"
                     />
                     <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-16 h-1 bg-primary/20 blur-sm rounded-full" />
                   </div>

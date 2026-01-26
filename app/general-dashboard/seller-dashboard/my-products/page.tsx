@@ -39,7 +39,13 @@ interface Product {
   crypto: string;
   stock: number;
   sales?: number;
-  status: "approved" | "inactive" | "pending" | "rejected" | "sold_out" | "low_stock";
+  status:
+    | "approved"
+    | "inactive"
+    | "pending"
+    | "rejected"
+    | "sold_out"
+    | "low_stock";
   images: Array<{ url: string; thumbnailUrl: string }>;
   category: string;
   createdAt: string;
@@ -48,7 +54,12 @@ interface Product {
 interface ApiResponse {
   success: boolean;
   data: Product[];
-  pagination: { total: number; page: number; totalPages: number; limit: number };
+  pagination: {
+    total: number;
+    page: number;
+    totalPages: number;
+    limit: number;
+  };
 }
 
 export default function MyProductsPage() {
@@ -82,7 +93,9 @@ export default function MyProductsPage() {
       if (data.success) {
         setProducts(data.data);
         const total = data.data.length;
-        const rejected = data.data.filter((p) => p.status === "rejected").length;
+        const rejected = data.data.filter(
+          (p) => p.status === "rejected",
+        ).length;
         const active = data.data.filter((p) => p.status === "approved").length;
         const pending = data.data.filter((p) => p.status === "pending").length;
         setStats({ total, rejected, active, pending });
@@ -98,7 +111,9 @@ export default function MyProductsPage() {
     if (!deleteId) return;
     setIsDeleting(true);
     try {
-      const response = await fetch(`/api/seller/products/${deleteId}`, { method: "DELETE" });
+      const response = await fetch(`/api/seller/products/${deleteId}`, {
+        method: "DELETE",
+      });
       if (response.ok) {
         setProducts(products.filter((p) => p._id !== deleteId));
         setDeleteId(null);
@@ -113,8 +128,9 @@ export default function MyProductsPage() {
 
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
-      const matchesSearch = searchTerm === "" || 
-        p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      const matchesSearch =
+        searchTerm === "" ||
+        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.category.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus = statusFilter === "all" || p.status === statusFilter;
       return matchesSearch && matchesStatus;
@@ -123,11 +139,16 @@ export default function MyProductsPage() {
 
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
-      case "approved": return "bg-green-500/10 text-green-500 border-green-500/20";
-      case "pending": return "bg-amber-500/10 text-amber-500 border-amber-500/20";
-      case "rejected": return "bg-red-500/10 text-red-500 border-red-500/20";
-      case "sold_out": return "bg-destructive/10 text-destructive border-destructive/20";
-      default: return "bg-muted text-muted-foreground border-border";
+      case "approved":
+        return "bg-green-500/10 text-green-500 border-green-500/20";
+      case "pending":
+        return "bg-amber-500/10 text-amber-500 border-amber-500/20";
+      case "rejected":
+        return "bg-red-500/10 text-red-500 border-red-500/20";
+      case "sold_out":
+        return "bg-destructive/10 text-destructive border-destructive/20";
+      default:
+        return "bg-muted text-muted-foreground border-border";
     }
   };
 
@@ -136,28 +157,57 @@ export default function MyProductsPage() {
       {/* RESTORED DELETE MODAL */}
       {deleteId && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setDeleteId(null)} />
+          <div
+            className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+            onClick={() => setDeleteId(null)}
+          />
           <div className="relative bg-card border border-border w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl scale-in-center">
-            <button onClick={() => setDeleteId(null)} className="absolute top-6 right-6 p-2 hover:bg-muted cursor-pointer rounded-full transition-colors"><X className="w-5 h-5" /></button>
+            <button
+              onClick={() => setDeleteId(null)}
+              className="absolute top-6 right-6 p-2 hover:bg-muted cursor-pointer rounded-full transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
             <div className="flex flex-col items-center text-center space-y-4">
-              <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mb-2"><Trash2 className="w-8 h-8 text-destructive" /></div>
-              <h2 className="text-2xl font-black uppercase italic tracking-tighter">Delete <span className="text-destructive">Product?</span></h2>
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest leading-relaxed">This action is permanent. All data will be wiped.</p>
+              <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mb-2">
+                <Trash2 className="w-8 h-8 text-destructive" />
+              </div>
+              <h2 className="text-2xl font-black uppercase italic tracking-tighter">
+                Delete <span className="text-destructive">Product?</span>
+              </h2>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest leading-relaxed">
+                This action is permanent. All data will be wiped.
+              </p>
               <div className="flex w-full gap-3 pt-4">
-                <button disabled={isDeleting} onClick={confirmDelete} className="w-full cursor-pointer bg-destructive text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:opacity-90 disabled:opacity-50">
+                <button
+                  disabled={isDeleting}
+                  onClick={confirmDelete}
+                  className="w-full cursor-pointer bg-destructive text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:opacity-90 disabled:opacity-50"
+                >
                   {isDeleting ? "Wiping Data..." : "Confirm Delete"}
                 </button>
-                <button onClick={() => setDeleteId(null)} className="w-full cursor-pointer bg-muted text-foreground py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest">Cancel</button>
+                <button
+                  onClick={() => setDeleteId(null)}
+                  className="w-full cursor-pointer bg-muted text-foreground py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest"
+                >
+                  Cancel
+                </button>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      <SellerSidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+      <SellerSidebar
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+      />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <SellerHeader sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+        <SellerHeader
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+        />
 
         <main className="flex-1 overflow-y-auto p-4 md:p-10 space-y-8 pb-32">
           <div className="max-w-7xl mx-auto">
@@ -168,16 +218,30 @@ export default function MyProductsPage() {
                   My <span className="text-primary not-italic">Inventory</span>
                 </h1>
                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-3 flex items-center gap-2">
-                  <Layers className="w-3 h-3 text-primary" /> Managing {loading ? "..." : filteredProducts.length} Listings
+                  <Layers className="w-3 h-3 text-primary" /> Managing{" "}
+                  {loading ? "..." : filteredProducts.length} Listings
                 </p>
               </div>
 
               <div className="flex items-center gap-3 w-full md:w-auto">
                 <div className="flex bg-card border border-border rounded-xl p-1">
-                  <button onClick={() => setViewMode("grid")} className={`p-2 rounded-lg ${viewMode === "grid" ? "bg-primary text-white" : "text-muted-foreground"}`}><LayoutGrid className="w-4 h-4 cursor-pointer" /></button>
-                  <button onClick={() => setViewMode("list")} className={`p-2 rounded-lg ${viewMode === "list" ? "bg-primary text-white" : "text-muted-foreground"}`}><List className="w-4 h-4 cursor-pointer" /></button>
+                  <button
+                    onClick={() => setViewMode("grid")}
+                    className={`p-2 rounded-lg ${viewMode === "grid" ? "bg-primary text-white" : "text-muted-foreground"}`}
+                  >
+                    <LayoutGrid className="w-4 h-4 cursor-pointer" />
+                  </button>
+                  <button
+                    onClick={() => setViewMode("list")}
+                    className={`p-2 rounded-lg ${viewMode === "list" ? "bg-primary text-white" : "text-muted-foreground"}`}
+                  >
+                    <List className="w-4 h-4 cursor-pointer" />
+                  </button>
                 </div>
-                <Link href="/general-dashboard/seller-dashboard/add-product" className="flex-1 md:flex-none bg-foreground text-background px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary flex items-center justify-center gap-2 transition-all">
+                <Link
+                  href="/general-dashboard/seller-dashboard/add-product"
+                  className="flex-1 md:flex-none bg-foreground text-background px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary flex items-center justify-center gap-2 transition-all"
+                >
                   <Plus className="w-4 h-4" /> Add New
                 </Link>
               </div>
@@ -186,14 +250,37 @@ export default function MyProductsPage() {
             {/* RESTORED STATS */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
               {[
-                { label: "Total Products", count: stats.total, color: "text-primary" },
-                { label: "Rejected", count: stats.rejected, color: "text-destructive" },
-                { label: "Approved", count: stats.active, color: "text-green-500" },
-                { label: "Pending", count: stats.pending, color: "text-amber-500" },
+                {
+                  label: "Total Products",
+                  count: stats.total,
+                  color: "text-primary",
+                },
+                {
+                  label: "Rejected",
+                  count: stats.rejected,
+                  color: "text-destructive",
+                },
+                {
+                  label: "Approved",
+                  count: stats.active,
+                  color: "text-green-500",
+                },
+                {
+                  label: "Pending",
+                  count: stats.pending,
+                  color: "text-amber-500",
+                },
               ].map((s, i) => (
-                <div key={i} className="bg-card border border-border p-4 rounded-2xl">
-                  <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">{s.label}</p>
-                  <p className={`text-2xl font-black italic ${s.color}`}>{loading ? "..." : s.count}</p>
+                <div
+                  key={i}
+                  className="bg-card border border-border p-4 rounded-2xl"
+                >
+                  <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">
+                    {s.label}
+                  </p>
+                  <p className={`text-2xl font-black italic ${s.color}`}>
+                    {loading ? "..." : s.count}
+                  </p>
                 </div>
               ))}
             </div>
@@ -212,103 +299,210 @@ export default function MyProductsPage() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="bg-card border cursor-pointer border-border p-2 rounded-lg hover:bg-muted transition-all outline-none">
-                    <Filter className={`w-5 h-5 ${statusFilter !== 'all' ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <Filter
+                      className={`w-5 h-5 ${statusFilter !== "all" ? "text-primary" : "text-muted-foreground"}`}
+                    />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-card border-border min-w-[150px]">
-                  <DropdownMenuLabel className="text-[10px] font-black uppercase">Status</DropdownMenuLabel>
+                <DropdownMenuContent
+                  align="end"
+                  className="bg-card border-border min-w-[150px]"
+                >
+                  <DropdownMenuLabel className="text-[10px] font-black uppercase">
+                    Status
+                  </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setStatusFilter("all")} className="text-[10px] font-bold uppercase cursor-pointer">All Status</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setStatusFilter("approved")} className="text-[10px] font-bold uppercase cursor-pointer text-green-500">Approved</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setStatusFilter("pending")} className="text-[10px] font-bold uppercase cursor-pointer text-amber-500">Pending</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setStatusFilter("rejected")} className="text-[10px] font-bold uppercase cursor-pointer text-red-500">Rejected</DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setStatusFilter("all")}
+                    className="text-[10px] font-bold uppercase cursor-pointer"
+                  >
+                    All Status
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setStatusFilter("approved")}
+                    className="text-[10px] font-bold uppercase cursor-pointer text-green-500"
+                  >
+                    Approved
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setStatusFilter("pending")}
+                    className="text-[10px] font-bold uppercase cursor-pointer text-amber-500"
+                  >
+                    Pending
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setStatusFilter("rejected")}
+                    className="text-[10px] font-bold uppercase cursor-pointer text-red-500"
+                  >
+                    Rejected
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
 
             {/* Listings */}
-          {loading ? (
-            <div className="grid grid-cols-1 gap-4 animate-pulse">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="bg-card border border-border rounded-2xl h-16 opacity-50" />
-              ))}
-            </div>
-          ) : filteredProducts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-              <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mb-6">
-                <Box className="w-12 h-12 text-primary" strokeWidth={1.5} />
+            {loading ? (
+              <div className="grid grid-cols-1 gap-4 animate-pulse">
+                {[...Array(4)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="bg-card border border-border rounded-2xl h-16 opacity-50"
+                  />
+                ))}
               </div>
-              <h3 className="text-2xl font-black uppercase tracking-tight mb-2">NO PRODUCTS YET</h3>
-              <p className="text-muted-foreground mb-6 max-w-md">
-                You haven't added any products to your store yet. Start by adding your first product to get noticed by potential buyers.
-              </p>
-              <Link
-                href="/general-dashboard/seller-dashboard/add-product"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-2xl font-black text-sm uppercase tracking-wider hover:bg-primary/90 transition-colors"
+            ) : filteredProducts.length === 0 ? (
+              <div className="relative flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-primary/10 rounded-[3rem] bg-gradient-to-b from-transparent to-muted/20 overflow-hidden">
+                {/* The Box Image with Float Animation */}
+                <div className="relative mb-8 group">
+                  <img
+                    src="https://i.postimg.cc/LXSKYHG4/empty-box-removebg-preview.png"
+                    alt="Empty Store"
+                    className="w-48 h-48 object-contain cursor-pointer relative z-10 animate-bounce-slow grayscale contrast-125 group-hover:grayscale-0 transition-all duration-500"
+                    style={{ animation: "float 6s ease-in-out infinite" }}
+                  />
+                </div>
+
+                <h3 className="text-3xl font-black uppercase italic tracking-tighter mb-4">
+                  Storefront Offline
+                </h3>
+
+                <p className="text-sm font-bold text-muted-foreground uppercase tracking-tight max-w-sm mb-8 leading-relaxed">
+                  Your digital shelf is looking a bit light. Start your legacy
+                  by dropping your first product into the grid.
+                </p>
+
+                <Link
+                  href="/general-dashboard/seller-dashboard/add-product"
+                  className="group relative inline-flex items-center gap-3 px-8 py-4 bg-foreground text-background rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-primary hover:text-primary-foreground transition-all duration-300 hover:shadow-[0_0_30px_rgba(var(--primary),0.4)]"
+                >
+                  <Plus className="w-5 h-5 group-hover:rotate-90 cursor-pointer transition-transform duration-300" />
+                  Add Product
+                </Link>
+
+                {/* Custom CSS for the float effect - you can add this to your globals.css or a style tag */}
+                <style jsx>{`
+                  @keyframes float {
+                    0%,
+                    100% {
+                      transform: translateY(0px);
+                    }
+                    50% {
+                      transform: translateY(-20px);
+                    }
+                  }
+                  .animate-bounce-slow {
+                    animation: float 6s ease-in-out infinite;
+                  }
+                `}</style>
+              </div>
+            ) : (
+              <div
+                className={
+                  viewMode === "grid"
+                    ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                    : "flex flex-col gap-2"
+                }
               >
-                <Plus className="w-4 h-4" />
-                Add Your First Product
-              </Link>
-            </div>
-          ) : (
-            <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" : "flex flex-col gap-2"}>
-              {filteredProducts.map((product) =>
-                viewMode === "grid" ? (
-                  <div key={product._id} className="group bg-card border border-border rounded-[2rem] overflow-hidden hover:border-primary/50 transition-all">
-                    <div className="relative aspect-square overflow-hidden bg-muted">
-                      <img src={product.images?.[0]?.url} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-all duration-500" />
-                      <div className="absolute top-4 left-4">
-                        <span className={`text-[9px] font-black uppercase px-3 py-1.5 rounded-full border shadow-sm backdrop-blur-md ${getStatusBadgeClass(product.status)}`}>
-                          {product.status.replace("_", " ")}
-                        </span>
+                {filteredProducts.map((product) =>
+                  viewMode === "grid" ? (
+                    <div
+                      key={product._id}
+                      className="group bg-card border border-border rounded-[2rem] overflow-hidden hover:border-primary/50 transition-all"
+                    >
+                      <div className="relative aspect-square overflow-hidden bg-muted">
+                        <img
+                          src={product.images?.[0]?.url}
+                          alt={product.name}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-all duration-500"
+                        />
+                        <div className="absolute top-4 left-4">
+                          <span
+                            className={`text-[9px] font-black uppercase px-3 py-1.5 rounded-full border shadow-sm backdrop-blur-md ${getStatusBadgeClass(product.status)}`}
+                          >
+                            {product.status.replace("_", " ")}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="p-6">
+                        <h3 className="text-sm font-black uppercase italic tracking-tighter line-clamp-1">
+                          {product.name}
+                        </h3>
+                        <div className="flex items-center justify-between mt-2">
+                          <p className="text-lg font-black text-primary italic">
+                            ${product.price}
+                          </p>
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase">
+                            {product.category}
+                          </p>
+                        </div>
+                        <div className="flex gap-2 mt-4">
+                          <Link
+                            href={`/general-dashboard/seller-dashboard/my-products/${product._id}`}
+                            className="flex-1 bg-muted py-2.5 rounded-xl text-[12px] font-black uppercase text-center hover:bg-foreground hover:text-background transition-all"
+                          >
+                            Edit Product
+                          </Link>
+                          <button
+                            onClick={() => setDeleteId(product._id)}
+                            className="p-2.5 cursor-pointer border border-border rounded-xl hover:bg-destructive hover:text-white transition-all"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     </div>
-                    <div className="p-6">
-                      <h3 className="text-sm font-black uppercase italic tracking-tighter line-clamp-1">{product.name}</h3>
-                      <div className="flex items-center justify-between mt-2">
-                        <p className="text-lg font-black text-primary italic">${product.price}</p>
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase">{product.category}</p>
+                  ) : (
+                    <div
+                      key={product._id}
+                      className="flex items-center gap-4 bg-card border border-border p-2 pr-4 rounded-xl hover:border-primary/30 transition-all"
+                    >
+                      <div className="w-12 h-12 rounded-lg bg-muted overflow-hidden shrink-0">
+                        <img
+                          src={product.images?.[0]?.url}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
-                      <div className="flex gap-2 mt-4">
-                        <Link href={`/general-dashboard/seller-dashboard/my-products/${product._id}`} className="flex-1 bg-muted py-2.5 rounded-xl text-[12px] font-black uppercase text-center hover:bg-foreground hover:text-background transition-all">
-                          Edit Product
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-[10px] font-black uppercase italic truncate leading-tight">
+                          {product.name}
+                        </h4>
+                        <p className="text-[9px] font-bold text-muted-foreground uppercase">
+                          {product.category}
+                        </p>
+                      </div>
+                      <div className="hidden sm:block">
+                        <span
+                          className={`text-[7px] font-black uppercase px-2 py-0.5 rounded border ${getStatusBadgeClass(product.status)}`}
+                        >
+                          {product.status}
+                        </span>
+                      </div>
+                      <div className="text-right min-w-[60px]">
+                        <p className="text-xs font-black text-primary">
+                          ${product.price}
+                        </p>
+                      </div>
+                      <div className="flex gap-1">
+                        <Link
+                          href={`/general-dashboard/seller-dashboard/my-products/${product._id}`}
+                          className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-all"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
                         </Link>
-                        <button onClick={() => setDeleteId(product._id)} className="p-2.5 cursor-pointer border border-border rounded-xl hover:bg-destructive hover:text-white transition-all">
-                          <Trash2 className="w-4 h-4" />
+                        <button
+                          onClick={() => setDeleteId(product._id)}
+                          className="p-2 hover:bg-destructive/10 rounded-lg text-muted-foreground cursor-pointer hover:text-destructive transition-all"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
-                  </div>
-                ) : (
-                  <div key={product._id} className="flex items-center gap-4 bg-card border border-border p-2 pr-4 rounded-xl hover:border-primary/30 transition-all">
-                    <div className="w-12 h-12 rounded-lg bg-muted overflow-hidden shrink-0">
-                      <img src={product.images?.[0]?.url} className="w-full h-full object-cover" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-[10px] font-black uppercase italic truncate leading-tight">{product.name}</h4>
-                      <p className="text-[9px] font-bold text-muted-foreground uppercase">{product.category}</p>
-                    </div>
-                    <div className="hidden sm:block">
-                      <span className={`text-[7px] font-black uppercase px-2 py-0.5 rounded border ${getStatusBadgeClass(product.status)}`}>{product.status}</span>
-                    </div>
-                    <div className="text-right min-w-[60px]">
-                      <p className="text-xs font-black text-primary">${product.price}</p>
-                    </div>
-                    <div className="flex gap-1">
-                      <Link href={`/general-dashboard/seller-dashboard/my-products/${product._id}`} className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-all">
-                        <Edit2 className="w-3.5 h-3.5" />
-                      </Link>
-                      <button onClick={() => setDeleteId(product._id)} className="p-2 hover:bg-destructive/10 rounded-lg text-muted-foreground cursor-pointer hover:text-destructive transition-all">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                )
-              )}
-            </div>
-          )}
-        </div>
-      </main>
+                  ),
+                )}
+              </div>
+            )}
+          </div>
+        </main>
         <SellerNav />
       </div>
     </div>
