@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { 
-  Search, 
-  SlidersHorizontal, 
-  Star, 
-  ShoppingCart, 
-  ChevronRight, 
-  FilterX, 
-  Loader2 
+import {
+  Search,
+  SlidersHorizontal,
+  Star,
+  ShoppingCart,
+  ChevronRight,
+  FilterX,
+  Loader2,
 } from "lucide-react";
 
 import BuyerHeader from "@/components/buyer-dashboard/BuyerHeader";
@@ -26,7 +26,7 @@ const CATEGORIES = [
   "Fashion",
   "Baby Products",
   "Gaming",
-  "Sporting Goods"
+  "Sporting Goods",
 ];
 
 interface Product {
@@ -70,10 +70,10 @@ export default function BrowseProductsPage() {
 
       const params = new URLSearchParams({
         page: pageNum.toString(),
-        limit: '8',
-        ...(selectedCategory !== 'All' && { category: selectedCategory }),
-        ...(inStockOnly && { inStockOnly: 'true' }),
-        ...(searchQuery && { search: searchQuery })
+        limit: "8",
+        ...(selectedCategory !== "All" && { category: selectedCategory }),
+        ...(inStockOnly && { inStockOnly: "true" }),
+        ...(searchQuery && { search: searchQuery }),
       });
 
       const response = await fetch(`/api/buyer/products?${params}`);
@@ -81,7 +81,7 @@ export default function BrowseProductsPage() {
 
       if (response.ok) {
         if (append) {
-          setProducts(prev => [...prev, ...data.products]);
+          setProducts((prev) => [...prev, ...data.products]);
         } else {
           setProducts(data.products);
         }
@@ -89,10 +89,10 @@ export default function BrowseProductsPage() {
         setTotalProducts(data.pagination.total);
         setPage(pageNum);
       } else {
-        console.error('Failed to fetch products:', data.error);
+        console.error("Failed to fetch products:", data.error);
       }
     } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error("Error fetching products:", error);
     } finally {
       if (isInitialLoad) setLoading(false);
       if (append) setLoadingMore(false);
@@ -136,7 +136,10 @@ export default function BrowseProductsPage() {
       <BuyerSidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       <div className="flex-1 flex flex-col overflow-hidden text-foreground">
-        <BuyerHeader sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+        <BuyerHeader
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+        />
 
         <main className="flex-1 overflow-y-auto pb-24 lg:pb-10">
           {/* Search & Header Section */}
@@ -145,7 +148,7 @@ export default function BrowseProductsPage() {
               <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tighter italic mb-6">
                 Explore Products
               </h1>
-              
+
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="relative flex-1">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -157,7 +160,7 @@ export default function BrowseProductsPage() {
                     className="w-full bg-background border border-border rounded-xl pl-12 pr-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none transition-all shadow-sm"
                   />
                 </div>
-                <button 
+                <button
                   onClick={() => setIsFilterVisible(!isFilterVisible)}
                   className="flex items-center justify-center cursor-pointer gap-2 px-6 py-3 bg-foreground text-background rounded-xl font-black uppercase text-xs tracking-widest hover:opacity-90 transition-all"
                 >
@@ -173,16 +176,18 @@ export default function BrowseProductsPage() {
             {isFilterVisible && (
               <aside className="w-full lg:w-64 p-6 border-r border-border space-y-8 animate-in fade-in slide-in-from-left-4 duration-300">
                 <div>
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4">Category</h3>
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4">
+                    Category
+                  </h3>
                   <div className="space-y-2">
-                    <button 
+                    <button
                       onClick={() => setSelectedCategory("All")}
                       className={`block w-full text-left px-3 py-2 cursor-pointer rounded-lg text-sm transition-colors ${selectedCategory === "All" ? "bg-primary text-primary-foreground font-bold" : "hover:bg-muted"}`}
                     >
                       All Categories
                     </button>
                     {CATEGORIES.map((cat) => (
-                      <button 
+                      <button
                         key={cat}
                         onClick={() => setSelectedCategory(cat)}
                         className={`block w-full text-left px-3 py-2 cursor-pointer rounded-lg text-sm transition-colors ${selectedCategory === cat ? "bg-primary text-primary-foreground font-bold" : "hover:bg-muted"}`}
@@ -194,19 +199,23 @@ export default function BrowseProductsPage() {
                 </div>
 
                 <div>
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4">Availability</h3>
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4">
+                    Availability
+                  </h3>
                   <label className="flex items-center gap-2 cursor-pointer group">
-                    <input 
-                      type="checkbox" 
-                      className="w-4 h-4 accent-primary" 
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 accent-primary"
                       checked={inStockOnly}
                       onChange={(e) => setInStockOnly(e.target.checked)}
                     />
-                    <span className="text-sm group-hover:text-primary">In Stock Only</span>
+                    <span className="text-sm group-hover:text-primary">
+                      In Stock Only
+                    </span>
                   </label>
                 </div>
 
-                <button 
+                <button
                   onClick={resetFilters}
                   className="w-full flex items-center justify-center cursor-pointer gap-2 py-3 border border-border rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-muted transition-colors"
                 >
@@ -220,21 +229,26 @@ export default function BrowseProductsPage() {
               {loading ? (
                 <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
                   <Loader2 className="w-8 h-8 animate-spin mb-2" />
-                  <p className="text-xs font-bold uppercase tracking-widest">Loading Catalog...</p>
+                  <p className="text-xs font-bold uppercase tracking-widest">
+                    Loading Catalog...
+                  </p>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {products.map((product) => (
-                    <div 
+                    <div
                       key={product._id}
                       className="group bg-card border border-border rounded-2xl overflow-hidden hover:shadow-2xl hover:border-primary/50 transition-all duration-300 flex flex-col"
                     >
                       {/* Product Image */}
                       <div className="relative aspect-square bg-muted overflow-hidden">
-                        <img 
-                          src={product.images?.[0]?.url || '/placeholder-product.jpg'} 
+                        <img
+                          src={
+                            product.images?.[0]?.url ||
+                            "/placeholder-product.jpg"
+                          }
                           alt={product.name}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          className="w-full h-full object-cover cursor-pointer group-hover:scale-110 transition-transform duration-500"
                         />
                         {product.stock === 0 && (
                           <div className="absolute inset-0 bg-background/80 backdrop-blur-[2px] flex items-center justify-center">
@@ -244,37 +258,43 @@ export default function BrowseProductsPage() {
                           </div>
                         )}
                         {product.discount > 0 && (
-                          <div className="absolute top-3 left-3 bg-primary text-primary-foreground px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter">
+                          <div className="absolute top-3 left-3 bg-green-500 text-white px-2 py-1 rounded-full text-[12px] font-black uppercase tracking-tighter">
                             -{product.discount}%
                           </div>
                         )}
-                        <button className="absolute top-3 right-3 p-2 bg-background/80 backdrop-blur-md rounded-full opacity-0 group-hover:opacity-100 transition-opacity border border-border">
-                          <Star className="w-4 h-4" />
-                        </button>
                       </div>
 
                       {/* Product Details */}
                       <div className="p-4 flex-1 flex flex-col">
                         <div className="mb-2">
-                          <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">{product.sellerName}</p>
+                          <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">
+                            {product.sellerName}
+                          </p>
                           <h3 className="font-bold text-sm line-clamp-2 group-hover:text-primary transition-colors leading-tight">
                             {product.name}
                           </h3>
                         </div>
 
                         <div className="mb-2">
-                          <p className="text-xs text-muted-foreground">Stock: {product.stock} units</p>
+                          <p className="text-xs text-muted-foreground">
+                            Stock: {product.stock} units
+                          </p>
                         </div>
 
                         <div className="mt-auto flex items-center justify-between gap-2">
                           <div>
-                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-tighter">Price</p>
+                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-tighter">
+                              Price
+                            </p>
                             <div className="flex items-center gap-2">
                               <p className="text-lg font-black italic tracking-tighter">
-                                ${product.discount > 0 
-                                  ? (product.price * (1 - product.discount / 100)).toFixed(2)
-                                  : product.price.toFixed(2)
-                                }
+                                $
+                                {product.discount > 0
+                                  ? (
+                                      product.price *
+                                      (1 - product.discount / 100)
+                                    ).toFixed(2)
+                                  : product.price.toFixed(2)}
                               </p>
                               {product.discount > 0 && (
                                 <p className="text-xs text-muted-foreground line-through">
@@ -283,13 +303,13 @@ export default function BrowseProductsPage() {
                               )}
                             </div>
                           </div>
-                          
-                          <button 
+
+                          <button
                             disabled={product.stock === 0}
                             className={`p-3 rounded-xl transition-all shadow-lg shadow-primary/10 ${
-                              product.stock === 0 
-                              ? "bg-muted text-muted-foreground cursor-not-allowed" 
-                              : "bg-primary text-primary-foreground hover:scale-110 active:scale-95 cursor-pointer"
+                              product.stock === 0
+                                ? "bg-muted text-muted-foreground cursor-not-allowed"
+                                : "bg-primary text-primary-foreground hover:scale-110 active:scale-95 cursor-pointer"
                             }`}
                           >
                             <ShoppingCart className="w-5 h-5" />
@@ -304,7 +324,7 @@ export default function BrowseProductsPage() {
               {/* Load More Products */}
               {hasMore && (
                 <div className="mt-12 text-center">
-                  <button 
+                  <button
                     onClick={loadMore}
                     disabled={loadingMore}
                     className="px-8 py-3 border border-border cursor-pointer rounded-xl text-xs font-black uppercase tracking-widest hover:bg-foreground hover:text-background transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
@@ -320,11 +340,36 @@ export default function BrowseProductsPage() {
                   </button>
                 </div>
               )}
-              
+
               {/* No products message */}
               {!loading && products.length === 0 && (
-                <div className="text-center py-12">
-                  <p className="text-muted-foreground">No products found matching your criteria.</p>
+                <div className="text-center py-20 px-4 border-2 border-dashed border-border rounded-3xl bg-muted/30 flex flex-col items-center justify-center relative overflow-hidden">
+                  {/* Background Decorative Element */}
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/5 blur-[80px] rounded-full -z-10" />
+
+                  <div className="relative mb-6 group">
+                    <img
+                      src="https://i.postimg.cc/LXSKYHG4/empty-box-removebg-preview.png"
+                      alt="Empty Box"
+                      className="w-40 h-40 object-contain  grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500 ease-out"
+                    />
+                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-16 h-1 bg-primary/20 blur-sm rounded-full" />
+                  </div>
+
+                  <h3 className="text-2xl font-black uppercase italic tracking-tighter mb-2">
+                    Zero Signal Found
+                  </h3>
+
+                  <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest max-w-[250px] leading-relaxed">
+                    No products found matching your criteria. Try adjusting your
+                    filters.
+                  </p>
+
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="mt-8 px-6 py-2 bg-foreground cursor-pointer text-background text-[10px] font-black uppercase tracking-[0.2em] hover:bg-primary hover:text-primary-foreground transition-colors rounded-full">
+                    Reset Search
+                  </button>
                 </div>
               )}
             </section>
