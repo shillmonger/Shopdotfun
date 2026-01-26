@@ -88,7 +88,7 @@ export default function HomePage() {
             active:scale-95
           "
               >
-                <Link href="/auth/loginr" className="flex items-center gap-2">
+                <Link href="/auth/login" className="flex items-center gap-2">
                   Start Shopping
                 </Link>
               </Button>
