@@ -13,6 +13,7 @@ import {
   Bell,
   HelpCircle,
   Clock,
+  ShoppingCart,
   ExternalLink
 } from "lucide-react";
 import Link from "next/link";
@@ -235,25 +236,32 @@ export default function BuyerOverviewPage() {
 
             {/* 5️⃣ Continue Shopping / Recommendations */}
             <section className="pt-10 border-t border-border">
-              <div className="flex justify-between items-end mb-6">
-                <h2 className="text-xl font-black uppercase italic tracking-tighter">Recommended For You</h2>
-                <Link href="/buyer/browse" className="text-[10px] font-black uppercase tracking-widest flex items-center gap-1 group">
-                  Explore More <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                {[1, 2, 3, 4, 5].map((_, i) => (
-                  <div key={i} className="bg-card border border-border rounded-2xl p-3 hover:shadow-xl transition-all group cursor-pointer">
-                    <div className="aspect-square bg-muted rounded-xl mb-3 overflow-hidden">
-                      <div className="w-full h-full flex items-center justify-center text-[10px] font-black uppercase opacity-20 group-hover:scale-110 transition-transform">Product Image</div>
-                    </div>
-                    <p className="text-[10px] font-black text-primary uppercase mb-1">Tech Store</p>
-                    <p className="text-xs font-bold truncate">Wireless Smart Keyboard</p>
-                    <p className="text-sm font-black italic mt-2">$89.00</p>
-                  </div>
-                ))}
-              </div>
-            </section>
+  <div className="flex justify-between items-end mb-6">
+    <h2 className="text-xl font-black uppercase italic tracking-tighter">You Might Like</h2>
+    <Link href="/general-dashboard/buyer-dashboard/browse-product" className="text-[10px] font-black uppercase tracking-widest flex items-center gap-1 group">
+      Explore More <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+    </Link>
+  </div>
+  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+    {[1, 2, 3, 4, 5].map((_, i) => (
+      <div key={i} className="bg-card border border-border rounded-2xl p-3 hover:shadow-xl transition-all group cursor-pointer">
+        <div className="aspect-square bg-muted rounded-xl mb-3 overflow-hidden relative">
+          <div className="w-full h-full flex items-center justify-center text-[10px] font-black uppercase opacity-20 group-hover:scale-110 transition-transform">Product Image</div>
+        </div>
+        <p className="text-[10px] font-black text-primary uppercase mb-1">Tech Store</p>
+        <p className="text-xs font-bold truncate">Wireless Smart Keyboard</p>
+        
+        {/* Price and Cart Icon Container */}
+        <div className="flex items-center justify-between mt-2">
+          <p className="text-sm font-black italic">$89.00</p>
+          <button className="p-2 bg-primary text-primary-foreground rounded-lg transition-opacity hover:scale-110 active:scale-95" title="Add to Cart">
+            <ShoppingCart className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+    ))}
+  </div>
+</section>
 
           </div>
         </main>

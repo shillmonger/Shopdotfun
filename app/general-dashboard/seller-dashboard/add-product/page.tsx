@@ -33,6 +33,7 @@ import { createProduct } from "./actions";
 import { useRouter } from "next/navigation";
 
 const CRYPTO_OPTIONS = [
+  { label: "VTC (Vertcoin)", value: "VTC" },
   { label: "USDT (Tether)", value: "USDT" },
   { label: "BTC (Bitcoin)", value: "BTC" },
   { label: "SOL (Solana)", value: "SOL" },
@@ -556,6 +557,7 @@ export default function AddProductPage() {
                       onChange={(e) =>
                         setFormData({ ...formData, stock: e.target.value })
                       }
+                      min="1"
                     />
                   </div>
 

@@ -12,7 +12,7 @@ export default function UserNav() {
     { name: "Payment", href: "/general-dashboard/admin-dashboard/payment-approvals", icon: CreditCard },
     { name: "Dashboard", href: "/general-dashboard/admin-dashboard/dashboard", icon: LayoutGrid },
     { name: "OrderTrack", href: "/general-dashboard/admin-dashboard/order-monitoring", icon: Truck },
-    { name: "Control", href: "/general-dashboard/admin-dashboard/sellers-control", icon: Settings },
+    { name: "Control", href: "/general-dashboard/admin-dashboard/product-control", icon: Package },
   ];
 
   const isActive = (href: string) =>

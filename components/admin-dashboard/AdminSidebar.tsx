@@ -46,7 +46,7 @@ export default function BuyerSidebar({
   const sidebarItems = [
     { name: "Dashboard", icon: LayoutDashboard, href: `${basePath}/dashboard` },
     { name: "Audit Logs", icon: FileText, href: `${basePath}/audit-logs` },
-    { name: "Sellers Control", icon: Settings, href: `${basePath}/sellers-control` },
+    { name: "Products Control", icon: Package, href: `${basePath}/product-control` },
     {
       name: "User Management",
       icon: UserCircle,
@@ -57,11 +57,6 @@ export default function BuyerSidebar({
       icon: Truck,
       href: `${basePath}/order-monitoring`,
     },
-    // {
-    //   name: "Product Moderation",
-    //   icon: Package,
-    //   href: `${basePath}/product-moderation`,
-    // },
     {
       name: "Payment Approvals",
       icon: CreditCard,

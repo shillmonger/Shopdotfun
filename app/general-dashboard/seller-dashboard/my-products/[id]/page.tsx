@@ -35,6 +35,7 @@ import SellerSidebar from "@/components/seller-dashboard/SellerSidebar";
 import SellerNav from "@/components/seller-dashboard/SellerNav";
 
 const CRYPTO_OPTIONS = [
+  { label: "VTC (Vertcoin)", value: "VTC" },
   { label: "USDT (Tether)", value: "USDT" },
   { label: "BTC (Bitcoin)", value: "BTC" },
   { label: "SOL (Solana)", value: "SOL" },
@@ -582,7 +583,7 @@ export default function EditProductPage() {
                           onChange={(e) =>
                             setFormData({ ...formData, stock: e.target.value })
                           }
-                          min="1"
+                          min="0"
                         />
                       </div>
 
