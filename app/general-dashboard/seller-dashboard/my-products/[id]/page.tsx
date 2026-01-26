@@ -87,6 +87,7 @@ export default function EditProductPage() {
     shippingFee: "0",
     processingTime: "1-2 Days",
     images: [] as ProductImage[],
+    status: "pending" as 'pending' | 'approved' | 'rejected',
   });
 
   const [imageFiles, setImageFiles] = useState<File[]>([]);
@@ -131,6 +132,7 @@ export default function EditProductPage() {
               publicId: img.publicId,
               thumbnailUrl: img.thumbnailUrl || img.url,
             })) || [],
+          status: productData.status || "pending",
         };
 
         setFormData(formattedData);
@@ -272,7 +274,11 @@ export default function EditProductPage() {
 
       const result = await response.json();
       if (result.success) {
-        toast.success("Product updated successfully!");
+        if (formData.status === 'rejected') {
+          toast.success("Product resubmitted for review! Status changed to pending.");
+        } else {
+          toast.success("Product updated successfully!");
+        }
         router.push("/general-dashboard/seller-dashboard/my-products");
       } else {
         throw new Error(result.error || "Failed to update product");
@@ -712,9 +718,18 @@ export default function EditProductPage() {
                         Status
                       </h4>
                       <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-yellow-500" />
-                        <span className="text-sm font-bold">Draft</span>
+                        <div className={`w-2 h-2 rounded-full ${
+                          formData.status === 'approved' ? 'bg-green-500' :
+                          formData.status === 'rejected' ? 'bg-red-500' :
+                          'bg-yellow-500'
+                        }`} />
+                        <span className="text-sm font-bold capitalize">{formData.status}</span>
                       </div>
+                      {formData.status === 'rejected' && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          ⚠️ Editing this rejected product will resubmit it for review
+                        </p>
+                      )}
                     </div>
 
                     <div className="pt-4 border-t border-border space-y-3">

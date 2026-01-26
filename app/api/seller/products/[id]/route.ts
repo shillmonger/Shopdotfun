@@ -95,6 +95,8 @@ interface ProductUpdateData {
   crypto: string;
   discount: number;
   images: ProductImage[];
+  status?: 'pending' | 'approved' | 'rejected';
+  rejectionReason?: string;
   updatedAt: Date;
 }
 
@@ -217,6 +219,13 @@ export async function PUT(
       images: updatedImages,
       updatedAt: new Date()
     };
+
+    // If product was rejected, change status back to pending when edited
+    if (existingProduct.status === 'rejected') {
+      updateData.status = 'pending';
+      // Clear rejection reason when product is resubmitted
+      updateData.rejectionReason = undefined;
+    }
 
     await db.collection('products').updateOne(
       { _id: new ObjectId(id) },
