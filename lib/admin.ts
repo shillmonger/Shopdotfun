@@ -1,6 +1,6 @@
 export const adminApi = {
-  // Fetch all pending products
-  async getPendingProducts() {
+  // Fetch all products
+  async getAllProducts() {
     const res = await fetch('/api/admin/products');
     if (!res.ok) {
       throw new Error('Failed to fetch products');

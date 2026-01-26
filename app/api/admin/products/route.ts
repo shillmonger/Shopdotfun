@@ -19,8 +19,8 @@ export async function GET() {
       );
     }
     
-    // Fetch all products with pending status
-    const products = await Product.find({ status: 'pending' })
+    // Fetch all products
+    const products = await Product.find({})
       .sort({ createdAt: -1 });
     
     return NextResponse.json(products);

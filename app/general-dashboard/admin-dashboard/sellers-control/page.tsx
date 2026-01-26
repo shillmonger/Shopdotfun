@@ -76,6 +76,7 @@ export default function AdminProductManagement() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [reason, setReason] = useState("");
   const [timeFilter, setTimeFilter] = useState("All Time");
+  const [statusFilter, setStatusFilter] = useState<ProductStatus | 'all'>('all');
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Fetch products on component mount
@@ -83,7 +84,7 @@ export default function AdminProductManagement() {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const data = await adminApi.getPendingProducts();
+        const data = await adminApi.getAllProducts();
         setProducts(data);
       } catch (error) {
         console.error('Error fetching products:', error);
@@ -133,6 +134,12 @@ export default function AdminProductManagement() {
     
     const now = new Date();
     return products.filter((p) => {
+      // Status filter
+      if (statusFilter !== 'all' && p.status !== statusFilter) {
+        return false;
+      }
+      
+      // Time filter
       const pDate = new Date(p.createdAt);
       if (timeFilter === "Today") {
         return pDate.toDateString() === now.toDateString();
@@ -149,7 +156,7 @@ export default function AdminProductManagement() {
       }
       return true;
     });
-  }, [products, timeFilter]);
+  }, [products, timeFilter, statusFilter]);
 
   // Format price with currency
   const formatPrice = (price: number) => {
@@ -188,12 +195,39 @@ export default function AdminProductManagement() {
                   <span className="text-primary not-italic">Review</span>
                 </h1>
                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-3 flex items-center gap-2">
-                  <PackageSearch className="w-3 h-3 text-primary" /> Approval
-                  Queue
+                  <PackageSearch className="w-3 h-3 text-primary" /> Product Management
                 </p>
               </div>
 
               <div className="flex items-center gap-3 w-full md:w-auto">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center gap-2 bg-card border border-border px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer hover:bg-muted transition-colors outline-none">
+                      <Filter className="w-3 h-3" /> {statusFilter === 'all' ? 'All Status' : statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)}
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    className="w-48 bg-card border-border"
+                  >
+                    <DropdownMenuLabel className="text-[10px] font-black uppercase">
+                      Filter by Status
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {['all', 'pending', 'approved', 'rejected'].map(
+                      (option) => (
+                        <DropdownMenuItem
+                          key={option}
+                          onClick={() => setStatusFilter(option as ProductStatus | 'all')}
+                          className="text-[10px] font-bold uppercase cursor-pointer"
+                        >
+                          {option === 'all' ? 'All Status' : option.charAt(0).toUpperCase() + option.slice(1)}
+                        </DropdownMenuItem>
+                      ),
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button className="flex items-center gap-2 bg-card border border-border px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer hover:bg-muted transition-colors outline-none">
@@ -233,9 +267,7 @@ export default function AdminProductManagement() {
               </div>
             </div>
 
-
-
-{/* Product table  */}
+            {/* Product table  */}
             {loading ? (
               <div className="flex items-center justify-center h-64">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -243,9 +275,9 @@ export default function AdminProductManagement() {
             ) : filteredProducts.length === 0 ? (
               <div className="text-center py-16 bg-card border border-border rounded-3xl">
                 <PackageSearch className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-bold">No products to review</h3>
+                <h3 className="text-lg font-bold">No products found</h3>
                 <p className="text-muted-foreground text-sm mt-1">
-                  All caught up! Check back later for new submissions.
+                  Try adjusting your filters to see more products.
                 </p>
               </div>
             ) : (
@@ -325,30 +357,45 @@ export default function AdminProductManagement() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                               <div className="flex justify-end gap-2">
-                                <button
-                                  onClick={async (e) => {
-                                    e.stopPropagation();
-                                    await handleAction(product._id, 'approved');
-                                  }}
-                                  disabled={isProcessing}
-                                  className="text-green-600 hover:text-green-900 disabled:opacity-50"
-                                >
-                                  {isProcessing ? (
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                  ) : (
-                                    <CheckCircle2 className="h-5 w-5" />
-                                  )}
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedProduct(product);
-                                  }}
-                                  disabled={isProcessing}
-                                  className="text-red-600 hover:text-red-900 disabled:opacity-50"
-                                >
-                                  <XCircle className="h-5 w-5" />
-                                </button>
+                                {product.status === 'pending' ? (
+                                  <>
+                                    <button
+                                      onClick={async (e) => {
+                                        e.stopPropagation();
+                                        await handleAction(product._id, 'approved');
+                                      }}
+                                      disabled={isProcessing}
+                                      className="text-green-600 hover:text-green-900 cursor-pointer disabled:opacity-50"
+                                    >
+                                      {isProcessing ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <CheckCircle2 className="h-5 w-5" />
+                                      )}
+                                    </button>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedProduct(product);
+                                      }}
+                                      disabled={isProcessing}
+                                      className="text-red-600 cursor-pointer hover:text-red-900 disabled:opacity-50"
+                                    >
+                                      <XCircle className="h-5 w-5" />
+                                    </button>
+                                  </>
+                                ) : (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedProduct(product);
+                                    }}
+                                    disabled={isProcessing}
+                                    className="text-blue-600 cursor-pointer hover:text-blue-900 disabled:opacity-50"
+                                  >
+                                    <FileText className="h-5 w-5" />
+                                  </button>
+                                )}
                               </div>
                             </td>
                           </tr>
