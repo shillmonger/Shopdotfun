@@ -18,6 +18,7 @@ interface BuyerData {
 export default function BuyerHeader({ sidebarOpen, setSidebarOpen }: HeaderProps) {
   const [buyer, setBuyer] = useState<BuyerData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [cartItemCount, setCartItemCount] = useState(0);
 
   useEffect(() => {
     const fetchBuyerData = async () => {
@@ -37,7 +38,34 @@ export default function BuyerHeader({ sidebarOpen, setSidebarOpen }: HeaderProps
       }
     };
 
+    const fetchCartData = async () => {
+      try {
+        const response = await fetch('/api/buyer/cart');
+        if (response.ok) {
+          const data = await response.json();
+          setCartItemCount(data.items?.length || 0);
+        }
+      } catch (error) {
+        console.error('Error fetching cart data:', error);
+      }
+    };
+
+    // Initial fetch
     fetchBuyerData();
+    fetchCartData();
+
+    // Listen for cart updates
+    const handleCartUpdate = () => {
+      fetchCartData();
+    };
+
+    // Custom event listener for cart updates
+    window.addEventListener('cartUpdated', handleCartUpdate);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('cartUpdated', handleCartUpdate);
+    };
   }, []);
 
   return (
@@ -65,6 +93,11 @@ export default function BuyerHeader({ sidebarOpen, setSidebarOpen }: HeaderProps
         <Link href="/general-dashboard/buyer-dashboard/cart">
           <button className="p-2 hover:bg-secondary rounded-full relative cursor-pointer">
             <ShoppingCart className="h-5 w-5" />
+            {cartItemCount > 0 && (
+              <span className="absolute top-0 right-0 bg-primary text-primary-foreground text-[8px] font-black rounded-full h-4 w-4 flex items-center justify-center border-2 border-background">
+                {cartItemCount > 99 ? '99+' : cartItemCount}
+              </span>
+            )}
           </button>
         </Link>
 

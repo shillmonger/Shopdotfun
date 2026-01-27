@@ -10,6 +10,7 @@ import {
   FilterX,
   Loader2,
 } from "lucide-react";
+import { toast } from 'sonner';
 
 import BuyerHeader from "@/components/buyer-dashboard/BuyerHeader";
 import BuyerSidebar from "@/components/buyer-dashboard/BuyerSidebar";
@@ -36,6 +37,7 @@ interface Product {
   price: number;
   discount: number;
   stock: number;
+  shippingFee: number;
   images: Array<{
     url: string;
     thumbnailUrl: string;
@@ -105,6 +107,55 @@ export default function BrowseProductsPage() {
     setInStockOnly(false);
     setSearchQuery("");
     setPage(1);
+  };
+
+  // Cart functionality
+  const [cartLoading, setCartLoading] = useState<string | null>(null);
+
+  const addToCart = async (product: Product) => {
+    setCartLoading(product._id);
+    
+    try {
+      const response = await fetch('/api/buyer/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // Add auth header if you have JWT token
+          // 'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          productId: product._id,
+          productName: product.name,
+          sellerName: product.sellerName,
+          price: product.price,
+          discount: product.discount,
+          stock: product.stock,
+          shippingFee: product.shippingFee || 0, // Add shipping fee from product
+          image: product.images?.[0]?.url || '/placeholder-product.jpg',
+          quantity: 1
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Show success message or update UI
+        toast.success('Product added to cart successfully!');
+        // Dispatch cart update event to refresh header badge
+        window.dispatchEvent(new CustomEvent('cartUpdated'));
+      } else {
+        if (response.status === 401) {
+          toast.error('Please login to add items to cart');
+        } else {
+          toast.error(data.error || 'Failed to add product to cart');
+        }
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast.error('Failed to add product to cart');
+    } finally {
+      setCartLoading(null);
+    }
   };
 
   // Load more products
@@ -305,14 +356,19 @@ export default function BrowseProductsPage() {
                           </div>
 
                           <button
-                            disabled={product.stock === 0}
+                            onClick={() => addToCart(product)}
+                            disabled={product.stock === 0 || cartLoading === product._id}
                             className={`p-3 rounded-xl transition-all shadow-lg shadow-primary/10 ${
-                              product.stock === 0
+                              product.stock === 0 || cartLoading === product._id
                                 ? "bg-muted text-muted-foreground cursor-not-allowed"
                                 : "bg-primary text-primary-foreground hover:scale-110 active:scale-95 cursor-pointer"
                             }`}
                           >
-                            <ShoppingCart className="w-5 h-5" />
+                            {cartLoading === product._id ? (
+                              <div className="w-5 h-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                            ) : (
+                              <ShoppingCart className="w-5 h-5" />
+                            )}
                           </button>
                         </div>
                       </div>

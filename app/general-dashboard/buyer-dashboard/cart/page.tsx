@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Trash2, 
   Minus, 
@@ -10,58 +10,153 @@ import {
   ChevronLeft,
   Truck,
   ShieldCheck,
-  AlertCircle
+  AlertCircle,
+  Loader2
 } from "lucide-react";
 import Link from "next/link";
+import { toast } from 'sonner';
 
 import BuyerHeader from "@/components/buyer-dashboard/BuyerHeader";
 import BuyerSidebar from "@/components/buyer-dashboard/BuyerSidebar";
 import BuyerNav from "@/components/buyer-dashboard/BuyerNav";
 
-// Mock Data for the UI
-const initialCartItems = [
-  {
-    id: "1",
-    name: "Classic Leather Sneakers",
-    seller: "Elite Footwear",
-    price: 85.00,
-    quantity: 1,
-    stock: 5,
-    image: "https://i.postimg.cc/pLD6CsVc/download-(5).jpg",
-  },
-  {
-    id: "2",
-    name: "Minimalist Desk Lamp",
-    seller: "Modern Home",
-    price: 45.50,
-    quantity: 2,
-    stock: 10,
-    image: "https://i.postimg.cc/t4jj9ZY5/Luminaria-de-Mesa-Preta-Aluminio-e-Plastico-Flex-Kian.jpg",
-  },
-];
+interface CartItem {
+  productId: string;
+  productName: string;
+  sellerName: string;
+  price: number;
+  discount: number;
+  quantity: number;
+  stock: number;
+  shippingFee: number;
+  image: string;
+  addedAt: string;
+}
 
 export default function CartPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [cartItems, setCartItems] = useState(initialCartItems);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState<string | null>(null);
+
+  // Fetch cart data
+  const fetchCart = async () => {
+    try {
+      setLoading(true);
+      
+      const response = await fetch('/api/buyer/cart', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          // Add auth header if you have JWT token
+          // 'Authorization': `Bearer ${token}`
+        },
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        setCartItems(data.items || []);
+        window.dispatchEvent(new CustomEvent('cartUpdated'));
+      } else {
+        if (response.status === 401) {
+          console.error('Authentication required');
+          // You might want to redirect to login here
+        } else {
+          console.error('Failed to fetch cart:', data.error);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching cart:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCart();
+  }, []);
 
   // Math Logic
-  const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const subtotal = cartItems.reduce((acc, item) => {
+    const itemPrice = item.discount > 0 
+      ? item.price * (1 - item.discount / 100) 
+      : item.price;
+    return acc + itemPrice * item.quantity;
+  }, 0);
   const shippingFee = subtotal > 0 ? 15.00 : 0;
   const platformFee = subtotal > 0 ? 2.50 : 0;
   const totalAmount = subtotal + shippingFee + platformFee;
 
-  const updateQuantity = (id: string, delta: number) => {
-    setCartItems(prev => prev.map(item => {
-      if (item.id === id) {
-        const newQty = Math.max(1, Math.min(item.stock, item.quantity + delta));
-        return { ...item, quantity: newQty };
+  const updateQuantity = async (productId: string, delta: number) => {
+    const item = cartItems.find(item => item.productId === productId);
+    if (!item) return;
+
+    const newQty = Math.max(1, Math.min(item.stock, item.quantity + delta));
+    if (newQty === item.quantity) return;
+
+    setUpdating(productId);
+    
+    try {
+      const response = await fetch('/api/buyer/cart', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productId,
+          quantity: newQty
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setCartItems(data.items || []);
+        window.dispatchEvent(new CustomEvent('cartUpdated'));
+      } else {
+        if (response.status === 401) {
+          toast.error('Please login to update your cart');
+        } else {
+          toast.error(data.error || 'Failed to update cart');
+        }
       }
-      return item;
-    }));
+    } catch (error) {
+      console.error('Error updating cart:', error);
+      toast.error('Failed to update cart');
+    } finally {
+      setUpdating(null);
+    }
   };
 
-  const removeItem = (id: string) => {
-    setCartItems(prev => prev.filter(item => item.id !== id));
+  const removeItem = async (productId: string) => {
+    setUpdating(productId);
+    
+    try {
+      const response = await fetch(`/api/buyer/cart?productId=${encodeURIComponent(productId)}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setCartItems(data.items || []);
+        window.dispatchEvent(new CustomEvent('cartUpdated'));
+      } else {
+        if (response.status === 401) {
+          toast.error('Please login to update your cart');
+        } else {
+          toast.error(data.error || 'Failed to remove item from cart');
+        }
+      }
+    } catch (error) {
+      console.error('Error removing item:', error);
+      toast.error('Failed to remove item from cart');
+    } finally {
+      setUpdating(null);
+    }
   };
 
   return (
@@ -84,46 +179,69 @@ export default function CartPage() {
                   <ShoppingBag className="w-3 h-3" /> {cartItems.length} Items in your bag
                 </p>
               </div>
-              <Link href="/buyer/browse" className="hidden md:flex items-center gap-2 text-xs font-black uppercase tracking-widest hover:text-primary transition-colors">
-                <ChevronLeft className="w-4 h-4" /> Continue Shopping
+              <Link href="/general-dashbboard/buyer-dashboard/browse-product" className="hidden md:flex items-center gap-2 text-xs font-black uppercase tracking-widest hover:text-primary transition-colors">
+                <ShoppingBag className="w-4 h-4" /> Continue Shopping
               </Link>
             </div>
 
-            {cartItems.length === 0 ? (
-              <div className="bg-card border border-dashed border-border rounded-3xl p-20 text-center">
-                <div className="bg-muted w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <ShoppingBag className="w-8 h-8 text-muted-foreground" />
-                </div>
-                <h2 className="text-xl font-bold uppercase italic">Your cart is empty</h2>
-                <p className="text-muted-foreground text-sm mt-2 mb-6">Looks like you haven&apos;t added anything yet.</p>
-                <Link href="/buyer/browse" className="inline-block bg-primary text-primary-foreground px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all">
-                  Start Discovering
-                </Link>
+            {loading ? (
+              <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
+                <Loader2 className="w-8 h-8 animate-spin mb-2" />
+                <p className="text-xs font-bold uppercase tracking-widest">
+                  Loading Cart...
+                </p>
               </div>
+            ) : cartItems.length === 0 ? (
+              <div className="bg-card border border-dashed border-border rounded-3xl py-20 px-10 text-center flex flex-col items-center justify-center">
+  <div className="relative mb-8 group flex flex-col items-center">
+    <img
+      src="https://i.postimg.cc/LXSKYHG4/empty-box-removebg-preview.png"
+      alt="Empty Box"
+      className="w-44 h-44 object-contain cursor-pointer grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500 ease-out relative z-10"
+    />
+  </div>
+
+  <h2 className="text-2xl font-black uppercase italic tracking-tighter">Your cart is empty</h2>
+  <p className="text-muted-foreground text-[11px] font-bold uppercase tracking-widest mt-2 mb-8">
+    Looks like you haven&apos;t added anything yet.
+  </p>
+  
+  <Link 
+    href="/buyer/browse" 
+    className="inline-block bg-foreground text-background cursor-pointer px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-primary hover:text-primary-foreground hover:shadow-[0_10px_30px_rgba(var(--primary),0.3)] transition-all"
+  >
+    Start Discovering
+  </Link>
+</div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 
                 {/* A. Cart Items List */}
                 <div className="lg:col-span-2 space-y-4">
                   {cartItems.map((item) => (
-                    <div key={item.id} className="bg-card border border-border rounded-2xl p-4 md:p-6 flex flex-col sm:flex-row gap-6 group hover:border-primary/50 transition-colors">
+                    <div key={item.productId} className="bg-card border border-border rounded-2xl p-4 md:p-6 flex flex-col sm:flex-row gap-6 group hover:border-primary/50 transition-colors">
                       {/* Image */}
                       <div className="w-full sm:w-32 h-32 bg-muted rounded-xl overflow-hidden shrink-0 border border-border">
-                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                        <img src={item.image} alt={item.productName} className="w-full h-full object-cover" />
                       </div>
 
                       {/* Details */}
                       <div className="flex-1 flex flex-col justify-between">
                         <div className="flex justify-between items-start">
                           <div>
-                            <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">{item.seller}</p>
-                            <h3 className="font-bold text-lg leading-tight uppercase italic tracking-tighter">{item.name}</h3>
+                            <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">{item.sellerName}</p>
+                            <h3 className="font-bold text-lg leading-tight uppercase italic tracking-tighter">{item.productName}</h3>
                           </div>
                           <button 
-                            onClick={() => removeItem(item.id)}
-                            className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/5 rounded-lg transition-all"
+                            onClick={() => removeItem(item.productId)}
+                            disabled={updating === item.productId}
+                            className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/5 rounded-lg transition-all disabled:opacity-50"
                           >
-                            <Trash2 className="w-5 h-5" />
+                            {updating === item.productId ? (
+                              <div className="w-5 h-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                            ) : (
+                              <Trash2 className="w-5 h-5" />
+                            )}
                           </button>
                         </div>
 
@@ -131,15 +249,17 @@ export default function CartPage() {
                           {/* Quantity Selector */}
                           <div className="flex items-center bg-muted/50 border border-border rounded-xl p-1">
                             <button 
-                              onClick={() => updateQuantity(item.id, -1)}
-                              className="p-2 hover:bg-background rounded-lg transition-colors"
+                              onClick={() => updateQuantity(item.productId, -1)}
+                              disabled={updating === item.productId}
+                              className="p-2 hover:bg-background rounded-lg transition-colors disabled:opacity-50"
                             >
                               <Minus className="w-4 h-4" />
                             </button>
                             <span className="w-10 text-center font-black text-sm">{item.quantity}</span>
                             <button 
-                              onClick={() => updateQuantity(item.id, 1)}
-                              className="p-2 hover:bg-background rounded-lg transition-colors"
+                              onClick={() => updateQuantity(item.productId, 1)}
+                              disabled={updating === item.productId}
+                              className="p-2 hover:bg-background rounded-lg transition-colors disabled:opacity-50"
                             >
                               <Plus className="w-4 h-4" />
                             </button>
@@ -147,7 +267,9 @@ export default function CartPage() {
 
                           <div className="text-right">
                             <p className="text-xs text-muted-foreground font-bold uppercase tracking-tighter">Unit Price: ${item.price.toFixed(2)}</p>
-                            <p className="text-xl font-black italic tracking-tighter">${(item.price * item.quantity).toFixed(2)}</p>
+                            <p className="text-xl font-black italic tracking-tighter">
+                              ${((item.discount > 0 ? item.price * (1 - item.discount / 100) : item.price) * item.quantity).toFixed(2)}
+                            </p>
                           </div>
                         </div>
                       </div>
