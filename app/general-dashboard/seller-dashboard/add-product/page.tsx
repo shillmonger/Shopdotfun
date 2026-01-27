@@ -72,7 +72,7 @@ export default function AddProductPage() {
     description: "",
     price: "",
     discount: "",
-    crypto: "USDT",
+    crypto: "VTC",
     category: "Select Category",
     stock: "1",
     shippingFee: "0",
@@ -158,6 +158,10 @@ export default function AddProductPage() {
     if (!formData.price || isNaN(Number(formData.price)) || Number(formData.price) <= 0) {
       return toast.error("Please enter a valid price");
     }
+
+    if (formData.shippingFee && Number(formData.shippingFee) > 0 && Number(formData.shippingFee) > Number(formData.price)) {
+      return toast.error("Shipping fee cannot be greater than product price");
+    }
     
     if (formData.category === "Select Category") {
       return toast.error("Please select a category");
@@ -200,7 +204,7 @@ export default function AddProductPage() {
           description: "",
           price: "",
           discount: "",
-          crypto: "USDT",
+          crypto: "VTC",
           category: "Select Category",
           stock: "1",
           shippingFee: "0",
@@ -453,7 +457,7 @@ export default function AddProductPage() {
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <label className="text-[9px] font-black uppercase opacity-70">
-                        Payout Currency
+                        Display Price in
                       </label>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -482,10 +486,10 @@ export default function AddProductPage() {
                       </DropdownMenu>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1">
                       <div className="space-y-2">
                         <label className="text-[9px] font-black uppercase opacity-70">
-                          Price ({formData.crypto})
+                          Product Price (USDT)
                         </label>
                         <input
                           type="number"
@@ -499,24 +503,7 @@ export default function AddProductPage() {
                       </div>
                       <div className="space-y-2">
                         <label className="text-[9px] font-black uppercase opacity-70">
-                          Discount %
-                        </label>
-                        <input
-                          type="number"
-                          placeholder="Opt."
-                          className="w-full bg-primary-foreground/10 border border-primary-foreground/20 rounded-xl px-4 py-3 text-sm font-bold outline-none placeholder:text-primary-foreground/40"
-                          value={formData.discount}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              discount: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[9px] font-black uppercase opacity-70">
-                          Shipping Fee
+                          Shipping Fee (USDT)
                         </label>
                         <input
                           type="number"
@@ -527,6 +514,23 @@ export default function AddProductPage() {
                             setFormData({
                               ...formData,
                               shippingFee: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[9px] font-black uppercase opacity-70">
+                          Product Discount % (USDT)
+                        </label>
+                        <input
+                          type="number"
+                          placeholder="Opt."
+                          className="w-full bg-primary-foreground/10 border border-primary-foreground/20 rounded-xl px-4 py-3 text-sm font-bold outline-none placeholder:text-primary-foreground/40"
+                          value={formData.discount}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              discount: e.target.value,
                             })
                           }
                         />

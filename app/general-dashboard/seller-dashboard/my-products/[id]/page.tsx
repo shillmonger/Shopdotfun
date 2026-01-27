@@ -82,7 +82,7 @@ export default function EditProductPage() {
     description: "",
     price: "",
     discount: "0",
-    crypto: "USDT",
+    crypto: "VTC",
     category: "Select Category",
     stock: "1",
     shippingFee: "0",
@@ -120,7 +120,7 @@ export default function EditProductPage() {
           discount: productData.discount
             ? productData.discount.toString()
             : "0",
-          crypto: productData.crypto || "USDT",
+          crypto: productData.crypto || "VTC",
           category: productData.category || "Select Category",
           stock: productData.stock ? productData.stock.toString() : "1",
           shippingFee: productData.shippingFee
@@ -239,6 +239,10 @@ export default function EditProductPage() {
       Number(formData.price) <= 0
     )
       return toast.error("Please enter a valid price");
+    
+    if (formData.shippingFee && Number(formData.shippingFee) > 0 && Number(formData.shippingFee) > Number(formData.price)) {
+      return toast.error("Shipping fee cannot be greater than product price");
+    }
     if (formData.category === "Select Category")
       return toast.error("Please select a category");
     if (formData.images.length < 2)
@@ -509,7 +513,7 @@ export default function EditProductPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
-                          Price ({formData.crypto})
+                          Price (USDT)
                         </label>
                         <div className="relative">
                           <input
@@ -589,7 +593,7 @@ export default function EditProductPage() {
 
                       <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
-                          Shipping Fee ({formData.crypto})
+                          Shipping Fee (USDT)
                         </label>
                         <input
                           type="number"
@@ -666,7 +670,7 @@ export default function EditProductPage() {
                         <div className="flex items-center gap-2">
                           <span className="text-lg font-black">
                             {formData.price
-                              ? `${formData.price} ${formData.crypto}`
+                              ? `${formData.price} USDT`
                               : "0.00"}
                           </span>
                           {formData.discount &&
@@ -676,7 +680,7 @@ export default function EditProductPage() {
                                   parseFloat(formData.price) /
                                   (1 - parseFloat(formData.discount) / 100)
                                 ).toFixed(2)}{" "}
-                                {formData.crypto}
+                                USDT
                               </span>
                             )}
                           {formData.discount &&
@@ -698,7 +702,7 @@ export default function EditProductPage() {
                           <span>Shipping</span>
                           <span className="font-bold">
                             {parseFloat(formData.shippingFee) > 0
-                              ? `${formData.shippingFee} ${formData.crypto}`
+                              ? `${formData.shippingFee} USDT`
                               : "Free Shipping"}
                           </span>
                         </div>
