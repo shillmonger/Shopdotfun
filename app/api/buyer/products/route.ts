@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .select('name category stock discount images sellerName price')
+      .select('name category stock discount images sellerName price shippingFee')
       .lean();
 
     // Get total count for pagination

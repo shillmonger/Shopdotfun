@@ -83,9 +83,8 @@ export default function CartPage() {
       : item.price;
     return acc + itemPrice * item.quantity;
   }, 0);
-  const shippingFee = subtotal > 0 ? 15.00 : 0;
-  const platformFee = subtotal > 0 ? 2.50 : 0;
-  const totalAmount = subtotal + shippingFee + platformFee;
+  const shippingFee = cartItems.reduce((acc, item) => acc + item.shippingFee, 0);
+  const totalAmount = subtotal + shippingFee;
 
   const updateQuantity = async (productId: string, delta: number) => {
     const item = cartItems.find(item => item.productId === productId);
@@ -207,7 +206,7 @@ export default function CartPage() {
   </p>
   
   <Link 
-    href="/buyer/browse" 
+    href="general-dashboard/buyer-dashboard/browse-product" 
     className="inline-block bg-foreground text-background cursor-pointer px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-primary hover:text-primary-foreground hover:shadow-[0_10px_30px_rgba(var(--primary),0.3)] transition-all"
   >
     Start Discovering
@@ -299,10 +298,6 @@ export default function CartPage() {
                         <span className="text-muted-foreground font-medium">Shipping Fee</span>
                         <span className="font-bold">${shippingFee.toFixed(2)}</span>
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground font-medium">Platform Fee</span>
-                        <span className="font-bold">${platformFee.toFixed(2)}</span>
-                      </div>
                       
                       <div className="h-[1px] bg-border my-4" />
                       
@@ -316,7 +311,7 @@ export default function CartPage() {
                       <button className="w-full bg-foreground text-background py-4 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-xl active:scale-95 cursor-pointer">
                         Proceed to Checkout <ArrowRight className="w-4 h-4" />
                       </button>
-                      <Link href="/genera-dashboard/buyer-dashboard/browse-product" className="w-full border border-border py-4 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-muted transition-all">
+                      <Link href="/general-dashboard/buyer-dashboard/browse-product" className="w-full border border-border py-4 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-muted transition-all">
                         Keep Shopping
                       </Link>
                     </div>
