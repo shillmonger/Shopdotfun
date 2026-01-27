@@ -222,7 +222,7 @@ export default function CartPage() {
                     <div key={item.productId} className="bg-card border border-border rounded-2xl p-4 md:p-6 flex flex-col sm:flex-row gap-6 group hover:border-primary/50 transition-colors">
                       {/* Image */}
                       <div className="w-full sm:w-32 h-32 bg-muted rounded-xl overflow-hidden shrink-0 border border-border">
-                        <img src={item.image} alt={item.productName} className="w-full h-full object-cover" />
+                        <img src={item.image} alt={item.productName} className="w-full h-full cursor-pointer object-cover" />
                       </div>
 
                       {/* Details */}
@@ -235,7 +235,7 @@ export default function CartPage() {
                           <button 
                             onClick={() => removeItem(item.productId)}
                             disabled={updating === item.productId}
-                            className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/5 rounded-lg transition-all disabled:opacity-50"
+                            className="p-2 text-muted-foreground hover:text-destructive cursor-pointer hover:bg-destructive/5 rounded-lg transition-all disabled:opacity-50"
                           >
                             {updating === item.productId ? (
                               <div className="w-5 h-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -251,7 +251,7 @@ export default function CartPage() {
                             <button 
                               onClick={() => updateQuantity(item.productId, -1)}
                               disabled={updating === item.productId}
-                              className="p-2 hover:bg-background rounded-lg transition-colors disabled:opacity-50"
+                              className="p-2 hover:bg-background cursor-pointer rounded-lg transition-colors disabled:opacity-50"
                             >
                               <Minus className="w-4 h-4" />
                             </button>
@@ -259,7 +259,7 @@ export default function CartPage() {
                             <button 
                               onClick={() => updateQuantity(item.productId, 1)}
                               disabled={updating === item.productId}
-                              className="p-2 hover:bg-background rounded-lg transition-colors disabled:opacity-50"
+                              className="p-2 hover:bg-background cursor-pointer rounded-lg transition-colors disabled:opacity-50"
                             >
                               <Plus className="w-4 h-4" />
                             </button>
@@ -316,7 +316,7 @@ export default function CartPage() {
                       <button className="w-full bg-foreground text-background py-4 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-xl active:scale-95 cursor-pointer">
                         Proceed to Checkout <ArrowRight className="w-4 h-4" />
                       </button>
-                      <Link href="/buyer/browse" className="w-full border border-border py-4 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-muted transition-all">
+                      <Link href="/genera-dashboard/buyer-dashboard/browse-product" className="w-full border border-border py-4 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-muted transition-all">
                         Keep Shopping
                       </Link>
                     </div>
