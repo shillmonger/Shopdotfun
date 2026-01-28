@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import { Menu, X, Bell, Sun, Moon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from "next-themes";
@@ -19,6 +20,7 @@ interface SellerData {
 export default function SellerHeader({ sidebarOpen, setSidebarOpen }: HeaderProps) {
   const [seller, setSeller] = useState<SellerData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [notificationCount, setNotificationCount] = useState(0);
   const { theme, setTheme } = useTheme();
 
   useEffect(() => {
@@ -41,6 +43,22 @@ export default function SellerHeader({ sidebarOpen, setSidebarOpen }: HeaderProp
     };
 
     fetchSellerData();
+  }, []);
+
+  useEffect(() => {
+    const fetchNotificationCount = async () => {
+      try {
+        const response = await fetch('/api/seller/notifications');
+        if (response.ok) {
+          const data = await response.json();
+          setNotificationCount(data.data?.length || 0);
+        }
+      } catch (error) {
+        console.error('Error fetching notification count:', error);
+      }
+    };
+
+    fetchNotificationCount();
   }, []);
 
   return (
@@ -81,6 +99,20 @@ export default function SellerHeader({ sidebarOpen, setSidebarOpen }: HeaderProp
             <Moon className="h-5 w-5 text-slate-700 group-hover:-rotate-12 transition-transform duration-300" />
           )}
         </button>
+
+        {/* NEW SEPARATOR ADDED HERE */}
+        <div className="sm:pl-6 sm:border-l border-border flex items-center h-full">
+          <Link href="/general-dashboard/seller-dashboard/notifications">
+            <button className="p-2 hover:bg-secondary rounded-full relative cursor-pointer">
+              <Bell className="h-5 w-5" />
+              {notificationCount > 0 && (
+                <span className="absolute top-0 right-0 bg-primary text-primary-foreground text-[8px] font-black rounded-full h-4 w-4 flex items-center justify-center border-2 border-background">
+                  {notificationCount > 99 ? '99+' : notificationCount}
+                </span>
+              )}
+            </button>
+          </Link>
+        </div>
 
         <div className="flex items-center gap-3 sm:pl-6 sm:border-l border-border">
           <div className="text-right hidden lg:block">

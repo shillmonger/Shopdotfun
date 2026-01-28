@@ -68,6 +68,12 @@ export default function SellerNotificationsPage() {
     setNotifications(notifications.map(n => n.id === id ? { ...n, isRead: true } : n));
   };
 
+  // Calculate approval rating
+  const approvedCount = notifications.filter(n => n.status === "Approved").length;
+  const rejectedCount = notifications.filter(n => n.status === "Rejected").length;
+  const totalCount = approvedCount + rejectedCount;
+  const approvalRating = totalCount > 0 ? Math.round((approvedCount / totalCount) * 100) : 0;
+
   return (
     <div className="flex h-screen overflow-hidden bg-background text-foreground">
       <SellerSidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
@@ -177,13 +183,37 @@ export default function SellerNotificationsPage() {
               <div className="lg:col-span-4 space-y-5">
                 
                 {/* Status Card */}
-                <div className="bg-primary text-primary-foreground p-6 rounded-[2.5rem] shadow-lg relative overflow-hidden">
-                  <TrendingUp className="absolute -right-6 -bottom-6 w-28 h-28 opacity-10" />
+                <div className={`p-6 rounded-[2.5rem] shadow-lg relative overflow-hidden ${
+                  totalCount === 0 
+                    ? "bg-muted border border-border"
+                    : approvalRating === 100
+                    ? "bg-green-500 text-white"
+                    : approvedCount > rejectedCount
+                    ? "bg-primary text-primary-foreground"
+                    : approvedCount === rejectedCount
+                    ? "bg-yellow-500 text-black"
+                    : "bg-red-500 text-white"
+                }`}>
+                  <TrendingUp className={`absolute -right-6 -bottom-6 w-28 h-28 ${
+                    totalCount === 0 ? "opacity-10" : "opacity-20"
+                  }`} />
                   <h4 className="text-xs font-black uppercase tracking-widest mb-4 opacity-85">Approval Rating</h4>
-                  <div className="text-5xl font-black italic tracking-tight mb-2">88%</div>
+                  <div className="text-5xl font-black italic tracking-tight mb-2">{approvalRating}%</div>
                   <p className="text-[10px] font-bold uppercase leading-relaxed opacity-90">
-                    Your listings are performing above average. Keep following the image guidelines!
+                    {totalCount === 0 
+                      ? "No products reviewed yet. Submit your first listing!"
+                      : approvalRating >= 90
+                      ? "Excellent performance! Your listings are top quality."
+                      : approvalRating >= 75
+                      ? "Good performance! Keep following the guidelines."
+                      : approvalRating >= 50
+                      ? "Room for improvement. Review image requirements."
+                      : "Focus on quality. Check all guidelines before submitting."
+                    }
                   </p>
+                  <div className="mt-3 text-[9px] font-bold uppercase opacity-75">
+                    {approvedCount} approved • {rejectedCount} rejected
+                  </div>
                 </div>
 
                 {/* Quick Help Card */}
