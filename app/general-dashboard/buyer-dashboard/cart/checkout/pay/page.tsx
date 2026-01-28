@@ -61,10 +61,14 @@ export default function PayPage() {
   >("vtc");
   const [amountUSD, setAmountUSD] = useState(342.5);
   const [cryptoAmount, setCryptoAmount] = useState("0.00");
-  const [walletAddress, setWalletAddress] = useState("vtc1qkh4ccr27f5c9yp44vmnud7ljgvfqh5s6hy0f54");
+  const [walletAddress, setWalletAddress] = useState(
+    "vtc1qkh4ccr27f5c9yp44vmnud7ljgvfqh5s6hy0f54",
+  );
   const [checkoutData, setCheckoutData] = useState<CheckoutData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [cryptoPrices, setCryptoPrices] = useState<{[key: string]: number}>({});
+  const [cryptoPrices, setCryptoPrices] = useState<{ [key: string]: number }>(
+    {},
+  );
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -72,26 +76,26 @@ export default function PayPage() {
   const fetchCryptoPrices = async () => {
     try {
       setIsRefreshing(true);
-      const response = await fetch('/api/coinmarketcap');
+      const response = await fetch("/api/coinmarketcap");
       const data = await response.json();
-      
+
       if (data.error) {
-        console.error('API Error:', data.error);
+        console.error("API Error:", data.error);
         return;
       }
-      
-      const prices: {[key: string]: number} = {};
-      
+
+      const prices: { [key: string]: number } = {};
+
       // Extract prices for each crypto
       if (data.BTC) prices.BTC = data.BTC.quote.USD.price;
       if (data.LTC) prices.LTC = data.LTC.quote.USD.price;
       if (data.USDT) prices.USDT = data.USDT.quote.USD.price;
       if (data.VTC) prices.VTC = data.VTC.quote.USD.price;
-      
+
       setCryptoPrices(prices);
       setTimeLeft(300); // Reset timer to 5 minutes
     } catch (error) {
-      console.error('Error fetching crypto prices:', error);
+      console.error("Error fetching crypto prices:", error);
     } finally {
       setIsRefreshing(false);
     }
@@ -110,28 +114,28 @@ export default function PayPage() {
 
   useEffect(() => {
     // Get payment method from URL params
-    const method = searchParams.get('method') as "vtc" | "btc" | "ltc" | "usdt";
+    const method = searchParams.get("method") as "vtc" | "btc" | "ltc" | "usdt";
     if (method) {
       setPaymentMethod(method);
     }
-    
+
     // Get total from URL params
-    const total = searchParams.get('total');
+    const total = searchParams.get("total");
     if (total) {
       setAmountUSD(parseFloat(total));
     }
-    
+
     // Get checkout data from localStorage
-    const storedData = localStorage.getItem('checkoutData');
+    const storedData = localStorage.getItem("checkoutData");
     if (storedData) {
       try {
         const data = JSON.parse(storedData);
         setCheckoutData(data);
       } catch (error) {
-        console.error('Error parsing checkout data:', error);
+        console.error("Error parsing checkout data:", error);
       }
     }
-    
+
     setLoading(false);
   }, [searchParams]);
 
@@ -170,17 +174,14 @@ export default function PayPage() {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   const getMockAddress = (method: string) => {
-    if (method === "vtc")
-      return "vtc1qkh4ccr27f5c9yp44vmnud7ljgvfqh5s6hy0f54";
-    if (method === "btc")
-      return "bc1q8edkes3zuja3tan33gdz8tg6cpu49k96lvwyr5";
+    if (method === "vtc") return "vtc1qkh4ccr27f5c9yp44vmnud7ljgvfqh5s6hy0f54";
+    if (method === "btc") return "bc1q8edkes3zuja3tan33gdz8tg6cpu49k96lvwyr5";
     if (method === "ltc") return "ltc1q0c3r0qs09dzz9gq09a0my7ykp7ns73epwk8pk8";
-    if (method === "usdt")
-      return "0xafcaa087adfcb53ff2900975d6d299fea976f4ba";
+    if (method === "usdt") return "0xafcaa087adfcb53ff2900975d6d299fea976f4ba";
     return "";
   };
 
@@ -280,9 +281,17 @@ export default function PayPage() {
                         Send To This Address
                       </label>
                       <div className="flex items-center gap-3 bg-muted/40 border border-border rounded-2xl px-4 py-2">
-                        <div className="flex-1 font-mono text-sm break-all select-all">
+                        <div
+                          className="
+      flex-1 font-mono text-sm select-all
+      overflow-hidden text-ellipsis whitespace-nowrap
+      sm:whitespace-normal sm:break-all
+    "
+                          title={walletAddress}
+                        >
                           {walletAddress}
                         </div>
+
                         <button
                           onClick={copyToClipboard}
                           className="p-3 bg-primary/10 hover:bg-primary/20 rounded-xl transition-colors cursor-pointer"
@@ -296,9 +305,9 @@ export default function PayPage() {
                     {/* QR Code Section */}
                     <div className="flex justify-center my-8">
                       <div className="w-56 h-56 bg-white rounded-2xl p-4 flex flex-col items-center justify-center border-8 border-background shadow-inner">
-                        <img 
-                          src={getCryptoData().qr} 
-                          alt="Scan to pay" 
+                        <img
+                          src={getCryptoData().qr}
+                          alt="Scan to pay"
                           className="w-full h-full cursor-pointer object-contain mb-2"
                         />
                         <span className="text-black text-[10px] font-black uppercase tracking-tighter">
@@ -334,19 +343,24 @@ export default function PayPage() {
                 </div>
 
                 <div className="flex items-center justify-between px-4 mt-5">
-                    <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${isRefreshing ? 'bg-yellow-500 animate-pulse' : 'bg-green-500 animate-pulse'}`} />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                          {isRefreshing ? 'Updating rates...' : `${paymentMethod.toUpperCase()} is active`}
-                        </span>
-                    </div>
-                    <button 
-                      onClick={() => fetchCryptoPrices()}
-                      disabled={isRefreshing}
-                      className="text-[10px] font-black cursor-pointer uppercase tracking-widest text-primary flex items-center gap-1 hover:opacity-70 transition-opacity disabled:opacity-50"
-                    >
-                      {isRefreshing ? 'Updating...' : 'View Live Rate'} <ExternalLink className="w-3 h-3" />
-                    </button>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`w-2 h-2 rounded-full ${isRefreshing ? "bg-yellow-500 animate-pulse" : "bg-green-500 animate-pulse"}`}
+                    />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                      {isRefreshing
+                        ? "Updating rates..."
+                        : `${paymentMethod.toUpperCase()} is active`}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => fetchCryptoPrices()}
+                    disabled={isRefreshing}
+                    className="text-[10px] font-black cursor-pointer uppercase tracking-widest text-primary flex items-center gap-1 hover:opacity-70 transition-opacity disabled:opacity-50"
+                  >
+                    {isRefreshing ? "Updating..." : "View Live Rate"}{" "}
+                    <ExternalLink className="w-3 h-3" />
+                  </button>
                 </div>
               </div>
 
@@ -388,15 +402,14 @@ export default function PayPage() {
                     </div>
                     <div className="h-px bg-background/20 my-4" />
                     <div className="flex flex-col sm:flex-row justify-center sm:justify-between items-center gap-1 w-full">
-  <span className="text-[10px] font-black uppercase tracking-widest opacity-60 text-center sm:text-left">
-    Amount to Pay
-  </span>
+                      <span className="text-[10px] font-black uppercase tracking-widest opacity-60 text-center sm:text-left">
+                        Amount to Pay
+                      </span>
 
-  <span className="text-3xl font-black italic tracking-tighter text-center sm:text-left">
-    {cryptoAmount} {paymentMethod.toUpperCase()}
-  </span>
-</div>
-
+                      <span className="text-3xl font-black italic tracking-tighter text-center sm:text-left">
+                        {cryptoAmount} {paymentMethod.toUpperCase()}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="bg-background/10 rounded-2xl p-5 mb-8 border border-background/10">
@@ -417,8 +430,11 @@ export default function PayPage() {
 
                   {/* Support Notice */}
                   <p className="text-center text-[9px] mt-4 opacity-60 font-bold uppercase tracking-tight">
-                    If payment delays more than 30 minutes, contact us at{' '}
-                    <Link href="/support" className="underline hover:opacity-100 transition-opacity">
+                    If payment delays more than 30 minutes, contact us at{" "}
+                    <Link
+                      href="/support"
+                      className="underline hover:opacity-100 transition-opacity"
+                    >
                       Customer Support
                     </Link>
                   </p>
