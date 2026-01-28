@@ -7,6 +7,7 @@ import { authOptions } from '@/lib/auth';
 import { uploadToCloudinary } from '@/lib/cloudinary';
 import { connectDB } from '@/lib/db';
 import { Product } from '@/models/Product';
+import CommissionModel from '@/models/Commission';
 
 export async function createProduct(formData: FormData) {
   const session = await getServerSession(authOptions);
@@ -56,6 +57,10 @@ export async function createProduct(formData: FormData) {
     // Connect to database
     await connectDB();
 
+    // Calculate commission for this product
+    const commissionResult = await CommissionModel.calculateCommission(price);
+    const sellerEarnings = price - commissionResult.fee;
+
     // Create new product
     const newProduct = new Product({
       name,
@@ -75,6 +80,16 @@ export async function createProduct(formData: FormData) {
       sellerEmail: session.user.email,
       sellerName: session.user.name, // Add seller's name from session
       status: 'pending',
+      // Add commission data
+      commissionFee: commissionResult.fee,
+      commissionTier: commissionResult.tier ? {
+        id: commissionResult.tier.id,
+        min: commissionResult.tier.min,
+        max: commissionResult.tier.max,
+        type: commissionResult.tier.type,
+        value: commissionResult.tier.value
+      } : undefined,
+      sellerEarnings: sellerEarnings,
     });
 
     await newProduct.save();

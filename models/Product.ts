@@ -21,6 +21,16 @@ export interface IProduct extends Document {
   status: 'pending' | 'approved' | 'rejected';
   rejectionReason?: string;
   productCode?: string;
+  // Commission fields
+  commissionFee?: number;
+  commissionTier?: {
+    id: string;
+    min: number;
+    max: number | null;
+    type: "percent" | "flat";
+    value: number;
+  };
+  sellerEarnings?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -50,6 +60,16 @@ const ProductSchema = new Schema<IProduct>(
     },
     rejectionReason: { type: String },
     productCode: { type: String, unique: true, sparse: true },
+    // Commission fields
+    commissionFee: { type: Number, min: 0 },
+    commissionTier: {
+      id: { type: String },
+      min: { type: Number },
+      max: { type: Number, default: null },
+      type: { type: String, enum: ['percent', 'flat'] },
+      value: { type: Number, min: 0 }
+    },
+    sellerEarnings: { type: Number, min: 0 },
   },
   { 
     timestamps: true,

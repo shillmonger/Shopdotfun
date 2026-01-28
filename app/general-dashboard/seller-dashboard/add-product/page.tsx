@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Plus,
   Upload,
@@ -15,6 +15,9 @@ import {
   LayoutGrid,
   X,
   Loader2,
+  Calculator,
+  TrendingUp,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -60,6 +63,18 @@ const PROCESSING_TIMES = [
   "Immediate / Digital",
 ];
 
+interface CommissionTier {
+  id: string;
+  min: number;
+  max: number | null;
+  type: "percent" | "flat";
+  value: number;
+}
+
+interface CommissionSettings {
+  tiers: CommissionTier[];
+}
+
 export default function AddProductPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -82,8 +97,58 @@ export default function AddProductPage() {
 
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [commissionSettings, setCommissionSettings] = useState<CommissionSettings | null>(null);
+  const [commissionLoading, setCommissionLoading] = useState(true);
 
   const MAX_TOTAL_SIZE = 1 * 1024 * 1024; // 1MB in bytes
+
+  // Load commission settings
+  useEffect(() => {
+    const loadCommissionSettings = async () => {
+      try {
+        const response = await fetch('/api/admin/commission');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.settings && data.settings.tiers) {
+            setCommissionSettings(data.settings);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading commission settings:', error);
+      } finally {
+        setCommissionLoading(false);
+      }
+    };
+
+    loadCommissionSettings();
+  }, []);
+
+  // Calculate commission preview
+  const calculateCommission = (price: number) => {
+    if (!commissionSettings || !commissionSettings.tiers.length || price <= 0) {
+      return { fee: 0, earnings: price, tier: null };
+    }
+
+    const activeTier = commissionSettings.tiers.find(
+      (t) => price >= t.min && (t.max === null || price < t.max),
+    );
+
+    if (!activeTier) {
+      return { fee: 0, earnings: price, tier: null };
+    }
+
+    const fee = activeTier.type === "percent"
+      ? (price * activeTier.value) / 100
+      : activeTier.value;
+
+    return {
+      fee,
+      earnings: Math.max(0, price - fee),
+      tier: activeTier,
+    };
+  };
+
+  const commissionPreview = calculateCommission(Number(formData.price) || 0);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -535,6 +600,64 @@ export default function AddProductPage() {
                           }
                         />
                       </div>
+                    </div>
+
+                    {/* Commission Preview */}
+                    <div className="mt-6 p-4 bg-primary-foreground/10 border border-primary-foreground/20 rounded-xl">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Calculator className="w-4 h-4" />
+                        <h4 className="text-[9px] font-black uppercase opacity-70">
+                          Commission Preview
+                        </h4>
+                      </div>
+                      
+                      {commissionLoading ? (
+                        <div className="flex items-center justify-center py-4">
+                          <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                        </div>
+                      ) : Number(formData.price) > 0 ? (
+                        <div className="space-y-3">
+                          {commissionPreview.tier ? (
+                            <>
+                              <div className="flex justify-between items-center text-[10px]">
+                                <span className="font-bold opacity-70">
+                                  Platform Fee ({commissionPreview.tier.value}
+                                  {commissionPreview.tier.type === "percent" ? "%" : " Flat"})
+                                </span>
+                                <span className="font-black">
+                                  - {commissionPreview.fee.toFixed(2)} USDT
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center pt-3 border-t border-primary-foreground/20">
+                                <span className="text-[9px] font-black uppercase opacity-70">
+                                  You'll Earn
+                                </span>
+                                <span className="text-sm font-black text-primary-foreground">
+                                  {commissionPreview.earnings.toFixed(2)} USDT
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 mt-2">
+                                <div className="w-2 h-2 rounded-full bg-green-400"></div>
+                                <span className="text-[8px] font-medium opacity-60">
+                                  Tier: {commissionPreview.tier.min} - {commissionPreview.tier.max || "∞"} USDT
+                                </span>
+                              </div>
+                            </>
+                          ) : (
+                            <div className="text-center py-2">
+                              <p className="text-[9px] font-medium opacity-60">
+                                No commission tier found for this price
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-center py-2">
+                          <p className="text-[9px] font-medium opacity-60">
+                            Enter a price to see commission preview
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </section>

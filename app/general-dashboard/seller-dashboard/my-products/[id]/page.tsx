@@ -17,6 +17,9 @@ import {
   X,
   Loader2,
   ArrowLeft,
+  Calculator,
+  TrendingUp,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter, useParams } from "next/navigation";
@@ -62,6 +65,18 @@ const PROCESSING_TIMES = [
   "Immediate / Digital",
 ];
 
+interface CommissionTier {
+  id: string;
+  min: number;
+  max: number | null;
+  type: "percent" | "flat";
+  value: number;
+}
+
+interface CommissionSettings {
+  tiers: CommissionTier[];
+}
+
 interface ProductImage {
   url: string;
   thumbnailUrl?: string;
@@ -95,6 +110,8 @@ export default function EditProductPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [existingImages, setExistingImages] = useState<ProductImage[]>([]);
   const [removedImageIds, setRemovedImageIds] = useState<string[]>([]);
+  const [commissionSettings, setCommissionSettings] = useState<CommissionSettings | null>(null);
+  const [commissionLoading, setCommissionLoading] = useState(true);
 
   // Fetch product data
   useEffect(() => {
@@ -159,6 +176,54 @@ export default function EditProductPage() {
       fetchProduct();
     }
   }, [id, router]);
+
+  // Load commission settings
+  useEffect(() => {
+    const loadCommissionSettings = async () => {
+      try {
+        const response = await fetch('/api/admin/commission');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.settings && data.settings.tiers) {
+            setCommissionSettings(data.settings);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading commission settings:', error);
+      } finally {
+        setCommissionLoading(false);
+      }
+    };
+
+    loadCommissionSettings();
+  }, []);
+
+  // Calculate commission preview
+  const calculateCommission = (price: number) => {
+    if (!commissionSettings || !commissionSettings.tiers.length || price <= 0) {
+      return { fee: 0, earnings: price, tier: null };
+    }
+
+    const activeTier = commissionSettings.tiers.find(
+      (t) => price >= t.min && (t.max === null || price < t.max),
+    );
+
+    if (!activeTier) {
+      return { fee: 0, earnings: price, tier: null };
+    }
+
+    const fee = activeTier.type === "percent"
+      ? (price * activeTier.value) / 100
+      : activeTier.value;
+
+    return {
+      fee,
+      earnings: Math.max(0, price - fee),
+      tier: activeTier,
+    };
+  };
+
+  const commissionPreview = calculateCommission(Number(formData.price) || 0);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -609,6 +674,66 @@ export default function EditProductPage() {
                           min="0"
                         />
                       </div>
+
+                      {/* Commission Preview */}
+                      <div className="md:col-span-2">
+                        <div className="mt-4 p-4 bg-muted/30 border border-border rounded-xl">
+                          <div className="flex items-center gap-2 mb-3">
+                            <Calculator className="w-4 h-4 text-primary" />
+                            <h4 className="text-[9px] font-black uppercase text-muted-foreground">
+                              Commission Preview
+                            </h4>
+                          </div>
+                          
+                          {commissionLoading ? (
+                            <div className="flex items-center justify-center py-4">
+                              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                            </div>
+                          ) : Number(formData.price) > 0 ? (
+                            <div className="space-y-3">
+                              {commissionPreview.tier ? (
+                                <>
+                                  <div className="flex justify-between items-center text-[10px]">
+                                    <span className="font-bold text-muted-foreground">
+                                      Platform Fee ({commissionPreview.tier.value}
+                                      {commissionPreview.tier.type === "percent" ? "%" : " Flat"})
+                                    </span>
+                                    <span className="font-black text-primary">
+                                      - {commissionPreview.fee.toFixed(2)} USDT
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between items-center pt-3 border-t border-border">
+                                    <span className="text-[9px] font-black uppercase text-muted-foreground">
+                                      You'll Earn
+                                    </span>
+                                    <span className="text-sm font-black text-primary">
+                                      {commissionPreview.earnings.toFixed(2)} USDT
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2 mt-2">
+                                    <div className="w-2 h-2 rounded-full bg-green-400"></div>
+                                    <span className="text-[8px] font-medium text-muted-foreground">
+                                      Tier: {commissionPreview.tier.min} - {commissionPreview.tier.max || "∞"} USDT
+                                    </span>
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="text-center py-2">
+                                  <p className="text-[9px] font-medium text-muted-foreground">
+                                    No commission tier found for this price
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="text-center py-2">
+                              <p className="text-[9px] font-medium text-muted-foreground">
+                                Enter a price to see commission preview
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </section>
 
@@ -623,7 +748,7 @@ export default function EditProductPage() {
                         <button
                           key={time}
                           type="button"
-                          className={`px-4 py-3 rounded-xl text-sm font-bold text-center border transition-colors cursor-pointer ${
+                          className={`px-2 py-3 rounded-xl text-sm font-bold text-center border transition-colors cursor-pointer ${
                             formData.processingTime === time
                               ? "bg-primary/10 border-primary text-primary"
                               : "bg-background border-border hover:border-foreground/20"

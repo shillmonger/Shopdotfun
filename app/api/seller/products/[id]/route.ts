@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { clientPromise } from '@/lib/db';
 import { ObjectId } from 'mongodb';
+import CommissionModel from '@/models/Commission';
 
 // Helper function to handle MongoDB ObjectId validation
 const isValidObjectId = (id: string) => {
@@ -98,6 +99,16 @@ interface ProductUpdateData {
   status?: 'pending' | 'approved' | 'rejected';
   rejectionReason?: string;
   updatedAt: Date;
+  // Commission fields
+  commissionFee?: number;
+  commissionTier?: {
+    id: string;
+    min: number;
+    max: number | null;
+    type: "percent" | "flat";
+    value: number;
+  };
+  sellerEarnings?: number;
 }
 
 // PUT: Update a product
@@ -205,6 +216,10 @@ export async function PUT(
       });
     }
 
+    // Calculate commission for this product
+    const commissionResult = await CommissionModel.calculateCommission(price);
+    const sellerEarnings = price - commissionResult.fee;
+
     // Update the product with proper typing
     const updateData: Partial<ProductUpdateData> = {
       name: name as string,
@@ -217,7 +232,17 @@ export async function PUT(
       crypto,
       discount,
       images: updatedImages,
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      // Add commission data
+      commissionFee: commissionResult.fee,
+      commissionTier: commissionResult.tier ? {
+        id: commissionResult.tier.id,
+        min: commissionResult.tier.min,
+        max: commissionResult.tier.max,
+        type: commissionResult.tier.type,
+        value: commissionResult.tier.value
+      } : undefined,
+      sellerEarnings: sellerEarnings,
     };
 
     // If product was rejected, change status back to pending when edited
