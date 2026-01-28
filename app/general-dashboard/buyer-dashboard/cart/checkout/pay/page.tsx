@@ -64,6 +64,49 @@ export default function PayPage() {
   const [walletAddress, setWalletAddress] = useState("vtc1qkh4ccr27f5c9yp44vmnud7ljgvfqh5s6hy0f54");
   const [checkoutData, setCheckoutData] = useState<CheckoutData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [cryptoPrices, setCryptoPrices] = useState<{[key: string]: number}>({});
+  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Fetch live crypto prices
+  const fetchCryptoPrices = async () => {
+    try {
+      setIsRefreshing(true);
+      const response = await fetch('/api/coinmarketcap');
+      const data = await response.json();
+      
+      if (data.error) {
+        console.error('API Error:', data.error);
+        return;
+      }
+      
+      const prices: {[key: string]: number} = {};
+      
+      // Extract prices for each crypto
+      if (data.BTC) prices.BTC = data.BTC.quote.USD.price;
+      if (data.LTC) prices.LTC = data.LTC.quote.USD.price;
+      if (data.USDT) prices.USDT = data.USDT.quote.USD.price;
+      if (data.VTC) prices.VTC = data.VTC.quote.USD.price;
+      
+      setCryptoPrices(prices);
+      setTimeLeft(300); // Reset timer to 5 minutes
+    } catch (error) {
+      console.error('Error fetching crypto prices:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  // Calculate crypto amount based on current price
+  const calculateCryptoAmount = () => {
+    const price = cryptoPrices[paymentMethod.toUpperCase()];
+    if (price && amountUSD > 0) {
+      const amount = amountUSD / price;
+      setCryptoAmount(amount.toFixed(8));
+    } else {
+      setCryptoAmount("0.00");
+    }
+  };
 
   useEffect(() => {
     // Get payment method from URL params
@@ -92,10 +135,43 @@ export default function PayPage() {
     setLoading(false);
   }, [searchParams]);
 
+  // Fetch prices on component mount and when payment method changes
   useEffect(() => {
-    // Update wallet address when payment method changes
+    fetchCryptoPrices();
+  }, [paymentMethod]);
+
+  // Calculate crypto amount when prices or USD amount changes
+  useEffect(() => {
+    calculateCryptoAmount();
+  }, [cryptoPrices, amountUSD, paymentMethod]);
+
+  // Update wallet address when payment method changes
+  useEffect(() => {
     setWalletAddress(getMockAddress(paymentMethod));
   }, [paymentMethod]);
+
+  // Countdown timer effect
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          // Time's up, refresh prices
+          fetchCryptoPrices();
+          return 300; // Reset to 5 minutes
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [paymentMethod]);
+
+  // Format time display
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const getMockAddress = (method: string) => {
     if (method === "vtc")
@@ -259,11 +335,17 @@ export default function PayPage() {
 
                 <div className="flex items-center justify-between px-4 mt-5">
                     <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{paymentMethod.toUpperCase()} is active </span>
+                        <div className={`w-2 h-2 rounded-full ${isRefreshing ? 'bg-yellow-500 animate-pulse' : 'bg-green-500 animate-pulse'}`} />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                          {isRefreshing ? 'Updating rates...' : `${paymentMethod.toUpperCase()} is active`}
+                        </span>
                     </div>
-                    <button className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-1 hover:opacity-70 transition-opacity">
-                        View Live Rate <ExternalLink className="w-3 h-3" />
+                    <button 
+                      onClick={() => fetchCryptoPrices()}
+                      disabled={isRefreshing}
+                      className="text-[10px] font-black cursor-pointer uppercase tracking-widest text-primary flex items-center gap-1 hover:opacity-70 transition-opacity disabled:opacity-50"
+                    >
+                      {isRefreshing ? 'Updating...' : 'View Live Rate'} <ExternalLink className="w-3 h-3" />
                     </button>
                 </div>
               </div>
@@ -284,30 +366,37 @@ export default function PayPage() {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="opacity-80 uppercase font-bold text-[10px]">
+                        Rate locked for
+                      </span>
+                      <div className="flex items-center gap-2">
+                        {isRefreshing ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <span className="font-bold">
+                            {formatTime(timeLeft)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="opacity-80 uppercase font-bold text-[10px]">
                         Crypto Amount
                       </span>
                       <span className="font-bold">
                         {cryptoAmount} {paymentMethod.toUpperCase()}
                       </span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="opacity-80 uppercase font-bold text-[10px]">
-                        Rate locked for
-                      </span>
-                      <span className="font-bold">
-                        5 minutes
-                      </span>
-                    </div>
                     <div className="h-px bg-background/20 my-4" />
-                    <div className="flex justify-between items-center gap-1 w-full">
-                      <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
-                        Amount to Pay
-                      </span>
+                    <div className="flex flex-col sm:flex-row justify-center sm:justify-between items-center gap-1 w-full">
+  <span className="text-[10px] font-black uppercase tracking-widest opacity-60 text-center sm:text-left">
+    Amount to Pay
+  </span>
 
-                      <span className="text-3xl font-black italic tracking-tighter">
-                        {cryptoAmount} {paymentMethod.toUpperCase()}
-                      </span>
-                    </div>
+  <span className="text-3xl font-black italic tracking-tighter text-center sm:text-left">
+    {cryptoAmount} {paymentMethod.toUpperCase()}
+  </span>
+</div>
+
                   </div>
 
                   <div className="bg-background/10 rounded-2xl p-5 mb-8 border border-background/10">

@@ -91,7 +91,7 @@ export default function CartPage() {
     
     // Check if trying to add more than available stock
     if (newQty > item.stock) {
-      toast.error('Damn you bought buying it all!');
+      toast.error('Damn you are buying it all!');
       return;
     }
     
