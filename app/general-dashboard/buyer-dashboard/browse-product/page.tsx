@@ -72,7 +72,7 @@ export default function BrowseProductsPage() {
 
       const params = new URLSearchParams({
         page: pageNum.toString(),
-        limit: "8",
+        limit: "20",
         ...(selectedCategory !== "All" && { category: selectedCategory }),
         ...(inStockOnly && { inStockOnly: "true" }),
         ...(searchQuery && { search: searchQuery }),

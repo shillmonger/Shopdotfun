@@ -48,8 +48,6 @@ export default function CartPage() {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          // Add auth header if you have JWT token
-          // 'Authorization': `Bearer ${token}`
         },
       });
       const data = await response.json();
@@ -60,7 +58,6 @@ export default function CartPage() {
       } else {
         if (response.status === 401) {
           console.error('Authentication required');
-          // You might want to redirect to login here
         } else {
           console.error('Failed to fetch cart:', data.error);
         }
@@ -178,7 +175,7 @@ export default function CartPage() {
                   <ShoppingBag className="w-3 h-3" /> {cartItems.length} Items in your bag
                 </p>
               </div>
-              <Link href="/general-dashbboard/buyer-dashboard/browse-product" className="hidden md:flex items-center gap-2 text-xs font-black uppercase tracking-widest hover:text-primary transition-colors">
+              <Link href="/general-dashboard/buyer-dashboard/browse-product" className="hidden md:flex items-center gap-2 text-xs font-black uppercase tracking-widest hover:text-primary transition-colors">
                 <ShoppingBag className="w-4 h-4" /> Continue Shopping
               </Link>
             </div>
@@ -192,26 +189,26 @@ export default function CartPage() {
               </div>
             ) : cartItems.length === 0 ? (
               <div className="bg-card border border-dashed border-border rounded-3xl py-20 px-10 text-center flex flex-col items-center justify-center">
-  <div className="relative mb-8 group flex flex-col items-center">
-    <img
-      src="https://i.postimg.cc/LXSKYHG4/empty-box-removebg-preview.png"
-      alt="Empty Box"
-      className="w-44 h-44 object-contain cursor-pointer grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500 ease-out relative z-10"
-    />
-  </div>
+                <div className="relative mb-8 group flex flex-col items-center">
+                  <img
+                    src="https://i.postimg.cc/LXSKYHG4/empty-box-removebg-preview.png"
+                    alt="Empty Box"
+                    className="w-44 h-44 object-contain cursor-pointer grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500 ease-out relative z-10"
+                  />
+                </div>
 
-  <h2 className="text-2xl font-black uppercase italic tracking-tighter">Your cart is empty</h2>
-  <p className="text-muted-foreground text-[11px] font-bold uppercase tracking-widest mt-2 mb-8">
-    Looks like you haven&apos;t added anything yet.
-  </p>
-  
-  <Link 
-    href="general-dashboard/buyer-dashboard/browse-product" 
-    className="inline-block bg-foreground text-background cursor-pointer px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-primary hover:text-primary-foreground hover:shadow-[0_10px_30px_rgba(var(--primary),0.3)] transition-all"
-  >
-    Start Discovering
-  </Link>
-</div>
+                <h2 className="text-2xl font-black uppercase italic tracking-tighter">Your cart is empty</h2>
+                <p className="text-muted-foreground text-[11px] font-bold uppercase tracking-widest mt-2 mb-8">
+                  Looks like you haven&apos;t added anything yet.
+                </p>
+                
+                <Link 
+                  href="/general-dashboard/buyer-dashboard/browse-product" 
+                  className="inline-block bg-foreground text-background cursor-pointer px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-primary hover:text-primary-foreground hover:shadow-[0_10px_30px_rgba(var(--primary),0.3)] transition-all"
+                >
+                  Start Discovering
+                </Link>
+              </div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 
@@ -260,15 +257,17 @@ export default function CartPage() {
                               disabled={updating === item.productId}
                               className="p-2 hover:bg-background cursor-pointer rounded-lg transition-colors disabled:opacity-50"
                             >
-                              <Plus className="w-4 h-4" />
+                                <Plus className="w-4 h-4" />
                             </button>
                           </div>
-
                           <div className="text-right">
-                            <p className="text-xs text-muted-foreground font-bold uppercase tracking-tighter">Unit Price: ${item.price.toFixed(2)}</p>
-                            <p className="text-xl font-black italic tracking-tighter">
-                              ${((item.discount > 0 ? item.price * (1 - item.discount / 100) : item.price) * item.quantity).toFixed(2)}
-                            </p>
+                             {item.discount > 0 && (
+                               <p className="text-[10px] text-muted-foreground line-through font-bold">${item.price.toFixed(2)}</p>
+                              )}
+                             <p className="text-lg font-black italic tracking-tighter">
+                                ${(item.price * (1 - item.discount / 100)).toFixed(2)}
+                             </p>
+                              <p className="text-xs text-muted-foreground font-bold uppercase tracking-tighter">Shipping: ${item.shippingFee.toFixed(2)}</p>
                           </div>
                         </div>
                       </div>
@@ -284,7 +283,7 @@ export default function CartPage() {
                   </div>
                 </div>
 
-                {/* B & C. Summary & Actions */}
+                {/* Summary & Actions */}
                 <div className="space-y-6">
                   <div className="bg-card border border-border rounded-2xl p-6 shadow-sm sticky top-6">
                     <h3 className="text-sm font-black uppercase tracking-widest mb-6 border-b border-border pb-4">Order Summary</h3>
