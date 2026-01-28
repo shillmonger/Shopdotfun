@@ -69,7 +69,7 @@ export default function PayPage() {
   const [cryptoPrices, setCryptoPrices] = useState<{ [key: string]: number }>(
     {},
   );
-  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
+  const [timeLeft, setTimeLeft] = useState(3000); // 50 minutes in seconds
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Fetch live crypto prices
@@ -93,7 +93,7 @@ export default function PayPage() {
       if (data.VTC) prices.VTC = data.VTC.quote.USD.price;
 
       setCryptoPrices(prices);
-      setTimeLeft(300); // Reset timer to 5 minutes
+      setTimeLeft(3000); // Reset timer to 50 minutes
     } catch (error) {
       console.error("Error fetching crypto prices:", error);
     } finally {
@@ -161,7 +161,7 @@ export default function PayPage() {
         if (prev <= 1) {
           // Time's up, refresh prices
           fetchCryptoPrices();
-          return 300; // Reset to 5 minutes
+          return 3000; // Reset to 50 minutes
         }
         return prev - 1;
       });
