@@ -87,8 +87,16 @@ export default function CartPage() {
     const item = cartItems.find(item => item.productId === productId);
     if (!item) return;
 
-    const newQty = Math.max(1, Math.min(item.stock, item.quantity + delta));
-    if (newQty === item.quantity) return;
+    const newQty = item.quantity + delta;
+    
+    // Check if trying to add more than available stock
+    if (newQty > item.stock) {
+      toast.error('Damn you bought buying it all!');
+      return;
+    }
+    
+    const finalQty = Math.max(1, Math.min(item.stock, newQty));
+    if (finalQty === item.quantity) return;
 
     setUpdating(productId);
     
@@ -100,7 +108,7 @@ export default function CartPage() {
         },
         body: JSON.stringify({
           productId,
-          quantity: newQty
+          quantity: finalQty
         }),
       });
 
@@ -243,22 +251,27 @@ export default function CartPage() {
 
                         <div className="flex flex-wrap items-end justify-between gap-4 mt-6">
                           {/* Quantity Selector */}
-                          <div className="flex items-center bg-muted/50 border border-border rounded-xl p-1">
-                            <button 
-                              onClick={() => updateQuantity(item.productId, -1)}
-                              disabled={updating === item.productId}
-                              className="p-2 hover:bg-background cursor-pointer rounded-lg transition-colors disabled:opacity-50"
-                            >
-                              <Minus className="w-4 h-4" />
-                            </button>
-                            <span className="w-10 text-center font-black text-sm">{item.quantity}</span>
-                            <button 
-                              onClick={() => updateQuantity(item.productId, 1)}
-                              disabled={updating === item.productId}
-                              className="p-2 hover:bg-background cursor-pointer rounded-lg transition-colors disabled:opacity-50"
-                            >
+                          <div className="flex flex-col gap-2">
+                            <div className="flex items-center bg-muted/50 border border-border rounded-xl p-1">
+                              <button 
+                                onClick={() => updateQuantity(item.productId, -1)}
+                                disabled={updating === item.productId}
+                                className="p-2 hover:bg-background cursor-pointer rounded-lg transition-colors disabled:opacity-50"
+                              >
+                                <Minus className="w-4 h-4" />
+                              </button>
+                              <span className="w-10 text-center font-black text-sm">{item.quantity}</span>
+                              <button 
+                                onClick={() => updateQuantity(item.productId, 1)}
+                                disabled={updating === item.productId}
+                                className="p-2 hover:bg-background cursor-pointer rounded-lg transition-colors disabled:opacity-50"
+                              >
                                 <Plus className="w-4 h-4" />
-                            </button>
+                              </button>
+                            </div>
+                            <p className="text-[10px] text-muted-foreground font-medium">
+                              Stock: {item.stock} available
+                            </p>
                           </div>
                           <div className="text-right">
                              {item.discount > 0 && (
@@ -267,7 +280,7 @@ export default function CartPage() {
                              <p className="text-lg font-black italic tracking-tighter">
                                 ${(item.price * (1 - item.discount / 100)).toFixed(2)}
                              </p>
-                              <p className="text-xs text-muted-foreground font-bold uppercase tracking-tighter">Shipping: ${item.shippingFee.toFixed(2)}</p>
+                             <p className="text-xs text-muted-foreground font-bold uppercase tracking-tighter">Shipping: ${item.shippingFee.toFixed(2)}</p>
                           </div>
                         </div>
                       </div>
