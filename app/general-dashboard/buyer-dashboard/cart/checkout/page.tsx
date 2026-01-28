@@ -505,7 +505,7 @@ export default function CheckoutPage() {
                         grandTotal
                       }));
                     }}
-                    className="w-full bg-primary text-primary-foreground py-5 rounded-2xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-primary/20 cursor-pointer"
+                    className="w-full bg-green-600 text-white py-5 rounded-2xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-primary/20 cursor-pointer"
                   >
                     Confirm & Place Order <ChevronRight className="w-4 h-4" />
                   </Link>
