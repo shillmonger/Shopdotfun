@@ -320,9 +320,9 @@ export default function CartPage() {
                     </div>
 
                     <div className="mt-8 space-y-3">
-                      <button className="w-full bg-foreground text-background py-4 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-xl active:scale-95 cursor-pointer">
+                      <Link href="/general-dashboard/buyer-dashboard/cart/checkout" className="w-full bg-foreground text-background py-4 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-xl active:scale-95 cursor-pointer">
                         Proceed to Checkout <ArrowRight className="w-4 h-4" />
-                      </button>
+                      </Link>
                       <Link href="/general-dashboard/buyer-dashboard/browse-product" className="w-full border border-border py-4 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-muted transition-all">
                         Keep Shopping
                       </Link>
