@@ -484,7 +484,27 @@ export default function CheckoutPage() {
                   </div>
 
                   <Link
-                    href="/general-dashboard/buyer-dashboard/cart/checkout/pay"
+                    href={{
+                      pathname: "/general-dashboard/buyer-dashboard/cart/checkout/pay",
+                      query: {
+                        method: paymentMethod,
+                        total: grandTotal.toFixed(2),
+                        subtotal: subtotal.toFixed(2),
+                        shipping: totalShipping.toFixed(2)
+                      }
+                    }}
+                    onClick={() => {
+                      // Store cart data in localStorage for the payment page
+                      localStorage.setItem('checkoutData', JSON.stringify({
+                        cartItems,
+                        orderGroups,
+                        selectedAddress,
+                        paymentMethod,
+                        subtotal,
+                        totalShipping,
+                        grandTotal
+                      }));
+                    }}
                     className="w-full bg-primary text-primary-foreground py-5 rounded-2xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-primary/20 cursor-pointer"
                   >
                     Confirm & Place Order <ChevronRight className="w-4 h-4" />

@@ -11,16 +11,50 @@ import {
   Lock,
   Loader2,
   CheckCircle2,
+  Truck,
+  MapPin,
 } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
 import BuyerHeader from "@/components/buyer-dashboard/BuyerHeader";
 import BuyerSidebar from "@/components/buyer-dashboard/BuyerSidebar";
 import BuyerNav from "@/components/buyer-dashboard/BuyerNav";
 
+interface CartItem {
+  productId: string;
+  productName: string;
+  sellerName: string;
+  price: number;
+  discount: number;
+  quantity: number;
+  stock: number;
+  shippingFee: number;
+  image: string;
+  addedAt: string;
+}
+
+interface OrderGroup {
+  seller: string;
+  items: CartItem[];
+  shipping: number;
+  estArrival: string;
+}
+
+interface CheckoutData {
+  cartItems: CartItem[];
+  orderGroups: OrderGroup[];
+  selectedAddress: string;
+  paymentMethod: string;
+  subtotal: number;
+  totalShipping: number;
+  grandTotal: number;
+}
+
 export default function PayPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const searchParams = useSearchParams();
 
   const [paymentMethod, setPaymentMethod] = useState<
     "vtc" | "btc" | "ltc" | "usdt"
@@ -28,6 +62,40 @@ export default function PayPage() {
   const [amountUSD, setAmountUSD] = useState(342.5);
   const [cryptoAmount, setCryptoAmount] = useState("0.00");
   const [walletAddress, setWalletAddress] = useState("vtc1qkh4ccr27f5c9yp44vmnud7ljgvfqh5s6hy0f54");
+  const [checkoutData, setCheckoutData] = useState<CheckoutData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Get payment method from URL params
+    const method = searchParams.get('method') as "vtc" | "btc" | "ltc" | "usdt";
+    if (method) {
+      setPaymentMethod(method);
+    }
+    
+    // Get total from URL params
+    const total = searchParams.get('total');
+    if (total) {
+      setAmountUSD(parseFloat(total));
+    }
+    
+    // Get checkout data from localStorage
+    const storedData = localStorage.getItem('checkoutData');
+    if (storedData) {
+      try {
+        const data = JSON.parse(storedData);
+        setCheckoutData(data);
+      } catch (error) {
+        console.error('Error parsing checkout data:', error);
+      }
+    }
+    
+    setLoading(false);
+  }, [searchParams]);
+
+  useEffect(() => {
+    // Update wallet address when payment method changes
+    setWalletAddress(getMockAddress(paymentMethod));
+  }, [paymentMethod]);
 
   const getMockAddress = (method: string) => {
     if (method === "vtc")
@@ -105,8 +173,9 @@ export default function PayPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-              {/* Main Payment Card */}
-              <div className="lg:col-span-7">
+              {/* Left Column - Payment */}
+              <div className="lg:col-span-7 space-y-8">
+                {/* Payment Card */}
                 <div className="bg-card border border-border rounded-3xl p-5 md:p-8 shadow-xl">
                   <div className="flex items-center justify-between mb-8 pb-6 border-b border-border">
                     <div className="flex items-center gap-4">
@@ -179,7 +248,7 @@ export default function PayPage() {
                         <div className="flex items-start gap-3">
                           <Coins className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
                           <p className="text-sm leading-relaxed">
-                            Use <strong>TRC20 (Tron)</strong> network — sending
+                            Use <strong>BEP20 (BSC)</strong> network — sending
                             via other networks will result in lost funds.
                           </p>
                         </div>
