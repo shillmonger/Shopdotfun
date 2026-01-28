@@ -17,6 +17,7 @@ import {
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import QRCode from "react-qr-code";
 
 import BuyerHeader from "@/components/buyer-dashboard/BuyerHeader";
 import BuyerSidebar from "@/components/buyer-dashboard/BuyerSidebar";
@@ -185,27 +186,39 @@ export default function PayPage() {
     return "";
   };
 
+  // Get QR value with proper crypto URI format
+  const getQRValue = () => {
+    if (cryptoAmount === "0.00" || !walletAddress) {
+      return walletAddress || "";
+    }
+
+    const uriMap: { [key: string]: string } = {
+      btc: `bitcoin:${walletAddress}?amount=${cryptoAmount}`,
+      ltc: `litecoin:${walletAddress}?amount=${cryptoAmount}`,
+      vtc: `vertcoin:${walletAddress}?amount=${cryptoAmount}`,
+      usdt: `bsc:${walletAddress}?amount=${cryptoAmount}`,
+    };
+
+    return uriMap[paymentMethod] || walletAddress;
+  };
+
   const getCryptoData = () => {
     const data = {
       vtc: {
         name: "Vertcoin",
         img: "https://i.postimg.cc/GpG8VMT5/Vertcoin.png",
-        qr: "https://i.postimg.cc/9XbVQksX/POLYGON.jpg", // Mapped to VAT/POLYGON per your request
       },
       btc: {
         name: "Bitcoin",
         img: "https://i.postimg.cc/3wn94Jn0/bitcoin.jpg",
-        qr: "https://i.postimg.cc/1zj5XqLX/BCH.jpg", // Mapped to BCH per your request
       },
       ltc: {
         name: "Litecoin",
         img: "https://i.postimg.cc/59YdVZ2N/litecoin.jpg",
-        qr: "https://i.postimg.cc/yxMzChgh/eth.jpg", // Mapped to ETH per your request
       },
       usdt: {
         name: "Tether USDT",
         img: "https://i.postimg.cc/zGN9TvSg/tether.jpg",
-        qr: "https://i.postimg.cc/PJtwzZrK/ton.jpg", // Mapped to TON per your request
       },
     };
     return data[paymentMethod];
@@ -305,12 +318,13 @@ export default function PayPage() {
                     {/* QR Code Section */}
                     <div className="flex justify-center my-8">
                       <div className="w-56 h-56 bg-white rounded-2xl p-4 flex flex-col items-center justify-center border-8 border-background shadow-inner">
-                        <img
-                          src={getCryptoData().qr}
-                          alt="Scan to pay"
-                          className="w-full h-full cursor-pointer object-contain mb-2"
+                        <QRCode
+                          value={getQRValue()}
+                          size={192}
+                          level="M"
+                          className="cursor-pointer"
                         />
-                        <span className="text-black text-[10px] font-black uppercase tracking-tighter">
+                        <span className="text-black text-[10px] font-black uppercase tracking-tighter mt-2">
                           Scan to pay
                         </span>
                       </div>
