@@ -25,15 +25,7 @@ export interface IBuyerPayment {
     timePaid: Date;
   };
 
-  // Seller Information
-  sellerInfo: {
-    sellerName: string;
-    email: string;
-    country: string;
-    phoneNumber: string;
-  };
-
-  // Products Information
+  // Products Information (includes seller info in each product)
   productsInfo: Array<{
     productCode: string;
     name: string;

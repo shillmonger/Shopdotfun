@@ -59,7 +59,6 @@ export async function POST(request: NextRequest) {
 
     // Process products and seller information
     const productsInfo = [];
-    const sellerInfoMap = new Map();
 
     for (const item of checkoutData.cartItems) {
       // Get product details - productId is actually the MongoDB _id
@@ -69,19 +68,6 @@ export async function POST(request: NextRequest) {
           { error: `Product with ID ${item.productId} not found` },
           { status: 404 }
         );
-      }
-
-      // Get seller information
-      if (!sellerInfoMap.has(item.sellerName)) {
-        const seller = await UserModel.findUserByEmail(product.sellerEmail, 'seller');
-        if (seller) {
-          sellerInfoMap.set(item.sellerName, {
-            sellerName: seller.name,
-            email: seller.email,
-            country: seller.country,
-            phoneNumber: seller.phone
-          });
-        }
       }
 
       productsInfo.push({
@@ -100,16 +86,6 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Get the first seller's info (assuming single seller per order for now)
-    const sellerInfo = sellerInfoMap.values().next().value;
-
-    if (!sellerInfo) {
-      return NextResponse.json(
-        { error: 'Seller information not found' },
-        { status: 404 }
-      );
-    }
-
     // Create buyer payment record
     console.log('Creating payment with data:', JSON.stringify({
       buyerInfo: {
@@ -123,7 +99,6 @@ export async function POST(request: NextRequest) {
         cryptoMethodUsed,
         timePaid: new Date()
       },
-      sellerInfo,
       productsInfo,
       status: 'pending',
       cryptoAmount,
@@ -143,7 +118,6 @@ export async function POST(request: NextRequest) {
           cryptoMethodUsed,
           timePaid: new Date()
         },
-        sellerInfo,
         productsInfo,
         status: 'pending',
         cryptoAmount,
