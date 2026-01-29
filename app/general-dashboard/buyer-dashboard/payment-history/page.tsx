@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { 
   Download, 
   Receipt, 
@@ -8,7 +9,7 @@ import {
   ArrowUpRight, 
   ArrowDownLeft, 
   CreditCard, 
-  Building2, 
+  Building2,
   Wallet,
   CheckCircle2,
   XCircle,
@@ -43,7 +44,7 @@ interface Payment {
       sellerEmail: string;
     };
   }>;
-  status: 'pending' | 'confirmed' | 'failed' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'failed' | 'cancelled' | 'approved' | 'rejected';
   cryptoAmount: string;
   cryptoAddress: string;
   createdAt: string;
@@ -106,11 +107,18 @@ export default function PaymentHistoryPage() {
 
   const getStatusConfig = (status: string) => {
     switch (status) {
-      case "confirmed": return { color: "text-green-500 bg-green-500/10", icon: CheckCircle2, label: "Approved" };
-      case "pending": return { color: "text-yellow-500 bg-yellow-500/10", icon: RotateCcw, label: "Pending" };
-      case "failed": 
-      case "cancelled": return { color: "text-destructive bg-destructive/10", icon: XCircle, label: "Rejected" };
-      default: return { color: "text-muted-foreground bg-muted", icon: Receipt, label: status };
+      case "confirmed":
+      case "approved":
+        return { color: "text-green-500 bg-green-500/10", icon: CheckCircle2, label: "Approved" };
+      case "pending":
+        return { color: "text-yellow-500 bg-yellow-500/10", icon: RotateCcw, label: "Pending" };
+      case "rejected":
+        return { color: "text-red-500 bg-red-500/10", icon: XCircle, label: "Rejected" };
+      case "failed":
+      case "cancelled":
+        return { color: "text-destructive bg-destructive/10", icon: XCircle, label: "Rejected" };
+      default:
+        return { color: "text-muted-foreground bg-muted", icon: Receipt, label: status };
     }
   };
 
@@ -182,7 +190,7 @@ export default function PaymentHistoryPage() {
               {/* Total Approved Amount */}
               <div className="bg-card border border-border p-5 rounded-2xl">
                 <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
-                  Total Approved
+                  Totals
                 </p>
                 <p className="text-2xl font-black italic tracking-tighter mt-1">
                   ${stats.totalApproved.toFixed(2)}
@@ -192,7 +200,7 @@ export default function PaymentHistoryPage() {
               {/* Pending Payments */}
               <div className="bg-card border border-border p-5 rounded-2xl">
                 <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
-                  Pending Payments
+                  Pending
                 </p>
                 <p className="text-2xl font-black italic tracking-tighter mt-1 text-yellow-500">
                   {stats.pendingCount}
@@ -202,7 +210,7 @@ export default function PaymentHistoryPage() {
               {/* Rejected Payments */}
               <div className="bg-card border border-border p-5 rounded-2xl">
                 <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
-                  Rejected Payments
+                  Rejected
                 </p>
                 <p className="text-2xl font-black italic tracking-tighter mt-1 text-red-500">
                   {stats.rejectedCount}
@@ -212,7 +220,7 @@ export default function PaymentHistoryPage() {
               {/* Approved Payments */}
               <div className="bg-card border border-border p-5 rounded-2xl">
                 <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
-                  Approved Payments
+                  Approved
                 </p>
                 <p className="text-2xl font-black italic tracking-tighter mt-1 text-green-500">
                   {stats.approvedCount}
@@ -231,9 +239,27 @@ export default function PaymentHistoryPage() {
                   <p className="text-destructive">{error}</p>
                 </div>
               ) : filteredPayments.length === 0 ? (
-                <div className="flex items-center justify-center py-20">
-                  <p className="text-muted-foreground">No payments found</p>
+                <div className="bg-card border border-dashed border-border rounded-3xl py-20 px-10 text-center flex flex-col items-center justify-center">
+                <div className="relative mb-8 group flex flex-col items-center">
+                  <img
+                    src="https://i.postimg.cc/268cCWkr/Electric-Socket-With-A-Plug-Voltage-Adapter-Unplug-PNG-and-Vector-with-Transparent-Background-for.png"
+                    alt="Empty payment History"
+                    className="w-44 h-44 object-contain cursor-pointer grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500 ease-out relative z-10"
+                  />
                 </div>
+
+                <h2 className="text-2xl font-black uppercase italic tracking-tighter">Your Payment History is empty</h2>
+                <p className="text-muted-foreground text-[11px] font-bold uppercase tracking-widest mt-2 mb-8">
+                  Looks like your Payment History is empty.
+                </p>
+                
+                <Link 
+                  href="/general-dashboard/buyer-dashboard/cart" 
+                  className="inline-block bg-foreground text-background cursor-pointer px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-primary hover:text-primary-foreground hover:shadow-[0_10px_30px_rgba(var(--primary),0.3)] transition-all"
+                >
+                  Make First Payment 
+                </Link>
+              </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">

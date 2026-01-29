@@ -24,11 +24,11 @@ export async function GET(request: NextRequest) {
     // Calculate statistics
     const stats = {
       totalApproved: allPayments
-        .filter(payment => payment.status === 'confirmed')
+        .filter(payment => payment.status === 'confirmed' || payment.status === 'approved')
         .reduce((sum, payment) => sum + payment.buyerInfo.amountToPay, 0),
       pendingCount: allPayments.filter(payment => payment.status === 'pending').length,
-      rejectedCount: allPayments.filter(payment => payment.status === 'failed' || payment.status === 'cancelled').length,
-      approvedCount: allPayments.filter(payment => payment.status === 'confirmed').length,
+      rejectedCount: allPayments.filter(payment => payment.status === 'rejected' || payment.status === 'failed' || payment.status === 'cancelled').length,
+      approvedCount: allPayments.filter(payment => payment.status === 'confirmed' || payment.status === 'approved').length,
     };
 
     return NextResponse.json(stats);
