@@ -21,6 +21,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import BuyerHeader from "@/components/buyer-dashboard/BuyerHeader";
@@ -66,6 +67,7 @@ export default function CheckoutPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [addressLoading, setAddressLoading] = useState(true);
+  const router = useRouter();
 
   // Fetch addresses
   const fetchAddresses = async () => {
@@ -483,17 +485,21 @@ export default function CheckoutPage() {
                     </p>
                   </div>
 
-                  <Link
-                    href={{
-                      pathname: "/general-dashboard/buyer-dashboard/cart/checkout/pay",
-                      query: {
-                        method: paymentMethod,
-                        total: grandTotal.toFixed(2),
-                        subtotal: subtotal.toFixed(2),
-                        shipping: totalShipping.toFixed(2)
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      
+                      // Validate that we have all required data
+                      if (!selectedAddress) {
+                        toast.error("Please select a delivery address");
+                        return;
                       }
-                    }}
-                    onClick={() => {
+                      
+                      if (cartItems.length === 0) {
+                        toast.error("Your cart is empty");
+                        return;
+                      }
+
                       // Store cart data in localStorage for the payment page
                       localStorage.setItem('checkoutData', JSON.stringify({
                         cartItems,
@@ -504,11 +510,34 @@ export default function CheckoutPage() {
                         totalShipping,
                         grandTotal
                       }));
+
+                      // Navigate to payment page using Next.js router
+                      router.push(`/general-dashboard/buyer-dashboard/cart/checkout/pay?method=${paymentMethod}&total=${grandTotal.toFixed(2)}&subtotal=${subtotal.toFixed(2)}&shipping=${totalShipping.toFixed(2)}`);
                     }}
-                    className="w-full bg-green-600 text-white py-5 rounded-2xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-primary/20 cursor-pointer"
+                    disabled={loading || addressLoading || cartItems.length === 0 || !selectedAddress}
+                    className="w-full bg-green-600 text-white py-5 rounded-2xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-primary/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
-                    Confirm & Place Order <ChevronRight className="w-4 h-4" />
-                  </Link>
+                    {loading || addressLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        {loading && addressLoading ? "Loading..." : loading ? "Loading Cart..." : "Loading Addresses..."}
+                      </>
+                    ) : cartItems.length === 0 ? (
+                      <>
+                        <AlertCircle className="w-4 h-4" />
+                        Cart Empty
+                      </>
+                    ) : !selectedAddress ? (
+                      <>
+                        <AlertCircle className="w-4 h-4" />
+                        Select Address
+                      </>
+                    ) : (
+                      <>
+                        Confirm & Place Order <ChevronRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
 
                   <p className="text-center text-[9px] font-black uppercase tracking-widest mt-6 opacity-40 flex items-center justify-center gap-2">
                     <ShieldCheck className="w-3 h-3" /> SSL Secure Checkout

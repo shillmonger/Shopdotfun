@@ -154,6 +154,25 @@ export default function PayPage() {
     calculateCryptoAmount();
   }, [cryptoPrices, amountUSD, paymentMethod]);
 
+  // Check for existing pending payments on page load
+  useEffect(() => {
+    checkPendingPayments();
+  }, []);
+
+  const checkPendingPayments = async () => {
+    try {
+      const response = await fetch('/api/buyer/payments?status=pending&limit=1');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.payments && data.payments.length > 0) {
+          setPaymentStatus('pending');
+        }
+      }
+    } catch (error) {
+      console.error('Error checking pending payments:', error);
+    }
+  };
+
   // Update wallet address when payment method changes
   useEffect(() => {
     setWalletAddress(getMockAddress(paymentMethod));
@@ -231,7 +250,6 @@ export default function PayPage() {
   const copyToClipboard = () => {
     navigator.clipboard.writeText(walletAddress);
     toast.success("Address copied!", {
-      description: "Paste it into your wallet app.",
       icon: <CheckCircle2 className="text-green-500" />,
     });
   };
@@ -266,7 +284,6 @@ export default function PayPage() {
 
       if (response.ok) {
         toast.success("Payment submitted successfully!", {
-          description: "Your payment has been recorded with pending status.",
           icon: <CheckCircle2 className="text-green-500" />,
         });
 
@@ -286,7 +303,6 @@ export default function PayPage() {
     } catch (error) {
       console.error("Error submitting payment:", error);
       toast.error("Network error", {
-        description: "Please check your connection and try again.",
         icon: <AlertCircle className="text-red-500" />,
       });
     } finally {
@@ -294,12 +310,12 @@ export default function PayPage() {
     }
   };
 
-  const handlePendingPaymentClick = () => {
-    toast.info("Payment Pending", {
-      description: "You have a pending payment. Wait for approval or rejection.",
-      icon: <AlertCircle className="text-yellow-500" />,
-    });
-  };
+const handlePendingPaymentClick = () => {
+  toast.info("You have a Payment Pending", {
+    icon: <AlertCircle className="text-yellow-600" />,
+  });
+};
+
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -506,13 +522,28 @@ export default function PayPage() {
 
                   <button
                     onClick={paymentStatus === 'pending' ? handlePendingPaymentClick : handlePaymentConfirmation}
-                    disabled={isSubmittingPayment}
+                    disabled={isSubmittingPayment || loading || isRefreshing || cryptoAmount === "0.00"}
                     className={`w-full block cursor-pointer py-5 rounded-2xl text-xs font-black uppercase tracking-widest text-center transition-all shadow-lg cursor-pointer active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 ${
                       paymentStatus === 'pending' 
                         ? 'bg-yellow-500 hover:bg-yellow-600 text-white shadow-yellow-900/20' 
                         : 'bg-green-600 hover:bg-green-700 text-white shadow-green-900/20'
                     }`}>
-                    {isSubmittingPayment ? (
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Loading...
+                      </>
+                    ) : isRefreshing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Updating Rates...
+                      </>
+                    ) : cryptoAmount === "0.00" ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Calculating Amount...
+                      </>
+                    ) : isSubmittingPayment ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
                         Submitting Payment...

@@ -28,12 +28,12 @@ export default function RootLayout({
           <div className="min-h-screen transition-colors duration-300">
             {children}
 
-            <Toaster
-              position="top-center"
-              closeButton={false}
-              richColors={false}
-              toastOptions={{
-                className: `
+<Toaster
+  position="top-center"
+  closeButton={false}
+  richColors={false}
+  toastOptions={{
+    className: `
       bg-transparent
       border-0
       shadow-none
@@ -42,16 +42,18 @@ export default function RootLayout({
       text-sm
       font-medium
     `,
-                classNames: {
-                  toast: "!text-foreground",
-                  success: "!text-green-500",
-                  error: "!text-red-500",
-                  description: "hidden",
-                  actionButton: "hidden",
-                  cancelButton: "hidden",
-                },
-              }}
-            />
+    classNames: {
+      toast: "!text-foreground",
+      success: "!text-green-500",
+      error: "!text-red-500",
+      info: "!text-yellow-500", 
+      description: "hidden", 
+      actionButton: "hidden",
+      cancelButton: "hidden",
+    },
+  }}
+/>
+
 <CookieConsent />
           </div>
         </Providers>
