@@ -2,9 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { Menu, X, Bell, Sun, Moon } from "lucide-react";
+import { Menu, X, Bell } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useTheme } from "next-themes";
 
 interface HeaderProps {
   sidebarOpen: boolean; 
@@ -21,7 +20,6 @@ export default function SellerHeader({ sidebarOpen, setSidebarOpen }: HeaderProp
   const [seller, setSeller] = useState<SellerData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [notificationCount, setNotificationCount] = useState(0);
-  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     const fetchSellerData = async () => {
@@ -87,21 +85,8 @@ export default function SellerHeader({ sidebarOpen, setSidebarOpen }: HeaderProp
 
       {/* RIGHT: Profile & Actions */}
       <div className="flex items-center gap-2 sm:gap-6 flex-shrink-0">
-        {/* THEME TOGGLE BUTTON */}
-        <button
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="p-2.5 rounded-xl border border-border hover:bg-secondary transition-all cursor-pointer group"
-          aria-label="Toggle Theme"
-        >
-          {theme === "dark" ? (
-            <Sun className="h-5 w-5 text-amber-400 group-hover:rotate-45 transition-transform duration-300" />
-          ) : (
-            <Moon className="h-5 w-5 text-slate-700 group-hover:-rotate-12 transition-transform duration-300" />
-          )}
-        </button>
-
         {/* NEW SEPARATOR ADDED HERE */}
-        <div className="sm:pl-6 sm:border-l border-border flex items-center h-full">
+        <div className="sm:pl-6 border-border flex items-center h-full">
           <Link href="/general-dashboard/seller-dashboard/notifications">
             <button className="p-2 hover:bg-secondary rounded-full relative cursor-pointer">
               <Bell className="h-5 w-5" />

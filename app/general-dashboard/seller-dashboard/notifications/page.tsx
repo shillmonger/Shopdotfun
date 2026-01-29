@@ -15,7 +15,9 @@ import {
   ChevronRight,
   Calendar,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  ShoppingBag,
+  Info
 } from "lucide-react";
 import Link from "next/link";
 
@@ -26,12 +28,14 @@ import { useAuth } from "@/hooks/useAuth";
 
 interface Notification {
   id: string;
-  productId: string;
-  productName: string;
-  status: "Approved" | "Rejected";
-  reason: string;
+  title: string;
+  message: string;
+  type: "new_order" | "order_update" | "payment" | "system";
+  status: string;
   date: string;
   isRead: boolean;
+  relatedOrderId?: string;
+  relatedOrderLink?: string;
 }
 
 const fetchNotifications = async () => {
@@ -68,11 +72,10 @@ export default function SellerNotificationsPage() {
     setNotifications(notifications.map(n => n.id === id ? { ...n, isRead: true } : n));
   };
 
-  // Calculate approval rating
-  const approvedCount = notifications.filter(n => n.status === "Approved").length;
-  const rejectedCount = notifications.filter(n => n.status === "Rejected").length;
-  const totalCount = approvedCount + rejectedCount;
-  const approvalRating = totalCount > 0 ? Math.round((approvedCount / totalCount) * 100) : 0;
+  // Calculate notification statistics
+  const newOrderCount = notifications.filter(n => n.type === "new_order").length;
+  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const totalCount = notifications.length;
 
   return (
     <div className="flex h-screen overflow-hidden bg-background text-foreground">
@@ -130,14 +133,18 @@ export default function SellerNotificationsPage() {
                       <div className="flex flex-col sm:flex-row gap-4">
                         <div className="shrink-0">
                           <div className={`w-14 h-14 rounded-xl flex items-center justify-center border ${ 
-                            notif.status === "Approved" 
-                              ? "bg-green-500/10 border-green-500/30" 
-                              : "bg-red-500/10 border-red-500/30"
+                            notif.type === "new_order" 
+                              ? "bg-blue-500/10 border-blue-500/30" 
+                              : notif.type === "order_update"
+                              ? "bg-orange-500/10 border-orange-500/30"
+                              : "bg-gray-500/10 border-gray-500/30"
                           }`}>
-                            {notif.status === "Approved" ? (
-                              <CheckCircle2 className="w-7 h-7 text-green-500" />
+                            {notif.type === "new_order" ? (
+                              <ShoppingBag className="w-7 h-7 text-blue-500" />
+                            ) : notif.type === "order_update" ? (
+                              <Package className="w-7 h-7 text-orange-500" />
                             ) : (
-                              <XCircle className="w-7 h-7 text-red-500" />
+                              <Info className="w-7 h-7 text-gray-500" />
                             )}
                           </div>
                         </div>
@@ -145,9 +152,15 @@ export default function SellerNotificationsPage() {
                         <div className="flex-1 space-y-3">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <Package className="w-4 h-4 text-primary" />
+                              {notif.type === "new_order" ? (
+                                <ShoppingBag className="w-4 h-4 text-primary" />
+                              ) : notif.type === "order_update" ? (
+                                <Package className="w-4 h-4 text-primary" />
+                              ) : (
+                                <Info className="w-4 h-4 text-primary" />
+                              )}
                               <h3 className="text-base font-black uppercase italic tracking-tight">
-                                {notif.productName}
+                                {notif.title}
                               </h3>
                             </div>
                             <span className="text-[10px] font-bold text-muted-foreground uppercase">
@@ -157,16 +170,16 @@ export default function SellerNotificationsPage() {
 
                           <div className="bg-muted/40 border-primary/60 p-3 rounded-lg">
                             <p className="text-[11px] font-medium leading-relaxed text-foreground/90">
-                              {notif.reason}
+                              {notif.message}
                             </p>
                           </div>
 
-                          {notif.status === "Rejected" && (
+                          {notif.relatedOrderLink && (
                             <Link 
-                              href={`/general-dashboard/seller-dashboard/my-products/${notif.productId}`}
+                              href={notif.relatedOrderLink}
                               className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase text-primary hover:underline"
                             >
-                              Edit Listing <ChevronRight className="w-3 h-3" />
+                              View Order <ChevronRight className="w-3 h-3" />
                             </Link>
                           )}
                         </div>
@@ -176,9 +189,6 @@ export default function SellerNotificationsPage() {
                 )}
               </div>
 
-
-
-
               {/* RIGHT COLUMN: ANALYTICS & TIPS */}
               <div className="lg:col-span-4 space-y-5">
                 
@@ -186,33 +196,27 @@ export default function SellerNotificationsPage() {
                 <div className={`p-6 rounded-[2.5rem] shadow-lg relative overflow-hidden ${
                   totalCount === 0 
                     ? "bg-muted border border-border"
-                    : approvalRating === 100
-                    ? "bg-green-500 text-white"
-                    : approvedCount > rejectedCount
-                    ? "bg-primary text-primary-foreground"
-                    : approvedCount === rejectedCount
-                    ? "bg-yellow-500 text-black"
-                    : "bg-red-500 text-white"
+                    : unreadCount > 0
+                    ? "bg-blue-500 text-white"
+                    : "bg-green-500 text-white"
                 }`}>
                   <TrendingUp className={`absolute -right-6 -bottom-6 w-28 h-28 ${
                     totalCount === 0 ? "opacity-10" : "opacity-20"
                   }`} />
-                  <h4 className="text-xs font-black uppercase tracking-widest mb-4 opacity-85">Approval Rating</h4>
-                  <div className="text-5xl font-black italic tracking-tight mb-2">{approvalRating}%</div>
+                  <h4 className="text-xs font-black uppercase tracking-widest mb-4 opacity-85">Notification Summary</h4>
+                  <div className="text-5xl font-black italic tracking-tight mb-2">{unreadCount}</div>
                   <p className="text-[10px] font-bold uppercase leading-relaxed opacity-90">
                     {totalCount === 0 
-                      ? "No products reviewed yet. Submit your first listing!"
-                      : approvalRating >= 90
-                      ? "Excellent performance! Your listings are top quality."
-                      : approvalRating >= 75
-                      ? "Good performance! Keep following the guidelines."
-                      : approvalRating >= 50
-                      ? "Room for improvement. Review image requirements."
-                      : "Focus on quality. Check all guidelines before submitting."
+                      ? "No notifications yet. Check back later!"
+                      : unreadCount === 0
+                      ? "All caught up! You've read all notifications."
+                      : unreadCount === 1
+                      ? "You have 1 unread notification to review."
+                      : `You have ${unreadCount} unread notifications to review.`
                     }
                   </p>
                   <div className="mt-3 text-[9px] font-bold uppercase opacity-75">
-                    {approvedCount} approved • {rejectedCount} rejected
+                    {newOrderCount} new orders • {totalCount - newOrderCount} other
                   </div>
                 </div>
 

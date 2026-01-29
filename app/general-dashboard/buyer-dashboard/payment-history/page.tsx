@@ -7,7 +7,7 @@ import {
   Receipt, 
   Search, 
   ArrowUpRight, 
-  ArrowDownLeft, 
+  PiggyBank, 
   CreditCard, 
   Building2,
   Wallet,
@@ -164,7 +164,7 @@ export default function PaymentHistoryPage() {
                   Payment History
                 </h1>
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-2 flex items-center gap-2">
-                  <Receipt className="w-3 h-3 text-primary" /> View all your marketplace transactions
+                  <PiggyBank className="w-3 h-3 text-primary" /> View all your transactions
                 </p>
               </div>
 

@@ -74,6 +74,7 @@ export async function POST(request: NextRequest) {
         productCode: product.productCode || item.productId, // Use productCode if available, otherwise fallback to _id
         name: item.productName,
         price: item.price,
+        discount: product.discount,
         images: product.images,
         description: product.description,
         stock: item.stock,

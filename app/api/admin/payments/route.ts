@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth';
 import { clientPromise } from '@/lib/db';
 import { ObjectId } from 'mongodb';
 import UserModel from '@/models/User';
+import OrderModel from '@/models/Order';
+import SellerNotificationModel from '@/models/SellerNotification';
 
 // GET - Fetch all payments for admin approval
 export async function GET(request: NextRequest) {
@@ -149,7 +151,7 @@ export async function PATCH(request: NextRequest) {
       { returnDocument: 'after' }
     );
 
-    // If approved, update buyer's payment history and balance
+    // If approved, update buyer's payment history and balance, create orders, and send notifications
     if (status === 'approved') {
       const buyerEmail = payment.buyerInfo.email;
       const amountToPay = payment.buyerInfo.amountToPay;
@@ -166,6 +168,61 @@ export async function PATCH(request: NextRequest) {
 
       // Update user balance by adding the amountPaid
       await UserModel.updateUserBalance(buyerEmail, amountToPay);
+
+      // Create orders for each product and send notifications to sellers
+      for (const product of payment.productsInfo) {
+        // Generate unique order ID
+        const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+        
+        // Create order for this product
+        const orderData = {
+          orderId: orderId,
+          buyerInfo: {
+            username: payment.buyerInfo.username,
+            email: payment.buyerInfo.email,
+            phoneNumber: payment.buyerInfo.phoneNumber
+          },
+          productInfo: {
+            productCode: product.productCode,
+            name: product.name,
+            price: product.price,
+            images: product.images || [],
+            description: product.description || '',
+            stock: product.stock || 0,
+            shippingFee: product.shippingFee || 0,
+            processingTime: product.processingTime || ''
+          },
+          sellerInfo: {
+            sellerName: product.sellerInfo.sellerName,
+            sellerEmail: product.sellerInfo.sellerEmail
+          },
+          status: 'pending' as const,
+          paymentInfo: {
+            amount: product.price,
+            cryptoMethodUsed: payment.buyerInfo.cryptoMethodUsed,
+            cryptoAmount: (parseFloat(payment.cryptoAmount) * (product.price / payment.buyerInfo.orderTotal)).toString(),
+            cryptoAddress: payment.cryptoAddress,
+            paymentId: paymentId
+          }
+        };
+
+        const createdOrder = await OrderModel.create(orderData);
+        console.log(`Order created for seller ${product.sellerInfo.sellerEmail}:`, createdOrder.orderId);
+
+        // Create notification for seller
+        const notificationData = {
+          sellerEmail: product.sellerInfo.sellerEmail,
+          sellerName: product.sellerInfo.sellerName,
+          title: 'New Order Received',
+          message: `Hi ${product.sellerInfo.sellerName}, ${payment.buyerInfo.username} has placed an order on a product you are selling. Please process and ship the product.`,
+          type: 'new_order' as const,
+          relatedOrderId: createdOrder.orderId,
+          relatedOrderLink: `/general-dashboard/seller-dashboard/orders-management`
+        };
+
+        await SellerNotificationModel.create(notificationData);
+        console.log(`Notification sent to seller ${product.sellerInfo.sellerEmail}`);
+      }
     }
 
     return NextResponse.json({

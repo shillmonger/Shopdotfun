@@ -2,18 +2,19 @@
 
 import React, { useState, useEffect } from "react";
 import { 
-  ShoppingBag, 
+  Truck, 
   Package, 
   CheckCircle2, 
   CreditCard, 
   AlertCircle, 
-  ChevronRight, 
+  ChevronRight,
+  ShoppingCart, 
+  PiggyBank,
   ArrowRight,
   MapPin,
   Bell,
   HelpCircle,
   Clock,
-  ShoppingCart,
   ExternalLink
 } from "lucide-react";
 import Link from "next/link";
@@ -33,37 +34,58 @@ interface UserData {
 export default function BuyerOverviewPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [userBalance, setUserBalance] = useState<number | null>(null);
+  const [cartItemsCount, setCartItemsCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch('/api/buyer/profile');
-        if (response.ok) {
-          const data = await response.json();
+        // Fetch user profile data
+        const profileResponse = await fetch('/api/buyer/profile');
+        if (profileResponse.ok) {
+          const profileData = await profileResponse.json();
           setUserData({
-            name: data.name || 'User',
-            email: data.email,
-            country: data.country || 'Unknown Location',
-            image: data.image
+            name: profileData.name || 'User',
+            email: profileData.email,
+            country: profileData.country || 'Unknown Location',
+            image: profileData.image
           });
+          setUserBalance(profileData.userBalance || 0);
+        }
+
+        // Fetch cart data
+        const cartResponse = await fetch('/api/buyer/cart');
+        if (cartResponse.ok) {
+          const cartData = await cartResponse.json();
+          setCartItemsCount(cartData.items?.length || 0);
         }
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUserData();
+    fetchData();
   }, []);
 
-  // Mock Stats
+  // Dynamic Stats
   const stats = [
-    { label: "Items in Cart", value: "3", icon: ShoppingBag, link: "/buyer/cart" },
-    { label: "Active Orders", value: "2", icon: Clock, link: "/buyer/orders" },
-    { label: "Completed", value: "24", icon: CheckCircle2, link: "/buyer/orders" },
-    { label: "Total Spent", value: "$1.2k", icon: CreditCard, link: "/buyer/payments" },
+    { 
+      label: "My Balance", 
+      value: loading ? "Loading..." : `$${userBalance?.toFixed(2) || '0.00'}`, 
+      icon: PiggyBank, 
+      link: "/general-dashboard/buyer-dashboard/payments" 
+    },
+    { 
+      label: "Items in Cart", 
+      value: loading ? "Loading..." : cartItemsCount.toString(), 
+      icon: ShoppingCart, 
+      link: "/general-dashboard/buyer-dashboard/cart" 
+    },
+    { label: "Active Orders", value: "0", icon: Clock, link: "#" },
+    { label: "Shipped Orders", value: "0", icon: Truck, link: "#" },
   ];
 
   return (
@@ -105,14 +127,14 @@ export default function BuyerOverviewPage() {
             <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {stats.map((stat, i) => (
                 <Link key={i} href={stat.link} className="bg-card border border-border p-5 rounded-2xl group hover:border-primary transition-all">
-                  <div className="flex justify-between items-start mb-4">
+                  <div className="flex justify-between items-start mb-3">
                     <div className="p-2 bg-muted rounded-lg group-hover:bg-primary/10 group-hover:text-primary transition-colors">
                       <stat.icon className="w-5 h-5" />
                     </div>
                     <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
+                  <p className="text-xl sm:text-2xl md:text-3xl font-black italic tracking-tighter mb-1">{stat.value}</p>
                   <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{stat.label}</p>
-                  <p className="text-3xl font-black italic tracking-tighter mt-1">{stat.value}</p>
                 </Link>
               ))}
             </section>
@@ -128,16 +150,26 @@ export default function BuyerOverviewPage() {
                     <AlertCircle className="w-4 h-4 text-primary" /> Attention Required
                   </h2>
                   <div className="bg-foreground text-background p-6 rounded-3xl flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl">
-                    <div className="flex gap-4">
-                      <div className="bg-primary p-3 rounded-2xl shrink-0">
-                        <Package className="w-6 h-6 text-primary-foreground" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-black uppercase tracking-widest opacity-70">Order #ORD-99281</p>
-                        <h3 className="text-lg font-black uppercase italic tracking-tighter">Confirm your delivery</h3>
-                        <p className="text-[10px] font-medium opacity-60 mt-1 uppercase">Item reached your local hub 2 hours ago.</p>
-                      </div>
-                    </div>
+                    <div className="flex items-center gap-4 flex-1 min-w-0">
+  <div className="bg-primary p-3 rounded-2xl shrink-0">
+    <Package className="w-6 h-6 text-primary-foreground" />
+  </div>
+
+  <div className="min-w-0">
+    <p className="text-xs font-black uppercase tracking-widest opacity-70 truncate">
+      Order #ORD-99281
+    </p>
+
+    <h3 className="text-lg font-black uppercase italic tracking-tighter truncate">
+      Confirm your delivery
+    </h3>
+
+    <p className="text-[10px] font-medium opacity-60 mt-1 uppercase truncate">
+      Item reached your local hub 2 hours ago.
+    </p>
+  </div>
+</div>
+
                     <Link href="/buyer/orders/tracking" className="w-full md:w-auto bg-background text-foreground px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-primary-foreground transition-all text-center">
                       Confirm Now
                     </Link>

@@ -147,7 +147,36 @@ export default function SellerOverviewPage() {
 
             </section>
 
-            {/* D. Alerts & Actions (Sticky Notifications) */}
+          
+
+            {/* B. Key Metrics (Stat Cards) */}
+            <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {stats.map((stat, i) => (
+                <div
+                  key={i}
+                  className="bg-card border border-border p-5 rounded-3xl relative overflow-hidden group"
+                >
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="p-2 bg-muted rounded-xl text-primary">
+                      <stat.icon className="w-5 h-5" />
+                    </div>
+                    <span className="text-[9px] font-black uppercase tracking-tighter bg-foreground/5 px-2 py-0.5 rounded-full">
+                      {stat.trend}
+                    </span>
+                  </div>
+                  <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
+                    {stat.label}
+                  </p>
+                  <p className="text-3xl font-black italic tracking-tighter mt-1">
+                    {stat.value}
+                  </p>
+                  <div className="absolute bottom-0 left-0 h-1 bg-primary w-0 group-hover:w-full transition-all duration-500" />
+                </div>
+              ))}
+            </section>
+
+
+              {/* D. Alerts & Actions (Sticky Notifications) */}
             <section className="space-y-4">
               {!isWalletConnected ? (
                 <div className="bg-amber-500 text-black p-5 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4 shadow-lg border-2 border-black/10">
@@ -190,32 +219,6 @@ export default function SellerOverviewPage() {
                   </button>
                 </div>
               )}
-            </section>
-
-            {/* B. Key Metrics (Stat Cards) */}
-            <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {stats.map((stat, i) => (
-                <div
-                  key={i}
-                  className="bg-card border border-border p-5 rounded-3xl relative overflow-hidden group"
-                >
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="p-2 bg-muted rounded-xl text-primary">
-                      <stat.icon className="w-5 h-5" />
-                    </div>
-                    <span className="text-[9px] font-black uppercase tracking-tighter bg-foreground/5 px-2 py-0.5 rounded-full">
-                      {stat.trend}
-                    </span>
-                  </div>
-                  <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
-                    {stat.label}
-                  </p>
-                  <p className="text-3xl font-black italic tracking-tighter mt-1">
-                    {stat.value}
-                  </p>
-                  <div className="absolute bottom-0 left-0 h-1 bg-primary w-0 group-hover:w-full transition-all duration-500" />
-                </div>
-              ))}
             </section>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -305,7 +308,7 @@ export default function SellerOverviewPage() {
                     <p className="text-4xl font-black italic tracking-tighter">
                       50%
                     </p>
-                    <span className="text-[10px] font-black uppercase text-primary">
+                    <span className="text-[10px] font-black uppercase ">
                       Excellent
                     </span>
                   </div>
