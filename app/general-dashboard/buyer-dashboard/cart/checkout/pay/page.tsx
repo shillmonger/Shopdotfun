@@ -11,18 +11,18 @@ import {
   Lock,
   Loader2,
   CheckCircle2,
+  AlertCircle,
   Truck,
   MapPin,
 } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import QRCode from "react-qr-code";
 
 import BuyerHeader from "@/components/buyer-dashboard/BuyerHeader";
 import BuyerSidebar from "@/components/buyer-dashboard/BuyerSidebar";
 import BuyerNav from "@/components/buyer-dashboard/BuyerNav";
-import BuyerPaymentModal from "@/components/buyer-dashboard/BuyerPaymentModal";
 
 interface CartItem {
   productId: string;
@@ -57,6 +57,7 @@ interface CheckoutData {
 export default function PayPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   const [paymentMethod, setPaymentMethod] = useState<
     "vtc" | "btc" | "ltc" | "usdt"
@@ -73,7 +74,8 @@ export default function PayPage() {
   );
   const [timeLeft, setTimeLeft] = useState(3000); // 50 minutes in seconds
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'pending' | 'submitted'>('idle');
 
   // Fetch live crypto prices
   const fetchCryptoPrices = async () => {
@@ -234,7 +236,7 @@ export default function PayPage() {
     });
   };
 
-  const handlePaymentConfirmation = () => {
+  const handlePaymentConfirmation = async () => {
     if (!checkoutData) {
       toast.error("Checkout data not found", {
         description: "Please refresh the page and try again.",
@@ -242,7 +244,61 @@ export default function PayPage() {
       return;
     }
 
-    setShowPaymentModal(true);
+    setIsSubmittingPayment(true);
+
+    try {
+      const response = await fetch("/api/buyer/payments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          orderTotal: checkoutData.grandTotal,
+          amountToPay: amountUSD,
+          cryptoMethodUsed: paymentMethod,
+          cryptoAmount: cryptoAmount,
+          cryptoAddress: walletAddress,
+          checkoutData: checkoutData
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        toast.success("Payment submitted successfully!", {
+          description: "Your payment has been recorded with pending status.",
+          icon: <CheckCircle2 className="text-green-500" />,
+        });
+
+        // Set payment status to pending
+        setPaymentStatus('pending');
+
+        // Redirect to payment history without page refresh
+        setTimeout(() => {
+          router.push('/general-dashboard/buyer-dashboard/payment-history');
+        }, 2000);
+      } else {
+        toast.error("Failed to submit payment", {
+          description: result.error || "Please try again later.",
+          icon: <AlertCircle className="text-red-500" />,
+        });
+      }
+    } catch (error) {
+      console.error("Error submitting payment:", error);
+      toast.error("Network error", {
+        description: "Please check your connection and try again.",
+        icon: <AlertCircle className="text-red-500" />,
+      });
+    } finally {
+      setIsSubmittingPayment(false);
+    }
+  };
+
+  const handlePendingPaymentClick = () => {
+    toast.info("Payment Pending", {
+      description: "You have a pending payment. Wait for approval or rejection.",
+      icon: <AlertCircle className="text-yellow-500" />,
+    });
   };
 
   return (
@@ -449,9 +505,26 @@ export default function PayPage() {
                   </div>
 
                   <button
-                    onClick={handlePaymentConfirmation}
-                    className="w-full block bg-green-600 cursor-pointer text-white py-5 rounded-2xl text-xs font-black uppercase tracking-widest text-center hover:bg-green-700 transition-all shadow-lg shadow-green-900/20 cursor-pointer active:scale-95">
-                    I have made this payment
+                    onClick={paymentStatus === 'pending' ? handlePendingPaymentClick : handlePaymentConfirmation}
+                    disabled={isSubmittingPayment}
+                    className={`w-full block cursor-pointer py-5 rounded-2xl text-xs font-black uppercase tracking-widest text-center transition-all shadow-lg cursor-pointer active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 ${
+                      paymentStatus === 'pending' 
+                        ? 'bg-yellow-500 hover:bg-yellow-600 text-white shadow-yellow-900/20' 
+                        : 'bg-green-600 hover:bg-green-700 text-white shadow-green-900/20'
+                    }`}>
+                    {isSubmittingPayment ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Submitting Payment...
+                      </>
+                    ) : paymentStatus === 'pending' ? (
+                      <>
+                        <AlertCircle className="w-4 h-4" />
+                        Pending
+                      </>
+                    ) : (
+                      "I have made this payment"
+                    )}
                   </button>
 
                   {/* Support Notice */}
@@ -476,22 +549,6 @@ export default function PayPage() {
 
         <BuyerNav />
       </div>
-
-      {/* Buyer Payment Modal */}
-      {checkoutData && (
-        <BuyerPaymentModal
-          isOpen={showPaymentModal}
-          onClose={() => setShowPaymentModal(false)}
-          orderData={{
-            orderTotal: checkoutData.grandTotal,
-            amountToPay: amountUSD,
-            cryptoMethodUsed: paymentMethod,
-            cryptoAmount: cryptoAmount,
-            cryptoAddress: walletAddress,
-            checkoutData: checkoutData
-          }}
-        />
-      )}
     </div>
   );
 }
