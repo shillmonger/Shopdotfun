@@ -39,7 +39,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 // Types
-type ProductStatus = 'pending' | 'approved' | 'rejected';
+type ProductStatus = "pending" | "approved" | "rejected";
 
 interface ProductImage {
   url: string;
@@ -76,7 +76,9 @@ export default function AdminProductManagement() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [reason, setReason] = useState("");
   const [timeFilter, setTimeFilter] = useState("All Time");
-  const [statusFilter, setStatusFilter] = useState<ProductStatus | 'all'>('all');
+  const [statusFilter, setStatusFilter] = useState<ProductStatus | "all">(
+    "all",
+  );
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Fetch products on component mount
@@ -87,8 +89,8 @@ export default function AdminProductManagement() {
         const data = await adminApi.getAllProducts();
         setProducts(data);
       } catch (error) {
-        console.error('Error fetching products:', error);
-        toast.error('Failed to load products');
+        console.error("Error fetching products:", error);
+        toast.error("Failed to load products");
       } finally {
         setLoading(false);
       }
@@ -97,10 +99,13 @@ export default function AdminProductManagement() {
     fetchProducts();
   }, []);
 
-  const handleAction = async (productId: string, newStatus: 'approved' | 'rejected') => {
-    if (newStatus === 'rejected' && !reason.trim()) {
-      return toast.error('Reason Required', {
-        description: 'Please state why the product was rejected.',
+  const handleAction = async (
+    productId: string,
+    newStatus: "approved" | "rejected",
+  ) => {
+    if (newStatus === "rejected" && !reason.trim()) {
+      return toast.error("Reason Required", {
+        description: "Please state why the product was rejected.",
       });
     }
 
@@ -109,36 +114,36 @@ export default function AdminProductManagement() {
       const updatedProduct = await adminApi.updateProductStatus(
         productId,
         newStatus,
-        reason
+        reason,
       );
 
       // Update the local state to reflect the change
-      setProducts(products.map(p => 
-        p._id === productId ? updatedProduct : p
-      ));
-      
+      setProducts(
+        products.map((p) => (p._id === productId ? updatedProduct : p)),
+      );
+
       toast.success(`Product ${newStatus} successfully`);
       setReason("");
       setSelectedProduct(null);
     } catch (error) {
-      console.error('Error updating product status:', error);
+      console.error("Error updating product status:", error);
       toast.error(`Failed to ${newStatus} product`);
     } finally {
       setIsProcessing(false);
     }
   };
 
-  // Filter Logic
+  // Filter and Sort Logic
   const filteredProducts = useMemo(() => {
     if (!products.length) return [];
-    
+
     const now = new Date();
-    return products.filter((p) => {
+    const filtered = products.filter((p) => {
       // Status filter
-      if (statusFilter !== 'all' && p.status !== statusFilter) {
+      if (statusFilter !== "all" && p.status !== statusFilter) {
         return false;
       }
-      
+
       // Time filter
       const pDate = new Date(p.createdAt);
       if (timeFilter === "Today") {
@@ -156,22 +161,36 @@ export default function AdminProductManagement() {
       }
       return true;
     });
+
+    // Sort: pending products first, then by creation date (newest first)
+    return filtered.sort((a, b) => {
+      // First, sort by status (pending first)
+      if (a.status === "pending" && b.status !== "pending") {
+        return -1;
+      }
+      if (a.status !== "pending" && b.status === "pending") {
+        return 1;
+      }
+
+      // Then sort by creation date (newest first)
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
   }, [products, timeFilter, statusFilter]);
 
   // Format price with currency
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
     }).format(price);
   };
 
   // Format date
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
@@ -195,15 +214,20 @@ export default function AdminProductManagement() {
                   <span className="text-primary not-italic">Review</span>
                 </h1>
                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-3 flex items-center gap-2">
-                  <PackageSearch className="w-3 h-3 text-primary" /> Product Management
+                  <PackageSearch className="w-3 h-3 text-primary" /> Product
+                  Management
                 </p>
               </div>
 
-              <div className="flex items-center gap-3 w-full md:w-auto">
+              <div className="flex items-center justify-between md:justify-start gap-3 w-full md:w-auto">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button className="flex items-center gap-2 bg-card border border-border px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer hover:bg-muted transition-colors outline-none">
-                      <Filter className="w-3 h-3" /> {statusFilter === 'all' ? 'All Status' : statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)}
+                      <Filter className="w-3 h-3" />{" "}
+                      {statusFilter === "all"
+                        ? "All Status"
+                        : statusFilter.charAt(0).toUpperCase() +
+                          statusFilter.slice(1)}
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
@@ -214,14 +238,18 @@ export default function AdminProductManagement() {
                       Filter by Status
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    {['all', 'pending', 'approved', 'rejected'].map(
+                    {["all", "pending", "approved", "rejected"].map(
                       (option) => (
                         <DropdownMenuItem
                           key={option}
-                          onClick={() => setStatusFilter(option as ProductStatus | 'all')}
+                          onClick={() =>
+                            setStatusFilter(option as ProductStatus | "all")
+                          }
                           className="text-[10px] font-bold uppercase cursor-pointer"
                         >
-                          {option === 'all' ? 'All Status' : option.charAt(0).toUpperCase() + option.slice(1)}
+                          {option === "all"
+                            ? "All Status"
+                            : option.charAt(0).toUpperCase() + option.slice(1)}
                         </DropdownMenuItem>
                       ),
                     )}
@@ -255,15 +283,6 @@ export default function AdminProductManagement() {
                     )}
                   </DropdownMenuContent>
                 </DropdownMenu>
-
-                <div className="relative flex-1 md:w-64">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <input
-                    type="text"
-                    placeholder="Search..."
-                    className="w-full bg-card border border-border rounded-xl pl-10 pr-4 py-3 text-xs font-bold outline-none"
-                  />
-                </div>
               </div>
             </div>
 
@@ -326,7 +345,9 @@ export default function AdminProductManagement() {
                                 </div>
                                 <div>
                                   <div className="text-sm font-medium line-clamp-1">
-                                    {product.name.length > 15 ? `${product.name.substring(0, 15)}...` : product.name}
+                                    {product.name.length > 15
+                                      ? `${product.name.substring(0, 15)}...`
+                                      : product.name}
                                   </div>
                                   <div className="text-xs text-muted-foreground">
                                     {product.category}
@@ -336,7 +357,7 @@ export default function AdminProductManagement() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="text-sm">
-                                {product.sellerEmail.split('@')[0]}
+                                {product.sellerEmail.split("@")[0]}
                                 <div className="text-xs text-muted-foreground">
                                   {product.sellerEmail}
                                 </div>
@@ -345,24 +366,28 @@ export default function AdminProductManagement() {
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span
                                 className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                  product.status === 'pending'
-                                    ? 'bg-yellow-100 text-yellow-800'
-                                    : product.status === 'approved'
-                                    ? 'bg-green-100 text-green-800'
-                                    : 'bg-red-100 text-red-800'
+                                  product.status === "pending"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : product.status === "approved"
+                                      ? "bg-green-100 text-green-800"
+                                      : "bg-red-100 text-red-800"
                                 }`}
                               >
-                                {product.status.charAt(0).toUpperCase() + product.status.slice(1)}
+                                {product.status.charAt(0).toUpperCase() +
+                                  product.status.slice(1)}
                               </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                               <div className="flex justify-end gap-2">
-                                {product.status === 'pending' ? (
+                                {product.status === "pending" ? (
                                   <>
                                     <button
                                       onClick={async (e) => {
                                         e.stopPropagation();
-                                        await handleAction(product._id, 'approved');
+                                        await handleAction(
+                                          product._id,
+                                          "approved",
+                                        );
                                       }}
                                       disabled={isProcessing}
                                       className="text-green-600 hover:text-green-900 cursor-pointer disabled:opacity-50"
@@ -429,7 +454,7 @@ export default function AdminProductManagement() {
                         <div className="flex items-center gap-3">
                           <User className="w-3 h-3 text-muted-foreground" />
                           <span className="text-[10px] font-black uppercase">
-                            {selectedProduct.sellerEmail.split('@')[0]}
+                            {selectedProduct.sellerEmail.split("@")[0]}
                           </span>
                         </div>
                         <div className="flex items-center gap-3">
@@ -466,15 +491,18 @@ export default function AdminProductManagement() {
                               {formatPrice(selectedProduct.price)}
                             </div>
                             <div className="flex items-center gap-2 text-[10px] font-bold uppercase">
-                              <Tag className="w-3 h-3 text-primary" /> Disc: {selectedProduct.discount}%
+                              <Tag className="w-3 h-3 text-primary" /> Disc:{" "}
+                              {selectedProduct.discount}%
                             </div>
                           </div>
                           <div className="space-y-2">
                             <div className="flex items-center gap-2 text-[10px] font-bold uppercase">
-                              <Box className="w-3 h-3 text-primary" /> Stock: {selectedProduct.stock}
+                              <Box className="w-3 h-3 text-primary" /> Stock:{" "}
+                              {selectedProduct.stock}
                             </div>
                             <div className="flex items-center gap-2 text-[10px] font-bold uppercase">
-                              <Truck className="w-3 h-3 text-primary" /> Ship: ${selectedProduct.shippingFee}
+                              <Truck className="w-3 h-3 text-primary" /> Ship: $
+                              {selectedProduct.shippingFee}
                             </div>
                           </div>
                         </div>
@@ -497,15 +525,23 @@ export default function AdminProductManagement() {
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                               <button
-                                onClick={() => handleAction(selectedProduct._id, 'approved')}
+                                onClick={() =>
+                                  handleAction(selectedProduct._id, "approved")
+                                }
                                 disabled={isProcessing}
                                 className="bg-green-500 hover:bg-green-600 cursor-pointer text-white py-3 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all disabled:opacity-50"
                               >
-                                {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                                {isProcessing ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <CheckCircle2 className="w-4 h-4" />
+                                )}
                                 Approve
                               </button>
                               <button
-                                onClick={() => handleAction(selectedProduct._id, 'rejected')}
+                                onClick={() =>
+                                  handleAction(selectedProduct._id, "rejected")
+                                }
                                 disabled={isProcessing || !reason.trim()}
                                 className="bg-red-500 hover:bg-red-600 cursor-pointer text-white py-3 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all disabled:opacity-50"
                               >
@@ -514,17 +550,25 @@ export default function AdminProductManagement() {
                             </div>
                           </>
                         ) : (
-                          <div className={`py-3 px-4 rounded-xl text-xs font-black uppercase tracking-widest flex flex-col items-center justify-center gap-2 border-2 ${
-                            selectedProduct.status === 'approved' 
-                            ? 'bg-green-500/10 border-green-500/30 text-green-500' 
-                            : 'bg-red-500/10 border-red-500/30 text-red-500'
-                          }`}>
+                          <div
+                            className={`py-3 px-4 rounded-xl text-xs font-black uppercase tracking-widest flex flex-col items-center justify-center gap-2 border-2 ${
+                              selectedProduct.status === "approved"
+                                ? "bg-green-500/10 border-green-500/30 text-green-500"
+                                : "bg-red-500/10 border-red-500/30 text-red-500"
+                            }`}
+                          >
                             <div className="flex items-center gap-2">
-                              {selectedProduct.status === 'approved' ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+                              {selectedProduct.status === "approved" ? (
+                                <CheckCircle2 className="w-4 h-4" />
+                              ) : (
+                                <XCircle className="w-4 h-4" />
+                              )}
                               Product {selectedProduct.status}
                             </div>
                             {selectedProduct.rejectionReason && (
-                              <p className="text-[9px] lowercase font-medium opacity-80 italic">Reason: {selectedProduct.rejectionReason}</p>
+                              <p className="text-[9px] lowercase font-medium opacity-80 italic">
+                                Reason: {selectedProduct.rejectionReason}
+                              </p>
                             )}
                           </div>
                         )}
