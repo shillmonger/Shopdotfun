@@ -1,14 +1,26 @@
+"use client";
+
+import { useState } from "react";
 import SellerHeader from "@/components/seller-dashboard/SellerHeader";
 import SellerSidebar from "@/components/seller-dashboard/SellerSidebar";
 import SellerNav from "@/components/seller-dashboard/SellerNav";
 
 export default function NotificationsPage() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
     <div className="min-h-screen flex bg-background">
-      <SellerSidebar />
+      <SellerSidebar
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+      />
 
       <div className="flex-1">
-        <SellerHeader />
+        <SellerHeader
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+        />
+
         <SellerNav />
 
         <main className="p-6 space-y-8">
