@@ -19,6 +19,7 @@ export interface UserBase {
 }
 
 export interface Address {
+  _id?: ObjectId;
   fullName: string;
   phone: string;
   street: string;

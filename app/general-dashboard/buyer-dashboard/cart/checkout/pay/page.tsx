@@ -22,6 +22,7 @@ import QRCode from "react-qr-code";
 import BuyerHeader from "@/components/buyer-dashboard/BuyerHeader";
 import BuyerSidebar from "@/components/buyer-dashboard/BuyerSidebar";
 import BuyerNav from "@/components/buyer-dashboard/BuyerNav";
+import BuyerPaymentModal from "@/components/buyer-dashboard/BuyerPaymentModal";
 
 interface CartItem {
   productId: string;
@@ -72,6 +73,7 @@ export default function PayPage() {
   );
   const [timeLeft, setTimeLeft] = useState(3000); // 50 minutes in seconds
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   // Fetch live crypto prices
   const fetchCryptoPrices = async () => {
@@ -230,6 +232,17 @@ export default function PayPage() {
       description: "Paste it into your wallet app.",
       icon: <CheckCircle2 className="text-green-500" />,
     });
+  };
+
+  const handlePaymentConfirmation = () => {
+    if (!checkoutData) {
+      toast.error("Checkout data not found", {
+        description: "Please refresh the page and try again.",
+      });
+      return;
+    }
+
+    setShowPaymentModal(true);
   };
 
   return (
@@ -435,12 +448,11 @@ export default function PayPage() {
                     </div>
                   </div>
 
-                  <Link
-                    href="/general-dashboard/buyer-dashboard/orders"
-                    className="w-full block bg-green-600 text-white py-5 rounded-2xl text-xs font-black uppercase tracking-widest text-center hover:bg-green-700 transition-all shadow-lg shadow-green-900/20 cursor-pointer active:scale-95"
-                  >
+                  <button
+                    onClick={handlePaymentConfirmation}
+                    className="w-full block bg-green-600 cursor-pointer text-white py-5 rounded-2xl text-xs font-black uppercase tracking-widest text-center hover:bg-green-700 transition-all shadow-lg shadow-green-900/20 cursor-pointer active:scale-95">
                     I have made this payment
-                  </Link>
+                  </button>
 
                   {/* Support Notice */}
                   <p className="text-center text-[9px] mt-4 opacity-60 font-bold uppercase tracking-tight">
@@ -464,6 +476,22 @@ export default function PayPage() {
 
         <BuyerNav />
       </div>
+
+      {/* Buyer Payment Modal */}
+      {checkoutData && (
+        <BuyerPaymentModal
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          orderData={{
+            orderTotal: checkoutData.grandTotal,
+            amountToPay: amountUSD,
+            cryptoMethodUsed: paymentMethod,
+            cryptoAmount: cryptoAmount,
+            cryptoAddress: walletAddress,
+            checkoutData: checkoutData
+          }}
+        />
+      )}
     </div>
   );
 }
