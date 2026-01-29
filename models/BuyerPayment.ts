@@ -45,8 +45,8 @@ export interface IBuyerPayment {
     };
   }>;
 
-  // Payment Status
-  status: 'pending' | 'confirmed' | 'failed' | 'cancelled';
+  // Payment Status - updated to match frontend
+  status: 'pending' | 'approved' | 'rejected' | 'confirmed' | 'failed' | 'cancelled';
   
   // Additional payment details
   cryptoAmount: string;
@@ -101,6 +101,41 @@ class BuyerPaymentModel {
     const db = client.db(dbName);
     
     return await db.collection('buyerPayments').countDocuments(query);
+  }
+
+  static async updateStatus(paymentId: string, status: 'approved' | 'rejected') {
+    try {
+      const client = await clientPromise;
+      const db = client.db(dbName);
+      
+      const result = await db.collection('buyerPayments').findOneAndUpdate(
+        { _id: new ObjectId(paymentId) },
+        { 
+          $set: { 
+            status: status,
+            updatedAt: new Date()
+          }
+        },
+        { returnDocument: 'after' }
+      );
+      
+      return result;
+    } catch (error) {
+      console.error('BuyerPaymentModel.updateStatus error:', error);
+      throw error;
+    }
+  }
+
+  static async findById(paymentId: string) {
+    try {
+      const client = await clientPromise;
+      const db = client.db(dbName);
+      
+      return await db.collection('buyerPayments').findOne({ _id: new ObjectId(paymentId) });
+    } catch (error) {
+      console.error('BuyerPaymentModel.findById error:', error);
+      throw error;
+    }
   }
 }
 

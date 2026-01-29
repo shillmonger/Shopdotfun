@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   CheckCircle2,
   XCircle,
   ExternalLink,
   Clock,
+  PiggyBank,
   Wallet,
   User,
   Hash,
@@ -19,8 +20,10 @@ import {
   Calendar,
   Mail,
   Receipt,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { adminApi } from "@/lib/admin";
 import {
   format,
   isToday,
@@ -92,52 +95,51 @@ interface Payment {
   createdAt: string;
 }
 
-const MOCK_DATA: Payment[] = [
-  {
-    _id: "697b13ec07ad2c1ba4e1affb",
+const MOCK_DATA: Payment[] = [];
+
+// Helper function to convert MongoDB dates to ISO strings
+const formatPaymentData = (payments: any[]): Payment[] => {
+  return payments.map((payment) => ({
+    ...payment,
+    _id: payment._id?.toString() || '',
+    createdAt: payment.createdAt ? new Date(payment.createdAt).toISOString() : new Date().toISOString(),
     buyerInfo: {
-      orderTotal: 142.34,
-      amountToPay: 142.34,
-      username: "Bby Lion",
-      email: "bbylion619@gmail.com",
-      phoneNumber: "+2348186774684",
-      country: "United Kingdom",
-      cryptoMethodUsed: "VTC",
-      timePaid: "2026-01-29T08:01:48.592Z",
+      ...payment.buyerInfo,
+      timePaid: payment.buyerInfo.timePaid ? new Date(payment.buyerInfo.timePaid).toISOString() : new Date().toISOString(),
     },
-    productsInfo: [
-      {
-        productCode: "66339",
-        name: "ronClad K90 Mechanical Keyboard",
-        price: 33,
-        sellerInfo: {
-          sellerName: "Shillmonger",
-          sellerEmail: "shillmonger0@gmail.com",
-        },
-      },
-      {
-        productCode: "35321",
-        name: "Noice free headset",
-        price: 100,
-        sellerInfo: {
-          sellerName: "Code Lab",
-          sellerEmail: "codelab042@gmail.com",
-        },
-      },
-    ],
-    status: "pending",
-    cryptoAmount: "2086.75318115",
-    cryptoAddress: "vtc1qkh4ccr27f5c9yp44vmnud7ljgvfqh5s6hy0f54",
-    createdAt: "2026-01-29T08:01:48.595Z",
-  },
-];
+  }));
+};
 
 export default function ApproveManualPaymentsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [payments, setPayments] = useState<Payment[]>(MOCK_DATA);
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const [statusFilter, setStatusFilter] = useState("All");
   const [dateFilter, setDateFilter] = useState("All Time");
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  // Fetch payments on component mount and when filters change
+  useEffect(() => {
+    fetchPayments();
+  }, [statusFilter]);
+
+  const fetchPayments = async () => {
+    try {
+      setLoading(true);
+      const status = statusFilter === "All" ? undefined : statusFilter.toLowerCase();
+      const response = await adminApi.getAllPayments(status, 1, 50);
+      const formattedPayments = formatPaymentData(response.payments);
+      setPayments(formattedPayments);
+    } catch (error) {
+      console.error('Error fetching payments:', error);
+      toast.error('Failed to fetch payments', {
+        description: error instanceof Error ? error.message : 'Unknown error occurred',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredPayments = useMemo(() => {
     return payments.filter((p) => {
@@ -153,20 +155,34 @@ export default function ApproveManualPaymentsPage() {
     });
   }, [payments, statusFilter, dateFilter]);
 
-  const handleDecision = (id: string, decision: "approved" | "rejected") => {
-    setPayments((prev) =>
-      prev.map((p) => (p._id === id ? { ...p, status: decision } : p)),
-    );
-    if (decision === "approved") {
-      toast.success("Transaction Confirmed", {
-        description: `Payment verified for Order ${id.slice(-6)}`,
+  const handleDecision = async (id: string, decision: "approved" | "rejected") => {
+    try {
+      setActionLoading(id);
+      await adminApi.updatePaymentStatus(id, decision);
+      
+      // Update local state
+      setPayments((prev) =>
+        prev.map((p) => (p._id === id ? { ...p, status: decision } : p)),
+      );
+      
+      if (decision === "approved") {
+        toast.success("Transaction Confirmed", {
+          description: `Payment verified for Order ${id.slice(-6)}`,
+        });
+      } else {
+        toast.error("Transaction Declined", {
+          description: "The payment entry has been rejected.",
+        });
+      }
+      setSelectedPayment(null);
+    } catch (error) {
+      console.error('Error updating payment status:', error);
+      toast.error('Failed to update payment', {
+        description: error instanceof Error ? error.message : 'Unknown error occurred',
       });
-    } else {
-      toast.error("Transaction Declined", {
-        description: "The payment entry has been rejected.",
-      });
+    } finally {
+      setActionLoading(null);
     }
-    setSelectedPayment(null);
   };
 
   return (
@@ -260,78 +276,84 @@ export default function ApproveManualPaymentsPage() {
                   </h3>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="bg-muted/10 border-b border-border">
-                        <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground">
-                          Buyer Account
-                        </th>
-                        <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground">
-                          Order Value
-                        </th>
-                        <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground">
-                          Status
-                        </th>
-                        <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground text-right italic">
-                          Action
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border">
-                      {filteredPayments.map((pay) => (
-                        <tr
-                          key={pay._id}
-                          className={`group hover:bg-muted/30 transition-colors ${selectedPayment?._id === pay._id ? "bg-primary/5" : ""}`}
-                        >
-                          <td className="px-6 py-5">
-                            <div className="flex flex-col">
-                              <span className="font-black text-xs uppercase italic tracking-tighter">
-                                {pay.buyerInfo.username}
-                              </span>
-                              <span className="text-[9px] font-bold text-muted-foreground uppercase flex items-center gap-1">
-                                <Globe className="w-2 h-2" />{" "}
-                                {pay.buyerInfo.country}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-5">
-                            <div className="flex flex-col">
-                              <span className="font-black text-sm text-primary italic">
-                                {pay.cryptoAmount}{" "}
-                                {pay.buyerInfo.cryptoMethodUsed}
-                              </span>
-                              <span className="text-[8px] font-bold opacity-50 uppercase tracking-tighter">
-                                Est. Value: ${pay.buyerInfo.amountToPay}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-5">
-                            <Badge
-                              variant="outline"
-                              className={`uppercase text-[9px] font-black px-2 py-0.5 rounded-md ${
-                                pay.status === "approved"
-                                  ? "bg-green-500/10 text-green-500 border-green-500/20"
-                                  : pay.status === "rejected"
-                                    ? "bg-red-500/10 text-red-500 border-red-500/20"
-                                    : "bg-yellow-500/10 text-yellow-600"
-                              }`}
-                            >
-                              {pay.status}
-                            </Badge>
-                          </td>
-                          <td className="px-6 py-5 text-right">
-                            <button
-                              onClick={() => setSelectedPayment(pay)}
-                              className="p-2.5 bg-background border-2 border-border rounded-xl group-hover:border-primary transition-all cursor-pointer"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </button>
-                          </td>
+                  {loading ? (
+                    <div className="p-20 text-center text-[10px] font-black uppercase opacity-20 tracking-[0.2em]">
+                      Loading payments...
+                    </div>
+                  ) : (
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr className="bg-muted/10 border-b border-border">
+                          <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground">
+                            Buyer Account
+                          </th>
+                          <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground">
+                            Order Value
+                          </th>
+                          <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground">
+                            Status
+                          </th>
+                          <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground text-right italic">
+                            Action
+                          </th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {filteredPayments.length === 0 && (
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {filteredPayments.map((pay) => (
+                          <tr
+                            key={pay._id}
+                            className={`group hover:bg-muted/30 transition-colors ${selectedPayment?._id === pay._id ? "bg-primary/5" : ""}`}
+                          >
+                            <td className="px-6 py-5">
+                              <div className="flex flex-col">
+                                <span className="font-black text-xs uppercase italic tracking-tighter">
+                                  {pay.buyerInfo.username}
+                                </span>
+                                <span className="text-[9px] font-bold text-muted-foreground uppercase flex items-center gap-1">
+                                  <Globe className="w-2 h-2" />{" "}
+                                  {pay.buyerInfo.country}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-5">
+                              <div className="flex flex-col">
+                                <span className="font-black text-sm text-primary italic">
+                                  {pay.cryptoAmount}{" "}
+                                  {pay.buyerInfo.cryptoMethodUsed}
+                                </span>
+                                <span className="text-[8px] font-bold opacity-50 uppercase tracking-tighter">
+                                  Est. Value: ${pay.buyerInfo.amountToPay}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-5">
+                              <Badge
+                                variant="outline"
+                                className={`uppercase text-[9px] font-black px-2 py-0.5 rounded-md ${
+                                  pay.status === "approved"
+                                    ? "bg-green-500/10 text-green-500 border-green-500/20"
+                                    : pay.status === "rejected"
+                                      ? "bg-red-500/10 text-red-500 border-red-500/20"
+                                      : "bg-yellow-500/10 text-yellow-600"
+                                }`}
+                              >
+                                {pay.status}
+                              </Badge>
+                            </td>
+                            <td className="px-6 py-5 text-right">
+                              <button
+                                onClick={() => setSelectedPayment(pay)}
+                                className="p-2.5 bg-background border-2 border-border rounded-xl group-hover:border-primary transition-all cursor-pointer"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                  {filteredPayments.length === 0 && !loading && (
                     <div className="p-20 text-center text-[10px] font-black uppercase opacity-20 tracking-[0.2em]">
                       No transactions pending review
                     </div>
@@ -401,78 +423,40 @@ export default function ApproveManualPaymentsPage() {
                     {selectedPayment.status === "pending" ? (
                       <div className="grid grid-cols-2 gap-3 pt-4">
                         {/* Decline Button */}
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <button className="flex items-center justify-center gap-2 border-2 border-[#ef4444] bg-[#ef4444] text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#ef4444] hover:text-white transition-all cursor-pointer">
+                        <button 
+                          onClick={() => handleDecision(selectedPayment._id, "rejected")}
+                          disabled={actionLoading === selectedPayment._id}
+                          className="flex items-center justify-center gap-2 border-2 border-[#ef4444] bg-[#ef4444] text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#ef4444] hover:text-white transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {actionLoading === selectedPayment._id ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              Processing...
+                            </>
+                          ) : (
+                            <>
                               <XCircle className="w-4 h-4" /> Decline
-                            </button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent className="rounded-[2rem] border-2 border-red-500">
-                            <AlertDialogHeader>
-                              <AlertDialogTitle className="uppercase font-black italic text-2xl text-red-600">
-                                Reject Transaction?
-                              </AlertDialogTitle>
-                              <AlertDialogDescription className="text-xs font-bold uppercase tracking-tight">
-                                You are about to flag this payment as invalid.
-                                The user will be requested to provide valid
-                                proof of transfer.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel className="rounded-xl font-bold uppercase text-[10px] cursor-pointer">
-                                Back
-                              </AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() =>
-                                  handleDecision(
-                                    selectedPayment._id,
-                                    "rejected",
-                                  )
-                                }
-                                className="bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold uppercase text-[10px] cursor-pointer"
-                              >
-                                Confirm Rejection
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                            </>
+                          )}
+                        </button>
 
                         {/* Verify Button */}
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <button className="flex items-center justify-center gap-2 bg-[#22c55e] text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#16a34a] transition-all shadow-lg shadow-green-500/20 cursor-pointer">
+                        <button 
+                          onClick={() => handleDecision(selectedPayment._id, "approved")}
+                          disabled={actionLoading === selectedPayment._id}
+                          className="flex items-center justify-center gap-2 bg-[#22c55e] text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#16a34a] transition-all shadow-lg shadow-green-500/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {actionLoading === selectedPayment._id ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              Processing...
+                            </>
+                          ) : (
+                            <>
                               <CheckCircle2 className="w-4 h-4" /> Verify
-                            </button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent className="rounded-[2rem] border-2 border-green-500">
-                            <AlertDialogHeader>
-                              <AlertDialogTitle className="uppercase font-black italic text-2xl text-green-600">
-                                Confirm Payment?
-                              </AlertDialogTitle>
-                              <AlertDialogDescription className="text-xs font-bold uppercase tracking-tight">
-                                Audit Complete: Mark this order as PAID. This
-                                will fulfill the order and notify the buyer of
-                                success.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel className="rounded-xl font-bold uppercase text-[10px] cursor-pointer">
-                                Cancel
-                              </AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() =>
-                                  handleDecision(
-                                    selectedPayment._id,
-                                    "approved",
-                                  )
-                                }
-                                className="bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold uppercase text-[10px] cursor-pointer"
-                              >
-                                Authorize Order
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                            </>
+                          )}
+                        </button>
                       </div>
                     ) : (
                       <div
@@ -484,7 +468,7 @@ export default function ApproveManualPaymentsPage() {
                   </div>
                 ) : (
                   <div className="h-full border-2 border-dashed border-border rounded-[3rem] flex flex-col items-center justify-center text-center p-12 opacity-30">
-                    <Receipt className="w-16 h-16 mb-6 text-muted-foreground" />
+                    <PiggyBank className="w-16 h-16 mb-6 text-muted-foreground" />
                     <p className="text-[10px] font-black uppercase tracking-widest leading-relaxed max-w-[200px]">
                       Select a transaction to begin the audit process
                     </p>

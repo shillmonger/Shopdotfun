@@ -33,6 +33,15 @@ export interface Address {
 
 export interface Buyer extends UserBase {
   addresses?: Address[];
+  paymentHistory?: Array<{
+    paymentId: ObjectId;
+    amountPaid: number;
+    cryptoAmount: string;
+    cryptoMethod: string;
+    approvedAt: Date;
+    orderTotal: number;
+  }>;
+  userBalance?: number;
 }
 
 export interface CryptoPayoutDetails {
@@ -320,6 +329,61 @@ class UserModel {
     }
     
     return result;
+  }
+
+  static async addPaymentHistory(buyerEmail: string, paymentData: {
+    paymentId: ObjectId;
+    amountPaid: number;
+    cryptoAmount: string;
+    cryptoMethod: string;
+    orderTotal: number;
+  }) {
+    try {
+      const client = await clientPromise;
+      const db = client.db('shop_dot_fun');
+      
+      const update: any = {
+        $push: {
+          paymentHistory: {
+            ...paymentData,
+            approvedAt: new Date()
+          }
+        },
+        $set: { updatedAt: new Date() }
+      };
+      
+      const result = await db.collection('buyers').findOneAndUpdate(
+        { email: buyerEmail },
+        update,
+        { returnDocument: 'after' }
+      );
+      
+      return result;
+    } catch (error) {
+      console.error('UserModel.addPaymentHistory error:', error);
+      throw error;
+    }
+  }
+
+  static async updateUserBalance(buyerEmail: string, amountToAdd: number) {
+    try {
+      const client = await clientPromise;
+      const db = client.db('shop_dot_fun');
+      
+      const result = await db.collection('buyers').findOneAndUpdate(
+        { email: buyerEmail },
+        { 
+          $inc: { userBalance: amountToAdd },
+          $set: { updatedAt: new Date() }
+        },
+        { returnDocument: 'after' }
+      );
+      
+      return result;
+    } catch (error) {
+      console.error('UserModel.updateUserBalance error:', error);
+      throw error;
+    }
   }
 }
 
