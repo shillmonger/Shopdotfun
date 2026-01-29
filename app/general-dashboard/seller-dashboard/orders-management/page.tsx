@@ -29,6 +29,17 @@ interface OrderItem {
   name: string;
   qty: number;
   price: number;
+  discount: number;
+  productCode: string;
+  images: Array<{
+    url: string;
+    thumbnailUrl: string;
+    publicId: string;
+  }>;
+  description: string;
+  stock: number;
+  shippingFee: number;
+  processingTime: string;
 }
 
 interface Order {
@@ -169,26 +180,105 @@ export default function OrdersReceivedPage() {
                           </div>
                         </div>
 
-                        {/* Items Row */}
-                        <div className="bg-background/50 rounded-2xl p-4 border border-border/50 space-y-3 mb-6">
-                          {order.items.map((item, idx) => (
-                            <div key={idx} className="flex justify-between items-center text-sm">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center font-black text-[10px]">
-                                  {item.qty}x
+                        {/* Product Details */}
+                        <div className="bg-background/50 rounded-2xl p-4 border border-border/50 space-y-4 mb-6">
+                          {order.items.map((item, idx) => {
+                            const discountedPrice = item.price * (1 - item.discount / 100);
+                            const itemTotal = discountedPrice * item.qty;
+                            
+                            return (
+                              <div key={idx} className="space-y-4">
+                                {/* Product Header with All Images */}
+                                <div className="flex gap-4">
+                                  <div className="flex gap-2 flex-shrink-0">
+                                    {item.images && item.images.length > 0 && item.images.slice(0, 4).map((image, imageIdx) => (
+                                      <div key={imageIdx} className="w-12 h-12 rounded-lg overflow-hidden border border-border">
+                                        <img 
+                                          src={image.thumbnailUrl} 
+                                          alt={`${item.name} ${imageIdx + 1}`}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      </div>
+                                    ))}
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className="flex items-start justify-between gap-4">
+                                      <div className="space-y-1">
+                                        <h4 className="font-bold uppercase text-sm">{item.name}</h4>
+                                        <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                                          <span className="font-mono bg-muted px-2 py-1 rounded">{item.productCode}</span>
+                                          <span>•</span>
+                                          <span>Qty: {item.qty}</span>
+                                          <span>•</span>
+                                          <span>Stock: {item.stock}</span>
+                                        </div>
+                                      </div>
+                                      <div className="text-right">
+                                        <div className="text-[10px] text-muted-foreground">
+                                          ${item.price.toFixed(2)} each
+                                        </div>
+                                        <div className="font-black italic">
+                                          ${discountedPrice.toFixed(2)} each
+                                        </div>
+                                        <div className={`text-[10px] font-bold ${item.discount > 0 ? 'text-green-500' : 'text-muted-foreground'}`}>
+                                          {item.discount}% OFF
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
                                 </div>
-                                <span className="font-bold uppercase text-xs">{item.name}</span>
+                                
+                                {/* Additional Product Info */}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-[10px]">
+                                  <div className="bg-muted/50 rounded-lg p-3">
+                                    <p className="font-bold text-muted-foreground uppercase tracking-wider mb-1">Description</p>
+                                    <p className="line-clamp-2">{item.description}</p>
+                                  </div>
+                                  <div className="bg-muted/50 rounded-lg p-3">
+                                    <p className="font-bold text-muted-foreground uppercase tracking-wider mb-1">Shipping</p>
+                                    <p>${item.shippingFee} fee</p>
+                                    <p className="text-muted-foreground">{item.processingTime}</p>
+                                  </div>
+                                  <div className="bg-muted/50 rounded-lg p-3">
+                                    <p className="font-bold text-muted-foreground uppercase tracking-wider mb-1">Item Total</p>
+                                    <p className="font-black text-lg">${itemTotal.toFixed(2)}</p>
+                                  </div>
+                                </div>
                               </div>
-                              <span className="font-black italic">${(item.price * item.qty).toFixed(2)}</span>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
 
                         {/* Footer Row: Action & Total */}
                         <div className="flex flex-col md:flex-row justify-between items-center gap-6 pt-6 border-t border-border/50">
                           <div>
                             <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Total Earnings</p>
-                            <p className="text-2xl font-black italic tracking-tighter">${order.total.toFixed(2)}</p>
+                            <div className="flex items-baseline gap-2">
+                              {(() => {
+                                const originalTotal = order.items.reduce((sum, item) => item.price * item.qty, 0);
+                                const discountedTotal = order.items.reduce((sum, item) => {
+                                  const discountedPrice = item.price * (1 - item.discount / 100);
+                                  return discountedPrice * item.qty;
+                                }, 0);
+                                const totalDiscount = originalTotal - discountedTotal;
+                                
+                                return (
+                                  <>
+                                    {totalDiscount > 0 && (
+                                      <div className="flex flex-col">
+                                        <span className="text-[10px] text-muted-foreground line-through">
+                                          ${originalTotal.toFixed(2)}
+                                        </span>
+                                        <span className="text-[10px] text-green-500 font-bold">
+                                          Save ${totalDiscount.toFixed(2)}
+                                        </span>
+                                      </div>
+                                    )}
+                                    <p className="text-2xl font-black italic tracking-tighter">${discountedTotal.toFixed(2)}</p>
+                                  </>
+                                );
+                              })()}
+                            </div>
                           </div>
 
                           <div className="flex items-center gap-3 w-full md:w-auto">

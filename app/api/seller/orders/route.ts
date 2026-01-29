@@ -26,8 +26,15 @@ export async function GET(request: Request) {
       items: [
         {
           name: order.productInfo.name,
-          qty: 1,
-          price: order.productInfo.price
+          qty: order.productInfo.quantity || 1,
+          price: order.productInfo.price,
+          discount: order.productInfo.discount || 0,
+          productCode: order.productInfo.productCode,
+          images: order.productInfo.images || [],
+          description: order.productInfo.description || '',
+          stock: order.productInfo.stock || 0,
+          shippingFee: order.productInfo.shippingFee || 0,
+          processingTime: order.productInfo.processingTime || ''
         }
       ],
       total: order.paymentInfo.amount,

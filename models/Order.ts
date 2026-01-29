@@ -18,6 +18,8 @@ export interface IOrder {
     productCode: string;
     name: string;
     price: number;
+    discount: number;
+    quantity: number;
     images: Array<{
       url: string;
       thumbnailUrl: string;

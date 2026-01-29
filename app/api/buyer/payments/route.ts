@@ -75,6 +75,7 @@ export async function POST(request: NextRequest) {
         name: item.productName,
         price: item.price,
         discount: product.discount,
+        quantity: item.quantity,
         images: product.images,
         description: product.description,
         stock: item.stock,

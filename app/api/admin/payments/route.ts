@@ -186,6 +186,8 @@ export async function PATCH(request: NextRequest) {
             productCode: product.productCode,
             name: product.name,
             price: product.price,
+            discount: product.discount || 0,
+            quantity: product.quantity || 1,
             images: product.images || [],
             description: product.description || '',
             stock: product.stock || 0,
