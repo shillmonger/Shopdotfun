@@ -174,13 +174,39 @@ export async function PATCH(request: NextRequest) {
         // Generate unique order ID
         const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
         
+        // Get buyer's shipping address (use default address or first available)
+        const buyerAddresses = payment.buyerInfo.addresses || [];
+        const shippingAddress = buyerAddresses.find((addr: any) => addr.isDefault) || buyerAddresses[0] || null;
+        
+        // Get seller information
+        const seller = await db.collection('sellers').findOne({ 
+          email: product.sellerInfo.sellerEmail 
+        });
+        
         // Create order for this product
         const orderData = {
           orderId: orderId,
           buyerInfo: {
             username: payment.buyerInfo.username,
             email: payment.buyerInfo.email,
-            phoneNumber: payment.buyerInfo.phoneNumber
+            phoneNumber: payment.buyerInfo.phoneNumber,
+            shippingAddress: shippingAddress ? {
+              fullName: shippingAddress.fullName,
+              phone: shippingAddress.phone,
+              street: shippingAddress.street,
+              city: shippingAddress.city,
+              state: shippingAddress.state,
+              country: shippingAddress.country,
+              isDefault: shippingAddress.isDefault
+            } : {
+              fullName: payment.buyerInfo.username,
+              phone: payment.buyerInfo.phoneNumber,
+              street: '',
+              city: '',
+              state: '',
+              country: payment.buyerInfo.country || '',
+              isDefault: true
+            }
           },
           productInfo: {
             productCode: product.productCode,
@@ -196,7 +222,9 @@ export async function PATCH(request: NextRequest) {
           },
           sellerInfo: {
             sellerName: product.sellerInfo.sellerName,
-            sellerEmail: product.sellerInfo.sellerEmail
+            sellerEmail: product.sellerInfo.sellerEmail,
+            phoneNumber: seller?.phone || '',
+            country: seller?.country || ''
           },
           status: 'pending' as const,
           paymentInfo: {

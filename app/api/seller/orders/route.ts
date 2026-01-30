@@ -23,6 +23,7 @@ export async function GET(request: Request) {
       buyer: order.buyerInfo.username,
       buyerEmail: order.buyerInfo.email,
       date: order.createdAt.toLocaleDateString(),
+      shippingAddress: order.buyerInfo.shippingAddress || null,
       items: [
         {
           name: order.productInfo.name,

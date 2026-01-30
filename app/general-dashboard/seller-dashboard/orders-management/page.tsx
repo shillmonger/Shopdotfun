@@ -5,6 +5,7 @@ import {
   ShoppingBag,
   User,
   CreditCard,
+  MapPin,
   Truck,
   Search,
   Filter,
@@ -47,6 +48,15 @@ interface Order {
   buyer: string;
   buyerEmail: string;
   date: string;
+  shippingAddress?: {
+    fullName: string;
+    phone: string;
+    street: string;
+    city: string;
+    state: string;
+    country: string;
+    isDefault: boolean;
+  } | null;
   items: OrderItem[];
   total: number;
   paymentStatus: string;
@@ -154,11 +164,34 @@ export default function OrdersReceivedPage() {
                   <p className="text-[9px] text-muted-foreground">{error}</p>
                 </div>
               ) : orders.length === 0 ? (
-                <div className="py-16 bg-card border-2 border-dashed border-border rounded-[2.5rem] flex flex-col items-center justify-center text-center">
-                  <Package className="w-10 h-10 mb-3 opacity-30" />
-                  <p className="text-[10px] font-black uppercase tracking-widest opacity-50">
-                    No orders yet
+                <div className="text-center py-20 px-4 border-2 border-dashed border-border rounded-3xl bg-muted/30 flex flex-col items-center justify-center relative overflow-hidden">
+                  {/* Background Decorative Element */}
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/5 blur-[80px] rounded-full -z-10" />
+
+                  <div className="relative mb-6 group">
+                    <img
+                      src="https://i.postimg.cc/LXSKYHG4/empty-box-removebg-preview.png"
+                      alt="Empty Box"
+                      className="w-40 h-40 object-contain cursor-pointer grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500 ease-out"
+                    />
+                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-16 h-1 bg-primary/20 blur-sm rounded-full" />
+                  </div>
+
+                  <h3 className="text-2xl font-black uppercase italic tracking-tighter mb-2">
+                    No Placed Orders Yet
+                  </h3>
+
+                  <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest max-w-[250px] leading-relaxed">
+                    No orders have been placed yet, keep pushing out your
+                    content out there.
                   </p>
+
+                  <Link
+                    href="/general-dashboard/seller-dashboard/notifications"
+                    className="mt-8 px-6 py-4 bg-foreground cursor-pointer text-background text-[10px] font-black uppercase tracking-[0.2em] hover:bg-primary hover:text-primary-foreground transition-colors rounded-full"
+                  >
+                    Check Notifications
+                  </Link>
                 </div>
               ) : (
                 orders.map((order) => {
@@ -285,6 +318,11 @@ export default function OrdersReceivedPage() {
 
                                       {/* Pricing: Aligns right on desktop, left on mobile for better flow */}
                                       <div className="text-left md:text-right border-t md:border-t-0 pt-2 md:pt-0">
+                                        <div
+                                          className={`text-[10px] font-bold ${item.discount > 0 ? "text-green-500" : "text-muted-foreground"}`}
+                                        >
+                                          {item.discount}% OFF
+                                        </div>
                                         <div className="text-[10px] text-muted-foreground line-through">
                                           ${item.price.toFixed(2)} each
                                         </div>
@@ -294,25 +332,23 @@ export default function OrdersReceivedPage() {
                                             each
                                           </span>
                                         </div>
-                                        <div
-                                          className={`text-[10px] font-bold ${item.discount > 0 ? "text-green-500" : "text-muted-foreground"}`}
-                                        >
-                                          {item.discount}% OFF
-                                        </div>
                                       </div>
                                     </div>
                                   </div>
                                 </div>
 
                                 {/* Additional Product Info */}
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-[10px]">
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-[10px]">
                                   {/* Description - full width on mobile */}
                                   <div className="bg-muted/50 rounded-lg p-3">
                                     <p className="font-bold text-muted-foreground uppercase tracking-wider mb-1">
                                       Description
                                     </p>
                                     <p className="line-clamp-2">
-                                      {item.description}
+                                      {item.description.length > 40 
+                                        ? `${item.description.substring(0, 40)}...` 
+                                        : item.description
+                                      }
                                     </p>
                                   </div>
 
@@ -327,6 +363,36 @@ export default function OrdersReceivedPage() {
                                       <p className="text-muted-foreground">
                                         {item.processingTime}
                                       </p>
+                                    </div>
+
+                                    {/* Shipping Address */}
+                                    <div className="bg-muted/50 rounded-lg p-3">
+                                      <p className="font-bold text-muted-foreground uppercase tracking-wider mb-1">
+                                        Shipping Address
+                                      </p>
+                                      {order.shippingAddress ? (
+                                        <div className="space-y-1">
+                                          <p className="font-medium">{order.shippingAddress.fullName}</p>
+                                          <p className="text-muted-foreground">{order.shippingAddress.street}</p>
+                                          <p className="text-muted-foreground">
+                                            {order.shippingAddress.city}, {order.shippingAddress.state}
+                                          </p>
+                                          <p className="text-muted-foreground">{order.shippingAddress.country}</p>
+                                          <div className="flex items-center gap-1 mt-2">
+                                            <MapPin className="w-3 h-3 text-primary" />
+                                            <a 
+                                              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${order.shippingAddress.street}, ${order.shippingAddress.city}, ${order.shippingAddress.state}, ${order.shippingAddress.country}`)}`}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-primary hover:underline font-medium"
+                                            >
+                                              View on Map
+                                            </a>
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <p className="text-muted-foreground">No address available</p>
+                                      )}
                                     </div>
 
                                     {/* Item Total */}
@@ -347,47 +413,55 @@ export default function OrdersReceivedPage() {
 
                         {/* Footer Row: Action & Total */}
                         <div className="flex flex-col md:flex-row justify-between items-center gap-6 pt-6 border-t border-border/50">
-                          <div className="text-center md:text-left">
-                            <div className="flex items-baseline gap-2 justify-center md:justify-start">
-                              {(() => {
-                                const originalTotal = order.items.reduce(
-                                  (sum, item) => item.price * item.qty,
-                                  0,
-                                );
-                                const discountedTotal = order.items.reduce(
-                                  (sum, item) => {
-                                    const discountedPrice =
-                                      item.price * (1 - item.discount / 100);
-                                    return discountedPrice * item.qty;
-                                  },
-                                  0,
-                                );
-                                const totalDiscount =
-                                  originalTotal - discountedTotal;
+                          <div className="text-center md:text-left space-y-1">
+                            {(() => {
+                              const originalTotal = order.items.reduce(
+                                (sum, item) => sum + item.price * item.qty,
+                                0,
+                              );
 
-                                return (
-                                  <>
+                              const discountedTotal = order.items.reduce(
+                                (sum, item) => {
+                                  const discountedPrice =
+                                    item.price * (1 - item.discount / 100);
+                                  return sum + discountedPrice * item.qty;
+                                },
+                                0,
+                              );
+
+                              const totalDiscount =
+                                originalTotal - discountedTotal;
+
+                              return (
+                                <>
+                                  {/* Main Price Row */}
+                                  <div className="flex flex-col sm:flex-row sm:items-end sm:gap-3 justify-center md:justify-start">
+                                    {/* Final Amount */}
+                                    <p className="flex items-center justify-center text-2xl sm:text-3xl font-black italic tracking-tighter">
+                                      ${discountedTotal.toFixed(2)}
+                                    </p>
+
+                                    {/* Discount Info */}
                                     {totalDiscount > 0 && (
-                                      <div className="flex flex-col">
-                                        <span className="text-[10px] text-muted-foreground line-through">
+                                      <div className="flex items-center justify-center gap-2 text-[11px]">
+                                        <span className="text-muted-foreground line-through">
                                           ${originalTotal.toFixed(2)}
                                         </span>
-                                        <span className="text-[10px] text-green-500 font-bold">
-                                          Save ${totalDiscount.toFixed(2)}
+
+                                        <span className="text-green-600 font-bold">
+                                          -${totalDiscount.toFixed(2)}
                                         </span>
                                       </div>
                                     )}
-                                    <p className="text-2xl font-black italic tracking-tighter">
-                                      ${discountedTotal.toFixed(2)}
-                                    </p>
-                                  </>
-                                );
-                              })()}
-                            </div>
+                                  </div>
 
-                            <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
-                              Total Earnings
-                            </p>
+                                  {/* Label */}
+                                  <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
+                                    Total Earnings
+                                  </p>
+                                </>
+                              );
+                            })()}
                           </div>
 
                           <div className="flex items-center gap-3 md:w-auto">

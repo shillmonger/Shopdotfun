@@ -11,6 +11,15 @@ export interface IOrder {
     username: string;
     email: string;
     phoneNumber: string;
+    shippingAddress: {
+      fullName: string;
+      phone: string;
+      street: string;
+      city: string;
+      state: string;
+      country: string;
+      isDefault: boolean;
+    };
   };
   
   // Product Information (single product per order for individual seller tracking)
@@ -35,6 +44,8 @@ export interface IOrder {
   sellerInfo: {
     sellerName: string;
     sellerEmail: string;
+    phoneNumber: string;
+    country: string;
   };
   
   // Order Status

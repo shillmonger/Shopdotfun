@@ -423,7 +423,7 @@ export default function BrowseProductsPage() {
 
                   <button
                     onClick={() => window.location.reload()}
-                    className="mt-8 px-6 py-2 bg-foreground cursor-pointer text-background text-[10px] font-black uppercase tracking-[0.2em] hover:bg-primary hover:text-primary-foreground transition-colors rounded-full">
+                    className="mt-8 px-6 py-4 bg-foreground cursor-pointer text-background text-[10px] font-black uppercase tracking-[0.2em] hover:bg-primary hover:text-primary-foreground transition-colors rounded-full">
                     Reset Search
                   </button>
                 </div>
