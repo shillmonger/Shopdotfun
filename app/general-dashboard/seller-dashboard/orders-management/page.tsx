@@ -20,11 +20,20 @@ import {
   AlertCircle,
   Package,
 } from "lucide-react";
+import { toast } from "sonner";
 import Link from "next/link";
 
 import SellerHeader from "@/components/seller-dashboard/SellerHeader";
 import SellerSidebar from "@/components/seller-dashboard/SellerSidebar";
 import SellerNav from "@/components/seller-dashboard/SellerNav";
+import {
+  getShippingStatusLabel,
+  getPaymentStatusLabel,
+  getShippingStatusColor,
+  getPaymentStatusColor,
+  canMarkAsShipped,
+  OrderStatus
+} from "@/lib/order-status";
 
 interface OrderItem {
   name: string;
@@ -59,7 +68,7 @@ interface Order {
   } | null;
   items: OrderItem[];
   total: number;
-  status: string;
+  status: OrderStatus;
   fulfillmentStatus:
     | "pending"
     | "processing"
@@ -68,6 +77,30 @@ interface Order {
     | "cancelled";
   productInfo?: any;
   paymentInfo?: any;
+  updatedAt?: string | Date;
+}
+
+async function updateOrderStatus(orderId: string, updates: Partial<OrderStatus>): Promise<{ success: boolean; error?: string }> {
+  try {
+    const response = await fetch('/api/seller/orders/update-status', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ orderId, updates }),
+    });
+
+    const result = await response.json();
+    
+    if (!response.ok) {
+      return { success: false, error: result.error || 'Failed to update status' };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating order status:', error);
+    return { success: false, error: 'Network error' };
+  }
 }
 
 const fetchOrders = async () => {
@@ -84,6 +117,29 @@ export default function OrdersReceivedPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const handleMarkAsShipped = async (orderId: string) => {
+    const result = await updateOrderStatus(orderId, { shipping: 'shipped' });
+    
+    if (result.success) {
+      toast.success('Order marked as shipped successfully');
+      
+      // Update the local order state
+      setOrders(prevOrders => 
+        prevOrders.map(order => {
+          if (order.id === orderId) {
+            const updatedOrder = { ...order };
+            updatedOrder.status.shipping = 'shipped';
+            updatedOrder.updatedAt = new Date();
+            return updatedOrder;
+          }
+          return order;
+        })
+      );
+    } else {
+      toast.error(result.error || 'Failed to update order');
+    }
+  };
 
   useEffect(() => {
     const fetchOrdersData = async () => {
@@ -195,7 +251,11 @@ export default function OrdersReceivedPage() {
                 </div>
               ) : (
                 orders.map((order) => {
-                  const isPaid = order.status === "paid";
+                  const shippingLabel = getShippingStatusLabel(order.status.shipping);
+                  const shippingColor = getShippingStatusColor(order.status.shipping);
+                  const paymentLabel = getPaymentStatusLabel(order.status.payment);
+                  const paymentColor = getPaymentStatusColor(order.status.payment);
+                  const canShip = canMarkAsShipped(order.status);
 
                   return (
                     <div
@@ -221,61 +281,24 @@ export default function OrdersReceivedPage() {
                           </div>
 
                           <div className="flex items-center gap-2 justify-center md:justify-start">
-                            {/* Payment Status Buttons */}
-                            <button
-                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest transition-all ${
-                                order.status === "pending"
-                                  ? "bg-amber-500/10 text-amber-500 border-amber-500/20 cursor-pointer hover:bg-amber-500/20"
-                                  : "bg-muted text-muted-foreground border-border cursor-not-allowed opacity-50"
-                              }`}
-                              onClick={() => {
-                                if (order.status === "pending") {
-                                  // Handle pending status action
-                                  console.log(`Marking order ${order.id} as processing`);
-                                }
-                              }}
-                              disabled={order.status !== "pending"}
+                            {/* Shipping Status */}
+                            <span
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest transition-all ${shippingColor}`}
                             >
-                              <Clock className="w-3 h-3" />
-                              Pending
-                            </button>
+                              {order.status.shipping === 'pending' && <Clock className="w-3 h-3" />}
+                              {order.status.shipping === 'shipped' && <Truck className="w-3 h-3" />}
+                              {order.status.shipping === 'received' && <CheckCircle2 className="w-3 h-3" />}
+                              {shippingLabel}
+                            </span>
 
-                            <button
-                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest transition-all ${
-                                order.status === "processing"
-                                  ? "bg-blue-500/10 text-blue-500 border-blue-500/20 cursor-pointer hover:bg-blue-500/20"
-                                  : order.status === "paid"
-                                  ? "bg-muted text-muted-foreground border-border cursor-not-allowed opacity-50"
-                                  : "bg-muted text-muted-foreground border-border cursor-not-allowed opacity-50"
-                              }`}
-                              onClick={() => {
-                                if (order.status === "processing") {
-                                  // Handle processing status action
-                                  console.log(`Marking order ${order.id} as paid`);
-                                }
-                              }}
-                              disabled={order.status !== "processing"}
+                            {/* Payment Status */}
+                            <span
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest transition-all ${paymentColor}`}
                             >
-                              <Loader2 className="w-3 h-3" />
-                              Processing
-                            </button>
-
-                            <button
-                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest transition-all ${
-                                order.status === "paid"
-                                  ? "bg-green-500/10 text-green-500 border-green-500/20 cursor-pointer hover:bg-green-500/20"
-                                  : "bg-muted text-muted-foreground border-border cursor-not-allowed opacity-50"
-                              }`}
-                              onClick={() => {
-                                if (order.status === "paid") {
-                                  // Handle paid status action
-                                  console.log(`Order ${order.id} is already paid`);
-                                }
-                              }}
-                            >
-                              <CheckCircle2 className="w-3 h-3" />
-                              Paid
-                            </button>
+                              {order.status.payment === 'pending' && <Clock className="w-3 h-3" />}
+                              {order.status.payment === 'paid' && <CheckCircle2 className="w-3 h-3" />}
+                              {paymentLabel}
+                            </span>
                           </div>
                         </div>
 
@@ -360,10 +383,9 @@ export default function OrdersReceivedPage() {
                                       Description
                                     </p>
                                     <p className="line-clamp-2">
-                                      {item.description.length > 40 
-                                        ? `${item.description.substring(0, 40)}...` 
-                                        : item.description
-                                      }
+                                      {item.description.length > 40
+                                        ? `${item.description.substring(0, 40)}...`
+                                        : item.description}
                                     </p>
                                   </div>
 
@@ -381,8 +403,8 @@ export default function OrdersReceivedPage() {
                                     </div>
 
                                     {/* Full buyer details */}
-<div
-  className="
+                                    <div
+                                      className="
     bg-muted/50 rounded-lg p-3 cursor-pointer
     border border-border
     transition-all duration-300
@@ -394,17 +416,15 @@ export default function OrdersReceivedPage() {
     hover:border-primary
     hover:shadow-[0_0_16px_hsl(var(--primary)/0.6)]
   "
->
-  <p className="font-bold text-muted-foreground uppercase tracking-wider mb-1">
-    Buyer Details
-  </p>
+                                    >
+                                      <p className="font-bold text-muted-foreground uppercase tracking-wider mb-1">
+                                        Buyer Details
+                                      </p>
 
-  <p className="text-muted-foreground">
-    Click to View all buyer information
-  </p>
-</div>
-
-
+                                      <p className="text-muted-foreground">
+                                        Click to View all buyer information
+                                      </p>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
@@ -466,9 +486,14 @@ export default function OrdersReceivedPage() {
                           </div>
 
                           <div className="flex items-center gap-3 md:w-auto">
-                              <button className="flex-1 md:flex-none bg-primary cursor-pointer text-primary-foreground text-center px-8 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2">
+                            {canShip && (
+                              <button 
+                                onClick={() => handleMarkAsShipped(order.id)}
+                                className="flex-1 md:flex-none bg-primary cursor-pointer text-primary-foreground text-center px-8 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2"
+                              >
                                 Mark as Shipped <Truck className="w-4 h-4" />
                               </button>
+                            )}
                           </div>
                         </div>
                       </div>

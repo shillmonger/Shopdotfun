@@ -1,72 +1,178 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { 
-  Search, 
-  Filter, 
-  ShoppingBag, 
-  User, 
-  Store, 
-  Clock, 
-  CheckCircle2, 
-  AlertCircle, 
-  ShieldAlert,
-  ArrowUpRight,
-  Download,
-  Calendar,
-  CreditCard,
-  Truck,
-  MoreVertical
+  Search, Filter, ShoppingBag, User, Store, Clock, 
+  CheckCircle2, AlertCircle, ShieldAlert, Download, 
+  Truck, Eye, HandCoins, Wrench, ChevronDown, Loader2
 } from "lucide-react";
 import { toast } from "sonner";
+
+// Shadcn UI Imports
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
+} from "@/components/ui/dropdown-menu";
 
 import AdminHeader from "@/components/admin-dashboard/AdminHeader";
 import AdminSidebar from "@/components/admin-dashboard/AdminSidebar";
 import AdminNav from "@/components/admin-dashboard/AdminNav";
+import { StatusBadge } from "@/components/StatusBadge";
+import {
+  getShippingStatusLabel,
+  getBuyerActionLabel,
+  getPaymentStatusLabel,
+  getAdminActionLabel,
+  hasOrderIssues,
+  canReleasePayment,
+  OrderStatus
+} from "@/lib/order-status";
 
-// Mock Order Data
-const INITIAL_ORDERS = [
-  {
-    id: "ORD-99281",
-    buyer: "John Doe",
-    seller: "Elite Tech",
-    amount: "1,200.00 USDT",
-    paymentStatus: "Completed",
-    fulfillmentStatus: "Shipped",
-    date: "2026-01-20",
-    isDisputed: false
-  },
-  {
-    id: "ORD-99285",
-    buyer: "Sarah Connor",
-    seller: "Cyberdyne Systems",
-    amount: "0.05 BTC",
-    paymentStatus: "Pending",
-    fulfillmentStatus: "Processing",
-    date: "2026-01-21",
-    isDisputed: false
-  },
-  {
-    id: "ORD-99290",
-    buyer: "Kyle Reese",
-    seller: "Resistance Gear",
-    amount: "450.00 SOL",
-    paymentStatus: "Completed",
-    fulfillmentStatus: "Delayed",
-    date: "2026-01-18",
-    isDisputed: true
+// Type Definitions
+interface Order {
+  id: string;
+  buyer: string;
+  seller: string;
+  amount: string;
+  date: string;
+  status: OrderStatus;
+  buyerInfo?: any;
+  sellerInfo?: any;
+  productInfo?: any;
+  paymentInfo?: any;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
+  orderNotes?: string;
+}
+
+async function fetchAdminOrders(): Promise<Order[]> {
+  try {
+    const response = await fetch('/api/admin/orders');
+    if (!response.ok) {
+      throw new Error('Failed to fetch orders');
+    }
+    const result = await response.json();
+    return result.data || [];
+  } catch (error) {
+    console.error('Error fetching admin orders:', error);
+    return [];
   }
-];
+}
+
+async function updateOrderStatus(orderId: string, updates: Partial<OrderStatus>): Promise<{ success: boolean; error?: string }> {
+  try {
+    const response = await fetch('/api/admin/orders/update-status', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ orderId, updates }),
+    });
+
+    const result = await response.json();
+    
+    if (!response.ok) {
+      return { success: false, error: result.error || 'Failed to update status' };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating order status:', error);
+    return { success: false, error: 'Network error' };
+  }
+}
 
 export default function MonitorOrdersPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [orders] = useState(INITIAL_ORDERS);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingAction, setLoadingAction] = useState<string | null>(null);
+  const [filters, setFilters] = useState({
+    search: "",
+    shipping: "all",
+    buyerAction: "all",
+    payment: "all",
+    problemOnly: false
+  });
 
-  const handleExport = () => {
-    toast.success("Generating Export", {
-      description: "Order logs for the selected period are being compiled into CSV."
-    });
+  useEffect(() => {
+    const loadOrders = async () => {
+      try {
+        setLoading(true);
+        const data = await fetchAdminOrders();
+        setOrders(data);
+      } catch (error) {
+        console.error('Failed to load orders:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadOrders();
+  }, []);
+
+  const handleAdminAction = async (orderId: string, actionType: string) => {
+    setLoadingAction(`${orderId}-${actionType}`);
+    
+    let updates: Partial<OrderStatus> = {};
+    
+    if (actionType === 'release') {
+      updates = { payment: 'paid', adminAction: 'reviewed' };
+    } else if (actionType === 'resolve') {
+      updates = { adminAction: 'reviewed' };
+    }
+
+    const result = await updateOrderStatus(orderId, updates);
+    
+    if (result.success) {
+      toast.success(`Action: ${actionType} successful`);
+      
+      // Update the local order state
+      setOrders(prevOrders => 
+        prevOrders.map(order => {
+          if (order.id === orderId) {
+            const updatedOrder = { ...order };
+            if (updates.payment) {
+              updatedOrder.status.payment = updates.payment;
+            }
+            if (updates.adminAction) {
+              updatedOrder.status.adminAction = updates.adminAction;
+            }
+            updatedOrder.updatedAt = new Date();
+            return updatedOrder;
+          }
+          return order;
+        })
+      );
+    } else {
+      toast.error(result.error || 'Failed to update order');
+    }
+    
+    setLoadingAction(null);
   };
+
+  const hasWarning = (status: OrderStatus) => {
+    return hasOrderIssues(status);
+  };
+
+  const filteredOrders = useMemo(() => {
+    return orders.filter(order => {
+      const matchesSearch = order.id.toLowerCase().includes(filters.search.toLowerCase());
+      const matchesShip = filters.shipping === "all" || order.status.shipping === filters.shipping;
+      const matchesBuyer = filters.buyerAction === "all" || order.status.buyerAction === filters.buyerAction;
+      const matchesPay = filters.payment === "all" || order.status.payment === filters.payment;
+      const matchesProblem = !filters.problemOnly || hasOrderIssues(order.status);
+      return matchesSearch && matchesShip && matchesBuyer && matchesPay && matchesProblem;
+    });
+  }, [orders, filters]);
 
   return (
     <div className="flex h-screen overflow-hidden bg-background text-foreground">
@@ -78,135 +184,189 @@ export default function MonitorOrdersPage() {
         <main className="flex-1 overflow-y-auto p-4 md:p-10 pb-32">
           <div className="max-w-7xl mx-auto">
             
-            {/* Header Section */}
+            {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10">
               <div>
                 <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter italic leading-none">
                   Order <span className="text-primary not-italic">Logs</span>
                 </h1>
                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-3 flex items-center gap-2">
-                  <ShoppingBag className="w-3 h-3 text-primary" /> Global transaction monitoring &bull; Real-time
+                  <ShoppingBag className="w-3 h-3 text-primary" /> Active Oversight &bull; {filteredOrders.length} Records
                 </p>
               </div>
-
-              <div className="flex gap-2 w-full md:w-auto">
-                <button 
-                  onClick={handleExport}
-                  className="bg-card border border-border px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-muted transition-all flex items-center justify-center gap-2"
-                >
-                  <Download className="w-4 h-4" /> Export logs
-                </button>
-              </div>
+              <button onClick={() => toast.info("Preparing CSV...")} className="bg-card border border-border px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-muted flex items-center gap-2">
+                <Download className="w-4 h-4" /> Export
+              </button>
             </div>
 
-            {/* B. Advanced Filters */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              <div className="relative">
+            {/* Filter UI */}
+            <div className="flex flex-col md:flex-row gap-4 mb-8">
+              <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input 
                   type="text" 
-                  placeholder="Order ID / Wallet..." 
-                  className="w-full bg-card border border-border rounded-xl pl-10 pr-4 py-3 text-xs font-bold outline-none focus:ring-2 ring-primary/20"
+                  placeholder="SEARCH ORDER ID..." 
+                  className="w-full bg-card border border-border rounded-xl pl-10 pr-4 py-3 text-xs font-bold outline-none focus:ring-1 ring-primary"
+                  onChange={(e) => setFilters({...filters, search: e.target.value})}
                 />
               </div>
-              
-              <div className="flex items-center gap-2 bg-card border border-border rounded-xl px-4 py-3">
-                <Calendar className="w-4 h-4 text-muted-foreground" />
-                <select className="bg-transparent text-[10px] font-black uppercase outline-none flex-1">
-                  <option>Last 24 Hours</option>
-                  <option>Last 7 Days</option>
-                  <option>Last 30 Days</option>
-                  <option>Custom Range</option>
-                </select>
-              </div>
 
-              <div className="flex items-center gap-2 bg-card border border-border rounded-xl px-4 py-3">
-                <CreditCard className="w-4 h-4 text-muted-foreground" />
-                <select className="bg-transparent text-[10px] font-black uppercase outline-none flex-1">
-                  <option>All Payments</option>
-                  <option>Completed</option>
-                  <option>Pending</option>
-                  <option>Refunded</option>
-                </select>
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="bg-card border border-border rounded-xl px-6 py-3 text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-muted outline-none">
+                    <Filter className="w-4 h-4 text-primary" /> 
+                    Filter Options
+                    <ChevronDown className="w-3 h-3 opacity-50" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 font-bold uppercase text-[10px]">
+                  <DropdownMenuLabel>Global Filters</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  
+                  {/* Shipping Sub-menu */}
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>Shipping: {filters.shipping}</DropdownMenuSubTrigger>
+                    <DropdownMenuPortal>
+                      <DropdownMenuSubContent className="uppercase text-[10px] font-bold">
+                        <DropdownMenuItem onClick={() => setFilters({...filters, shipping: "all"})}>All</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setFilters({...filters, shipping: "pending"})}>Processing</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setFilters({...filters, shipping: "shipped"})}>Shipped</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setFilters({...filters, shipping: "received"})}>Delivered</DropdownMenuItem>
+                      </DropdownMenuSubContent>
+                    </DropdownMenuPortal>
+                  </DropdownMenuSub>
 
-              <div className="flex items-center gap-2 bg-card border border-border rounded-xl px-4 py-3">
-                <Filter className="w-4 h-4 text-muted-foreground" />
-                <select className="bg-transparent text-[10px] font-black uppercase outline-none flex-1">
-                  <option>All Orders</option>
-                  <option>Disputed Only</option>
-                  <option>Delayed Fulfillment</option>
-                </select>
-              </div>
+                  {/* Payment Sub-menu */}
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>Payment: {filters.payment}</DropdownMenuSubTrigger>
+                    <DropdownMenuPortal>
+                      <DropdownMenuSubContent className="uppercase text-[10px] font-bold">
+                        <DropdownMenuItem onClick={() => setFilters({...filters, payment: "all"})}>All</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setFilters({...filters, payment: "pending"})}>Awaiting</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setFilters({...filters, payment: "paid"})}>Paid</DropdownMenuItem>
+                      </DropdownMenuSubContent>
+                    </DropdownMenuPortal>
+                  </DropdownMenuSub>
+
+                  {/* Problem Only Toggle */}
+                  <DropdownMenuItem onClick={() => setFilters({...filters, problemOnly: !filters.problemOnly})}>
+                    {filters.problemOnly ? "✓ Show All" : "⚠ Problems Only"}
+                  </DropdownMenuItem>
+
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="text-red-500" onClick={() => setFilters({search: "", shipping: "all", buyerAction: "all", payment: "all", problemOnly: false})}>
+                    Reset Filters
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
-            {/* A. Orders Table */}
+            {/* Table */}
             <div className="bg-card border border-border rounded-[2rem] overflow-hidden shadow-sm">
               <div className="overflow-x-auto">
-                <table className="w-full text-left">
+                <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-muted/50 border-b border-border">
-                      <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground tracking-widest">ID &amp; Date</th>
-                      <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground tracking-widest">Stakeholders</th>
-                      <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground tracking-widest">Amount</th>
-                      <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground tracking-widest">Status</th>
-                      <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground tracking-widest text-right">Audit</th>
+                      <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground tracking-widest whitespace-nowrap">Order Info</th>
+                      <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground tracking-widest whitespace-nowrap">Parties</th>
+                      <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground tracking-widest whitespace-nowrap">Amount</th>
+                      <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground tracking-widest whitespace-nowrap">Status Matrix</th>
+                      <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground tracking-widest text-right whitespace-nowrap">Audit Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {orders.map((order) => (
+                    {filteredOrders.map((order) => (
                       <tr key={order.id} className="hover:bg-muted/10 transition-colors group">
                         <td className="px-6 py-5">
-                          <div className="flex flex-col">
-                            <span className="font-black text-sm uppercase italic tracking-tighter group-hover:text-primary transition-colors">
-                              {order.id}
-                            </span>
-                            <span className="text-[9px] font-bold text-muted-foreground uppercase flex items-center gap-1 mt-1">
-                              <Clock className="w-3 h-3" /> {order.date}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-5">
-                          <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-2 text-[10px] font-bold uppercase">
-                              <User className="w-3 h-3 opacity-40" /> <span className="text-muted-foreground">B:</span> {order.buyer}
-                            </div>
-                            <div className="flex items-center gap-2 text-[10px] font-bold uppercase">
-                              <Store className="w-3 h-3 opacity-40" /> <span className="text-muted-foreground">S:</span> {order.seller}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-5">
-                          <p className="text-sm font-black italic">{order.amount}</p>
-                        </td>
-                        <td className="px-6 py-5">
-                          <div className="flex flex-col gap-2">
-                            <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[8px] font-black uppercase border ${
-                              order.paymentStatus === "Completed" ? "bg-green-500/10 text-green-500 border-green-500/20" : "bg-amber-500/10 text-amber-500 border-amber-500/20"
-                            }`}>
-                              {order.paymentStatus === "Completed" ? <CheckCircle2 className="w-2.5 h-2.5" /> : <Clock className="w-2.5 h-2.5" />}
-                              Pay: {order.paymentStatus}
-                            </span>
-                            <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[8px] font-black uppercase border ${
-                              order.fulfillmentStatus === "Shipped" ? "bg-primary/10 text-primary border-primary/20" : 
-                              order.fulfillmentStatus === "Delayed" ? "bg-destructive/10 text-destructive border-destructive/20" : "bg-muted text-muted-foreground"
-                            }`}>
-                              <Truck className="w-2.5 h-2.5" /> Ship: {order.fulfillmentStatus}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-5 text-right">
-                          <div className="flex justify-end items-center gap-2">
-                            {order.isDisputed && (
-                              <div className="p-2 bg-destructive/10 text-destructive rounded-lg animate-pulse" title="Active Dispute">
-                                <ShieldAlert className="w-4 h-4" />
-                              </div>
+                          <div className="flex items-center gap-3">
+                            {hasWarning(order.status) && (
+                              <ShieldAlert className="w-5 h-5 text-red-500 animate-pulse" />
                             )}
-                            <button className="p-2 border border-border rounded-lg hover:bg-foreground hover:text-background transition-all">
-                              <ArrowUpRight className="w-4 h-4" />
-                            </button>
-                            <button className="p-2 border border-border rounded-lg hover:bg-muted">
-                              <MoreVertical className="w-4 h-4" />
+                            <div className="flex flex-col">
+                              <span className="font-black text-sm uppercase italic tracking-tighter group-hover:text-primary transition-colors">{order.id}</span>
+                              <span className="text-[9px] font-bold text-muted-foreground uppercase flex items-center gap-1"><Clock className="w-3 h-3" /> {order.date}</span>
+                            </div>
+                          </div>
+                        </td>
+
+                        <td className="px-6 py-5">
+                          <div className="flex flex-col gap-1 min-w-[120px]">
+                            <div className="flex items-center gap-2 text-[10px] font-bold uppercase"><User className="w-3 h-3 opacity-40" /> {order.buyer}</div>
+                            <div className="flex items-center gap-2 text-[10px] font-bold uppercase"><Store className="w-3 h-3 opacity-40" /> {order.seller}</div>
+                          </div>
+                        </td>
+
+                        <td className="px-6 py-5 font-black italic text-sm whitespace-nowrap">{order.amount}</td>
+
+                        <td className="px-6 py-5">
+                          {/* Status Matrix with proper labels */}
+                          <div className="flex flex-wrap gap-2 max-w-[280px]">
+                            {/* Shipping Status */}
+                            <StatusBadge 
+                              label={getShippingStatusLabel(order.status.shipping)} 
+                              variant={order.status.shipping === 'pending' ? 'yellow' : order.status.shipping === 'shipped' ? 'blue' : 'green'} 
+                              icon={order.status.shipping === 'pending' ? Clock : order.status.shipping === 'shipped' ? Truck : CheckCircle2} 
+                            />
+
+                            {/* Buyer Action - only show if not 'none' */}
+                            {order.status.buyerAction !== 'none' && (
+                              <StatusBadge 
+                                label={getBuyerActionLabel(order.status.buyerAction)} 
+                                variant={order.status.buyerAction === 'delayed' ? 'orange' : order.status.buyerAction === 'damaged' ? 'red' : 'green'} 
+                                icon={order.status.buyerAction === 'delayed' || order.status.buyerAction === 'damaged' ? AlertCircle : CheckCircle2} 
+                              />
+                            )}
+                            
+                            {/* Payment Status */}
+                            <StatusBadge 
+                              label={getPaymentStatusLabel(order.status.payment)} 
+                              variant={order.status.payment === 'paid' ? 'green' : 'yellow'} 
+                              icon={order.status.payment === 'paid' ? CheckCircle2 : Clock} 
+                            />
+
+                            {/* Admin Action */}
+                            <StatusBadge 
+                              label={getAdminActionLabel(order.status.adminAction)} 
+                              variant={order.status.adminAction === 'none' ? 'gray' : 'blue'} 
+                              icon={order.status.adminAction === 'none' ? Clock : CheckCircle2} 
+                            />
+                          </div>
+                        </td>
+
+                        <td className="px-6 py-5 text-right">
+                          <div className="flex justify-end items-center gap-2 whitespace-nowrap">
+                            {canReleasePayment(order.status) && (
+                              <button 
+                                onClick={() => handleAdminAction(order.id, "release")}
+                                disabled={loadingAction === `${order.id}-release`}
+                                className="flex items-center gap-2 px-3 py-2 bg-green-500 cursor-pointer text-white rounded-lg text-[10px] font-black uppercase hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                {loadingAction === `${order.id}-release` ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <HandCoins className="w-3.5 h-3.5" />
+                                )}
+                                Release Payment
+                              </button>
+                            )}
+
+                            {hasOrderIssues(order.status) && (
+                              <button 
+                                onClick={() => handleAdminAction(order.id, "resolve")}
+                                disabled={loadingAction === `${order.id}-resolve`}
+                                className="flex items-center gap-2 px-3 cursor-pointer py-2 bg-orange-500 text-white rounded-lg text-[10px] font-black uppercase hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                {loadingAction === `${order.id}-resolve` ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <Wrench className="w-3.5 h-3.5" />
+                                )}
+                                Resolve Issue
+                              </button>
+                            )}
+
+                            <button className="p-2 border border-border cursor-pointer rounded-lg hover:bg-muted text-muted-foreground">
+                              <Eye className="w-4 h-4" />
                             </button>
                           </div>
                         </td>
@@ -216,28 +376,8 @@ export default function MonitorOrdersPage() {
                 </table>
               </div>
             </div>
-
-            {/* Lifecycle Investigation Helper */}
-            <div className="mt-8 bg-primary/5 border border-primary/20 rounded-3xl p-8 flex flex-col lg:flex-row items-center justify-between gap-6">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                  <AlertCircle className="w-6 h-6" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-black uppercase italic tracking-tighter">Stuck Order Detection</h4>
-                  <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight max-w-lg leading-relaxed mt-1">
-                    Orders marked as &quot;Delayed&quot; or with &quot;Completed&quot; payment but no shipping update for 72+ hours are automatically flagged. Use the audit tool to contact both parties.
-                  </p>
-                </div>
-              </div>
-              <button className="whitespace-nowrap px-8 py-4 bg-foreground text-background rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary transition-all shadow-xl shadow-primary/10">
-                Run Health Check
-              </button>
-            </div>
-
           </div>
         </main>
-
         <AdminNav />
       </div>
     </div>

@@ -226,7 +226,12 @@ export async function PATCH(request: NextRequest) {
             phoneNumber: seller?.phone || '',
             country: seller?.country || ''
           },
-          status: 'pending' as const,
+          status: {
+            shipping: 'pending' as const,
+            buyerAction: 'none' as const, 
+            payment: 'pending' as const, 
+            adminAction: 'none' as const
+          },
           paymentInfo: {
             amount: product.price,
             cryptoMethodUsed: payment.buyerInfo.cryptoMethodUsed,

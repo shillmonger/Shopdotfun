@@ -49,7 +49,12 @@ export interface IOrder {
   };
   
   // Order Status
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  status: {
+    shipping: 'pending' | 'shipped' | 'received';      // pending | shipped | received
+    buyerAction: 'none' | 'received' | 'delayed' | 'damaged';      // none | received | delayed | damaged
+    payment: 'pending' | 'paid';       // pending | paid
+    adminAction: 'none' | 'reviewed' | 'refunded' | 'other'       // none | reviewed | refunded | other
+  };
   
   // Payment Information
   paymentInfo: {
@@ -76,8 +81,18 @@ class OrderModel {
       console.log('Connected to database, inserting into collection: orders');
       
       const now = new Date();
+      
+      // Ensure status object has all required fields with defaults
+      const defaultStatus = {
+        shipping: 'pending' as const,
+        buyerAction: 'none' as const,
+        payment: 'pending' as const,
+        adminAction: 'none' as const
+      };
+      
       const orderWithTimestamps = {
         ...orderData,
+        status: orderData.status || defaultStatus,
         createdAt: now,
         updatedAt: now,
       };
@@ -101,7 +116,14 @@ class OrderModel {
     const client = await clientPromise;
     const db = client.db(dbName);
     
-    return await db.collection('orders').find(query, options).toArray();
+    let cursor = db.collection('orders').find(query, options);
+    
+    // Add sorting if specified in options
+    if (options.sort) {
+      cursor = cursor.sort(options.sort);
+    }
+    
+    return await cursor.toArray();
   }
 
   static async findBySellerEmail(sellerEmail: string) {
@@ -134,16 +156,22 @@ class OrderModel {
     }
   }
 
-  static async updateStatus(orderId: string, status: IOrder['status']) {
+  static async updateStatus(orderId: string, statusUpdate: Partial<IOrder['status']>) {
     try {
       const client = await clientPromise;
-      const db = client.db(dbName);
+      const db = client.db('shop_dot_fun');
+      
+      // Build the update object dynamically based on provided status fields
+      const statusUpdateFields: any = {};
+      Object.keys(statusUpdate).forEach(key => {
+        statusUpdateFields[`status.${key}`] = statusUpdate[key as keyof IOrder['status']];
+      });
       
       const result = await db.collection('orders').findOneAndUpdate(
         { orderId: orderId },
         { 
           $set: { 
-            status: status,
+            ...statusUpdateFields,
             updatedAt: new Date()
           }
         },

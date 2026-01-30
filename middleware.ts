@@ -11,14 +11,17 @@ const publicPaths = [
   "/privacy",
   "/terms",
   "/api/auth",
-  "/auth/login",
-  "/auth/register",
-  "/auth/logout"
 ];
 
 // List of API routes that require authentication
 const protectedApiRoutes = [
-  "/api/seller/products"
+  "/api/seller/products",
+  "/api/buyer/orders",
+  "/api/buyer/orders/update-status",
+  "/api/seller/orders",
+  "/api/seller/orders/update-status",
+  "/api/admin/orders",
+  "/api/admin/orders/update-status"
 ];
 
 export default withAuth(
@@ -54,26 +57,31 @@ export default withAuth(
       return NextResponse.next();
     }
 
-    // Check role-based access for dashboard routes
+    // Check role-based access for dashboard routes and API routes
     const isBuyerPath = req.nextUrl.pathname.startsWith("/general-dashboard/buyer-dashboard");
     const isSellerPath = req.nextUrl.pathname.startsWith("/general-dashboard/seller-dashboard");
     const isAdminPath = req.nextUrl.pathname.startsWith("/general-dashboard/admin-dashboard");
+    
+    // Check API route access
+    const isBuyerApi = req.nextUrl.pathname.startsWith("/api/buyer/orders");
+    const isSellerApi = req.nextUrl.pathname.startsWith("/api/seller/orders");
+    const isAdminApi = req.nextUrl.pathname.startsWith("/api/admin/orders");
 
     // Get user roles from token
     const userRoles = token.roles || [];
 
     // Check admin access
-    if (isAdminPath && !userRoles.includes('admin')) {
+    if ((isAdminPath || isAdminApi) && !userRoles.includes('admin')) {
       return NextResponse.redirect(new URL("/auth/unauthorized", req.url));
     }
 
     // Check seller access
-    if (isSellerPath && !userRoles.includes('seller') && !userRoles.includes('admin')) {
+    if ((isSellerPath || isSellerApi) && !userRoles.includes('seller') && !userRoles.includes('admin')) {
       return NextResponse.redirect(new URL("/auth/unauthorized", req.url));
     }
 
     // Check buyer access
-    if (isBuyerPath && !userRoles.includes('buyer') && !userRoles.includes('admin')) {
+    if ((isBuyerPath || isBuyerApi) && !userRoles.includes('buyer') && !userRoles.includes('admin')) {
       return NextResponse.redirect(new URL("/auth/unauthorized", req.url));
     }
 
