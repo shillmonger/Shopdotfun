@@ -59,7 +59,7 @@ interface Order {
   } | null;
   items: OrderItem[];
   total: number;
-  paymentStatus: string;
+  status: string;
   fulfillmentStatus:
     | "pending"
     | "processing"
@@ -195,7 +195,7 @@ export default function OrdersReceivedPage() {
                 </div>
               ) : (
                 orders.map((order) => {
-                  const isPaid = order.paymentStatus === "Paid";
+                  const isPaid = order.status === "paid";
 
                   return (
                     <div
@@ -223,40 +223,55 @@ export default function OrdersReceivedPage() {
                           <div className="flex items-center gap-2 justify-center md:justify-start">
                             {/* Payment Status Buttons */}
                             <button
-                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest cursor-pointer transition-all ${
-                                order.paymentStatus === "pending"
-                                  ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest transition-all ${
+                                order.status === "pending"
+                                  ? "bg-amber-500/10 text-amber-500 border-amber-500/20 cursor-pointer hover:bg-amber-500/20"
                                   : "bg-muted text-muted-foreground border-border cursor-not-allowed opacity-50"
                               }`}
                               onClick={() => {
-                                // Only allow pending for now
-                                if (order.paymentStatus !== "pending") return;
-                                // TODO: Handle status change later
+                                if (order.status === "pending") {
+                                  // Handle pending status action
+                                  console.log(`Marking order ${order.id} as processing`);
+                                }
                               }}
+                              disabled={order.status !== "pending"}
                             >
                               <Clock className="w-3 h-3" />
                               Pending
                             </button>
 
                             <button
-                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest cursor-not-allowed opacity-50 transition-all ${
-                                order.paymentStatus === "processing"
-                                  ? "bg-blue-500/10 text-blue-500 border-blue-500/20"
-                                  : "bg-muted text-muted-foreground border-border"
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest transition-all ${
+                                order.status === "processing"
+                                  ? "bg-blue-500/10 text-blue-500 border-blue-500/20 cursor-pointer hover:bg-blue-500/20"
+                                  : order.status === "paid"
+                                  ? "bg-muted text-muted-foreground border-border cursor-not-allowed opacity-50"
+                                  : "bg-muted text-muted-foreground border-border cursor-not-allowed opacity-50"
                               }`}
-                              disabled
+                              onClick={() => {
+                                if (order.status === "processing") {
+                                  // Handle processing status action
+                                  console.log(`Marking order ${order.id} as paid`);
+                                }
+                              }}
+                              disabled={order.status !== "processing"}
                             >
                               <Loader2 className="w-3 h-3" />
                               Processing
                             </button>
 
                             <button
-                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest cursor-not-allowed opacity-50 transition-all ${
-                                order.paymentStatus === "paid"
-                                  ? "bg-green-500/10 text-green-500 border-green-500/20"
-                                  : "bg-muted text-muted-foreground border-border"
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest transition-all ${
+                                order.status === "paid"
+                                  ? "bg-green-500/10 text-green-500 border-green-500/20 cursor-pointer hover:bg-green-500/20"
+                                  : "bg-muted text-muted-foreground border-border cursor-not-allowed opacity-50"
                               }`}
-                              disabled
+                              onClick={() => {
+                                if (order.status === "paid") {
+                                  // Handle paid status action
+                                  console.log(`Order ${order.id} is already paid`);
+                                }
+                              }}
                             >
                               <CheckCircle2 className="w-3 h-3" />
                               Paid
@@ -338,7 +353,7 @@ export default function OrdersReceivedPage() {
                                 </div>
 
                                 {/* Additional Product Info */}
-                                <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-[10px]">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-[10px]">
                                   {/* Description - full width on mobile */}
                                   <div className="bg-muted/50 rounded-lg p-3">
                                     <p className="font-bold text-muted-foreground uppercase tracking-wider mb-1">
@@ -365,45 +380,31 @@ export default function OrdersReceivedPage() {
                                       </p>
                                     </div>
 
-                                    {/* Shipping Address */}
-                                    <div className="bg-muted/50 rounded-lg p-3">
-                                      <p className="font-bold text-muted-foreground uppercase tracking-wider mb-1">
-                                        Shipping Address
-                                      </p>
-                                      {order.shippingAddress ? (
-                                        <div className="space-y-1">
-                                          <p className="font-medium">{order.shippingAddress.fullName}</p>
-                                          <p className="text-muted-foreground">{order.shippingAddress.street}</p>
-                                          <p className="text-muted-foreground">
-                                            {order.shippingAddress.city}, {order.shippingAddress.state}
-                                          </p>
-                                          <p className="text-muted-foreground">{order.shippingAddress.country}</p>
-                                          <div className="flex items-center gap-1 mt-2">
-                                            <MapPin className="w-3 h-3 text-primary" />
-                                            <a 
-                                              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${order.shippingAddress.street}, ${order.shippingAddress.city}, ${order.shippingAddress.state}, ${order.shippingAddress.country}`)}`}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              className="text-primary hover:underline font-medium"
-                                            >
-                                              View on Map
-                                            </a>
-                                          </div>
-                                        </div>
-                                      ) : (
-                                        <p className="text-muted-foreground">No address available</p>
-                                      )}
-                                    </div>
+                                    {/* Full buyer details */}
+<div
+  className="
+    bg-muted/50 rounded-lg p-3 cursor-pointer
+    border border-border
+    transition-all duration-300
 
-                                    {/* Item Total */}
-                                    <div className="bg-muted/50 rounded-lg p-3">
-                                      <p className="font-bold text-muted-foreground uppercase tracking-wider mb-1">
-                                        Item Total
-                                      </p>
-                                      <p className="font-black text-lg">
-                                        ${itemTotal.toFixed(2)}
-                                      </p>
-                                    </div>
+    animate-pulse-subtle
+    shadow-[0_0_10px_hsl(var(--primary)/0.35)]
+
+    hover:scale-[1.02]
+    hover:border-primary
+    hover:shadow-[0_0_16px_hsl(var(--primary)/0.6)]
+  "
+>
+  <p className="font-bold text-muted-foreground uppercase tracking-wider mb-1">
+    Buyer Details
+  </p>
+
+  <p className="text-muted-foreground">
+    Click to View all buyer information
+  </p>
+</div>
+
+
                                   </div>
                                 </div>
                               </div>
@@ -465,18 +466,9 @@ export default function OrdersReceivedPage() {
                           </div>
 
                           <div className="flex items-center gap-3 md:w-auto">
-                            {isPaid ? (
                               <button className="flex-1 md:flex-none bg-primary cursor-pointer text-primary-foreground text-center px-8 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2">
                                 Mark as Shipped <Truck className="w-4 h-4" />
                               </button>
-                            ) : (
-                              <button
-                                disabled
-                                className="flex-1 md:flex-none bg-muted text-muted-foreground/50 border border-border px-8 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 cursor-not-allowed"
-                              >
-                                Wait for Payment <Lock className="w-4 h-4" />
-                              </button>
-                            )}
                           </div>
                         </div>
                       </div>

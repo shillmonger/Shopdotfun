@@ -39,7 +39,7 @@ export async function GET(request: Request) {
         }
       ],
       total: order.paymentInfo.amount,
-      paymentStatus: "Paid", // All orders here have confirmed payments
+      status: order.status,
       fulfillmentStatus: order.status,
       productInfo: order.productInfo,
       paymentInfo: order.paymentInfo
