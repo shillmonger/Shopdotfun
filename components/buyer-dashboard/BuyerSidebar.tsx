@@ -40,7 +40,7 @@ export default function BuyerSidebar({ sidebarOpen, setSidebarOpen }: SidebarPro
     { name: "My Orders", icon: Package, href: `${basePath}/orders` },
     { name: "Order Tracking", icon: Truck, href: `${basePath}/order-tracking` },
     { name: "Browse Products", icon: Search, href: `${basePath}/browse-product` },
-    { name: "Notifications", icon: Bell, href: `${basePath}/notifications` },
+    { name: "Notifications", icon: Bell, href: `${basePath}/notification` },
     { name: "Payment History", icon: History, href: `${basePath}/payment-history` },
     { name: "Reviews & Ratings", icon: Star, href: `${basePath}/reviews-ratings` },
     { name: "Disputes/Complaints", icon: AlertOctagon, href: `${basePath}/disputes` },

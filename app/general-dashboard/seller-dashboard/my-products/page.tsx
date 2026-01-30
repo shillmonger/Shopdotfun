@@ -435,6 +435,24 @@ export default function MyProductsPage() {
                             {product.category}
                           </p>
                         </div>
+                        <div className="flex items-center justify-between mt-2">
+                          <div className="flex items-center gap-2">
+                            <Box className="w-3 h-3 text-muted-foreground" />
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase">
+                              Stock: {product.stock} units
+                            </p>
+                          </div>
+                          {product.stock <= 5 && product.stock > 0 && (
+                            <span className="text-[8px] font-black uppercase px-2 py-1 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                              Low Stock
+                            </span>
+                          )}
+                          {product.stock === 0 && (
+                            <span className="text-[8px] font-black uppercase px-2 py-1 rounded-full bg-destructive/10 text-destructive border border-destructive/20">
+                              Out of Stock
+                            </span>
+                          )}
+                        </div>
                         <div className="flex gap-2 mt-4">
                           <Link
                             href={`/general-dashboard/seller-dashboard/my-products/${product._id}`}
@@ -469,6 +487,22 @@ export default function MyProductsPage() {
                         <p className="text-[9px] font-bold text-muted-foreground uppercase">
                           {product.category}
                         </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Box className="w-2.5 h-2.5 text-muted-foreground" />
+                          <p className="text-[8px] font-bold text-muted-foreground uppercase">
+                            Stock: {product.stock}
+                          </p>
+                          {product.stock <= 5 && product.stock > 0 && (
+                            <span className="text-[7px] font-black uppercase px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                              Low
+                            </span>
+                          )}
+                          {product.stock === 0 && (
+                            <span className="text-[7px] font-black uppercase px-1.5 py-0.5 rounded bg-destructive/10 text-destructive border border-destructive/20">
+                              Out
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div className="hidden sm:block">
                         <span

@@ -40,6 +40,20 @@ export const adminApi = {
     return res.json();
   },
 
+  // Delete a product
+  async deleteProduct(productId: string) {
+    const res = await fetch(`/api/admin/products/${productId}`, {
+      method: 'DELETE',
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.message || 'Failed to delete product');
+    }
+
+    return res.json();
+  },
+
   // Update payment status (approve/reject)
   async updatePaymentStatus(paymentId: string, status: 'approved' | 'rejected') {
     const res = await fetch('/api/admin/payments', {

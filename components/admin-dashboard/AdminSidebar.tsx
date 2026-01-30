@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import {
   LayoutDashboard,
   Settings,
+  Boxes,
   Search,
   ShoppingCart,
   CreditCard,
@@ -44,9 +45,16 @@ export default function BuyerSidebar({
 
   // Navigation Items mapped to your updated admin pages
   const sidebarItems = [
-    { name: "Dashboard", icon: LayoutDashboard, href: `${basePath}/dashboard` },
-    { name: "Audit Logs", icon: FileText, href: `${basePath}/audit-logs` },
-    { name: "Products Control", icon: Package, href: `${basePath}/product-control` },
+    { 
+      name: "Dashboard", 
+      icon: LayoutDashboard, 
+      href: `${basePath}/dashboard` 
+    },
+    { 
+      name: "Audit Logs", 
+      icon: FileText, 
+      href: `${basePath}/audit-logs` 
+    },
     {
       name: "User Management",
       icon: UserCircle,
@@ -61,6 +69,16 @@ export default function BuyerSidebar({
       name: "Payment Approvals",
       icon: CreditCard,
       href: `${basePath}/payment-approvals`,
+    },
+    { 
+      name: "Products Control", 
+      icon: Package, 
+      href: `${basePath}/product-control` 
+    },
+    {
+      name: "Manage Products",
+      icon: Boxes,
+      href: `${basePath}/manage-products`,
     },
     {
       name: "Sellers Payouts",
