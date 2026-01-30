@@ -15,9 +15,9 @@ export async function GET(request: NextRequest) {
     // Get all orders for this buyer
     const orders = await OrderModel.findByBuyerEmail(buyerEmail);
     
-    // Count orders by status
-    const pendingCount = orders.filter(order => order.status === 'pending').length;
-    const shippedCount = orders.filter(order => order.status === 'shipped').length;
+    // Count orders by status based on new nested structure
+    const pendingCount = orders.filter(order => order.status?.shipping === 'pending').length;
+    const shippedCount = orders.filter(order => order.status?.shipping === 'shipped').length;
     
     return NextResponse.json({
       success: true,

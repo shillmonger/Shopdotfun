@@ -37,9 +37,9 @@ export default function BuyerOverviewPage() {
   const [userBalance, setUserBalance] = useState<number | null>(null);
   const [cartItemsCount, setCartItemsCount] = useState<number>(0);
   const [orderStats, setOrderStats] = useState<{
-    pending: number;
-    shipped: number;
-  }>({ pending: 0, shipped: 0 });
+    active: number;
+    received: number;
+  }>({ active: 0, received: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -70,8 +70,8 @@ export default function BuyerOverviewPage() {
         if (ordersResponse.ok) {
           const ordersData = await ordersResponse.json();
           setOrderStats({
-            pending: ordersData.stats?.pending || 0,
-            shipped: ordersData.stats?.shipped || 0,
+            active: ordersData.stats?.pending || 0,
+            received: ordersData.stats?.shipped || 0,
           });
         }
       } catch (error) {
@@ -100,13 +100,13 @@ export default function BuyerOverviewPage() {
     },
     {
       label: "Active Orders",
-      value: loading ? "Loading..." : orderStats.pending.toString(),
+      value: loading ? "Loading..." : orderStats.active.toString(),
       icon: Clock,
       link: "/general-dashboard/buyer-dashboard/orders",
     },
     {
       label: "Shipped Orders",
-      value: loading ? "Loading..." : orderStats.shipped.toString(),
+      value: loading ? "Loading..." : orderStats.received.toString(),
       icon: Truck,
       link: "/general-dashboard/buyer-dashboard/orders",
     },

@@ -397,7 +397,7 @@ export default function CheckoutPage() {
                       {
                         id: "vtc",
                         img: "https://i.postimg.cc/GpG8VMT5/Vertcoin.png",
-                        label: "Vertcoin (VAT)",
+                        label: "Vertcoin (VTC)",
                       },
                       {
                         id: "btc",
