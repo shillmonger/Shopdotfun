@@ -5,7 +5,7 @@ import OrderModel from '@/models/Order';
 
 export async function GET(
   request: Request,
-  { params }: { params: { orderId: string } }
+  { params }: { params: Promise<{ orderId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -17,7 +17,7 @@ export async function GET(
       );
     }
 
-    const { orderId } = params;
+    const { orderId } = await params;
 
     if (!orderId) {
       return NextResponse.json(
