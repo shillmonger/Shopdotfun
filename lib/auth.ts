@@ -36,6 +36,9 @@ export const authOptions: NextAuthOptions = {
           };
         } catch (error) {
           console.error('Authentication error:', error);
+          if (error instanceof Error && error.message === 'Account suspended') {
+            throw new Error('Account suspended');
+          }
           throw new Error(error instanceof Error ? error.message : 'Authentication failed');
         }
       }

@@ -14,6 +14,7 @@ export interface UserBase {
   phone: string;
   country: string;
   roles: UserRole[];
+  status: 'Active' | 'Suspended';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -141,6 +142,11 @@ class UserModel {
     // Check if user has the required role OR is admin (admin can authenticate as any role)
     if (!user.roles.includes(role) && !user.roles.includes('admin')) {
       return null;
+    }
+    
+    // Check if user account is active
+    if (user.status !== 'Active') {
+      throw new Error('Account suspended');
     }
     
     // Compare the provided password with the hashed password in the database

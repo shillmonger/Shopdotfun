@@ -52,6 +52,9 @@ export default function LoginPage() {
       const emailCheck = await checkEmailResponse.json();
       
       if (!checkEmailResponse.ok) {
+        if (emailCheck.error === 'Account suspended') {
+          throw new Error('ACCOUNT_SUSPENDED');
+        }
         throw new Error(emailCheck.error || 'Failed to check email');
       }
 
@@ -70,6 +73,8 @@ export default function LoginPage() {
       if (result?.error) {
         if (result.error === 'CredentialsSignin') {
           throw new Error('INVALID_PASSWORD');
+        } else if (result.error === 'Account suspended') {
+          throw new Error('ACCOUNT_SUSPENDED');
         } else if (result.error === 'Invalid role') {
           throw new Error('INVALID_ROLE');
         } else {
@@ -94,6 +99,14 @@ export default function LoginPage() {
         
         if (error.message.includes('Failed to check email')) {
           toast.error('Unable to verify your account. Please try again later.');
+        } else if (error.message === 'ACCOUNT_SUSPENDED') {
+          toast.error(
+            <div>
+              <p>Your account has been suspended.</p>
+              <p>Please contact support for assistance.</p>
+            </div>,
+            { duration: 5000 }
+          );
         } else if (error.message === 'USER_NOT_FOUND') {
           toast.error(
             <div>

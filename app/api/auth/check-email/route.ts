@@ -15,9 +15,24 @@ export async function POST(request: Request) {
     // Check if user exists with this email and role
     const user = await UserModel.findUserByEmail(email, role as 'buyer' | 'seller');
     
+    if (!user) {
+      return NextResponse.json({ 
+        exists: false,
+        role: null
+      });
+    }
+
+    // Check if user account is suspended
+    if (user.status === 'Suspended') {
+      return NextResponse.json(
+        { error: 'Account suspended' },
+        { status: 403 }
+      );
+    }
+    
     return NextResponse.json({ 
-      exists: !!user,
-      role: user?.role
+      exists: true,
+      role: user.role
     });
 
   } catch (error) {
