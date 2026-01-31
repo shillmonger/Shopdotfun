@@ -48,11 +48,27 @@ export default function SellerHeader({ sidebarOpen, setSidebarOpen }: HeaderProp
   useEffect(() => {
     const fetchNotificationCount = async () => {
       try {
-        const response = await fetch('/api/seller/notifications');
-        if (response.ok) {
-          const data = await response.json();
-          setNotificationCount(data.data?.length || 0);
+        // Fetch both notifications and products
+        const [notificationsResponse, productsResponse] = await Promise.all([
+          fetch('/api/seller/notifications'),
+          fetch('/api/seller/products')
+        ]);
+
+        let totalCount = 0;
+
+        // Count regular notifications
+        if (notificationsResponse.ok) {
+          const notificationsData = await notificationsResponse.json();
+          totalCount += notificationsData.data?.length || 0;
         }
+
+        // Count product notifications (all products with any status)
+        if (productsResponse.ok) {
+          const productsData = await productsResponse.json();
+          totalCount += productsData.data?.length || 0;
+        }
+
+        setNotificationCount(totalCount);
       } catch (error) {
         console.error('Error fetching notification count:', error);
       }

@@ -17,7 +17,9 @@ import {
   Loader2,
   AlertCircle,
   ShoppingBag,
-  Info
+  Info,
+  Clock,
+  AlertTriangle
 } from "lucide-react";
 import Link from "next/link";
 
@@ -30,12 +32,25 @@ interface Notification {
   id: string;
   title: string;
   message: string;
-  type: "new_order" | "order_update" | "payment" | "system";
+  type: "new_order" | "order_update" | "payment" | "system" | "product_approved" | "product_pending" | "product_rejected";
   status: string;
   date: string;
   isRead: boolean;
   relatedOrderId?: string;
   relatedOrderLink?: string;
+  relatedProductId?: string;
+  rejectionReason?: string;
+}
+
+interface Product {
+  _id: string;
+  name: string;
+  description: string;
+  price: number;
+  status: "pending" | "approved" | "rejected";
+  rejectionReason?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 const fetchNotifications = async () => {
@@ -45,6 +60,71 @@ const fetchNotifications = async () => {
   }
   const result = await response.json();
   return result.data || [];
+};
+
+const fetchProducts = async (): Promise<Product[]> => {
+  const response = await fetch('/api/seller/products');
+  if (!response.ok) {
+    throw new Error('Failed to fetch products');
+  }
+  const result = await response.json();
+  return result.data || [];
+};
+
+const convertProductToNotification = (product: Product): Notification => {
+  const date = new Date(product.updatedAt).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+
+  switch (product.status) {
+    case 'approved':
+      return {
+        id: `product-${product._id}`,
+        title: 'Product Approved',
+        message: `Your product "${product.name}" has been approved and is now live on the marketplace.`,
+        type: 'product_approved',
+        status: 'approved',
+        date,
+        isRead: false,
+        relatedProductId: product._id
+      };
+    case 'pending':
+      return {
+        id: `product-${product._id}`,
+        title: 'Product Under Review',
+        message: `Your product "${product.name}" is currently under review by our team.`,
+        type: 'product_pending',
+        status: 'pending',
+        date,
+        isRead: false,
+        relatedProductId: product._id
+      };
+    case 'rejected':
+      return {
+        id: `product-${product._id}`,
+        title: 'Product Rejected',
+        message: `Your product "${product.name}" was not approved.`,
+        type: 'product_rejected',
+        status: 'rejected',
+        date,
+        isRead: false,
+        relatedProductId: product._id,
+        rejectionReason: product.rejectionReason
+      };
+    default:
+      return {
+        id: `product-${product._id}`,
+        title: 'Product Update',
+        message: `There's an update regarding your product "${product.name}".`,
+        type: 'system',
+        status: product.status,
+        date,
+        isRead: false,
+        relatedProductId: product._id
+      };
+  }
 };
 
 export default function SellerNotificationsPage() {
@@ -57,8 +137,22 @@ export default function SellerNotificationsPage() {
   useEffect(() => {
     const fetchNotificationsData = async () => {
       try {
-        const data = await fetchNotifications();
-        setNotifications(data);
+        const [notificationsData, productsData] = await Promise.all([
+          fetchNotifications(),
+          fetchProducts()
+        ]);
+        
+        // Convert products to notifications
+        const productNotifications = productsData.map(convertProductToNotification);
+        
+        // Combine and sort all notifications by date (most recent first)
+        const allNotifications = [...notificationsData, ...productNotifications].sort((a, b) => {
+          const dateA = new Date(a.date).getTime();
+          const dateB = new Date(b.date).getTime();
+          return dateB - dateA;
+        });
+        
+        setNotifications(allNotifications);
       } catch (error) {
         setError(error instanceof Error ? error.message : 'Unknown error occurred');
       } finally {
@@ -74,6 +168,9 @@ export default function SellerNotificationsPage() {
 
   // Calculate notification statistics
   const newOrderCount = notifications.filter(n => n.type === "new_order").length;
+  const productApprovedCount = notifications.filter(n => n.type === "product_approved").length;
+  const productPendingCount = notifications.filter(n => n.type === "product_pending").length;
+  const productRejectedCount = notifications.filter(n => n.type === "product_rejected").length;
   const unreadCount = notifications.filter(n => !n.isRead).length;
   const totalCount = notifications.length;
 
@@ -89,7 +186,7 @@ export default function SellerNotificationsPage() {
             
             {/* Header Section */}
             <div className="mb-8">
-              <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tighter italic leading-none">
+              <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tighter italic leading-none">
                 Feed<span className="text-primary not-italic">back</span>
               </h1>
               <div className="flex items-center gap-4 mt-3">
@@ -137,12 +234,24 @@ export default function SellerNotificationsPage() {
                               ? "bg-blue-500/10 border-blue-500/30" 
                               : notif.type === "order_update"
                               ? "bg-orange-500/10 border-orange-500/30"
+                              : notif.type === "product_approved"
+                              ? "bg-green-500/10 border-green-500/30"
+                              : notif.type === "product_pending"
+                              ? "bg-yellow-500/10 border-yellow-500/30"
+                              : notif.type === "product_rejected"
+                              ? "bg-red-500/10 border-red-500/30"
                               : "bg-gray-500/10 border-gray-500/30"
                           }`}>
                             {notif.type === "new_order" ? (
                               <ShoppingBag className="w-7 h-7 text-blue-500" />
                             ) : notif.type === "order_update" ? (
                               <Package className="w-7 h-7 text-orange-500" />
+                            ) : notif.type === "product_approved" ? (
+                              <CheckCircle2 className="w-7 h-7 text-green-500" />
+                            ) : notif.type === "product_pending" ? (
+                              <Clock className="w-7 h-7 text-yellow-500" />
+                            ) : notif.type === "product_rejected" ? (
+                              <XCircle className="w-7 h-7 text-red-500" />
                             ) : (
                               <Info className="w-7 h-7 text-gray-500" />
                             )}
@@ -156,6 +265,12 @@ export default function SellerNotificationsPage() {
                                 <ShoppingBag className="w-4 h-4 text-primary" />
                               ) : notif.type === "order_update" ? (
                                 <Package className="w-4 h-4 text-primary" />
+                              ) : notif.type === "product_approved" ? (
+                                <CheckCircle2 className="w-4 h-4 text-green-500" />
+                              ) : notif.type === "product_pending" ? (
+                                <Clock className="w-4 h-4 text-yellow-500" />
+                              ) : notif.type === "product_rejected" ? (
+                                <XCircle className="w-4 h-4 text-red-500" />
                               ) : (
                                 <Info className="w-4 h-4 text-primary" />
                               )}
@@ -172,6 +287,13 @@ export default function SellerNotificationsPage() {
                             <p className="text-[11px] font-medium leading-relaxed text-foreground/90">
                               {notif.message}
                             </p>
+                            {notif.rejectionReason && (
+                              <div className="mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded-md">
+                                <p className="text-[10px] font-medium text-red-600">
+                                  <strong>Reason:</strong> {notif.rejectionReason}
+                                </p>
+                              </div>
+                            )}
                           </div>
 
                           {notif.relatedOrderLink && (
@@ -180,6 +302,14 @@ export default function SellerNotificationsPage() {
                               className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase text-primary hover:underline"
                             >
                               View Order <ChevronRight className="w-3 h-3" />
+                            </Link>
+                          )}
+                          {notif.relatedProductId && (
+                            <Link 
+                              href={`/seller-dashboard/products`}
+                              className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase text-primary hover:underline"
+                            >
+                              View Product <ChevronRight className="w-3 h-3" />
                             </Link>
                           )}
                         </div>
@@ -216,7 +346,7 @@ export default function SellerNotificationsPage() {
                     }
                   </p>
                   <div className="mt-3 text-[9px] font-bold uppercase opacity-75">
-                    {newOrderCount} new orders • {totalCount - newOrderCount} other
+                    {newOrderCount} new orders • {productApprovedCount} approved • {productPendingCount} pending • {productRejectedCount} rejected
                   </div>
                 </div>
 
