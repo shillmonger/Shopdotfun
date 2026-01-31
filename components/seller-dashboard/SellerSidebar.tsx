@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 import {
   UserCheck,
   PlusCircle,
@@ -34,6 +35,7 @@ export default function SellerSidebar({ sidebarOpen, setSidebarOpen }: SidebarPr
   const pathname = usePathname();
   const router = useRouter();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const { isAdmin } = useAuth();
 
   const basePath = "/general-dashboard/seller-dashboard";
 
@@ -48,7 +50,7 @@ export default function SellerSidebar({ sidebarOpen, setSidebarOpen }: SidebarPr
     { name: "Sales Analytics", icon: BarChart3, href: `${basePath}/analytics` },
     { name: "Payout History", icon: History, href: `${basePath}/payouts` },
     { name: "Profile & Settings", icon: UserCheck, href: `${basePath}/profile-settings` },
-    { name: "# Admin Auth Panel", icon: Server, href: `/general-dashboard/admin-dashboard/dashboard` },
+    ...(isAdmin ? [{ name: "# Admin Auth Panel", icon: Server, href: `/general-dashboard/admin-dashboard/dashboard` }] : []),
   ];
 
   const isActive = (href: string) => pathname === href;

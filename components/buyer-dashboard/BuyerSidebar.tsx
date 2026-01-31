@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 import {
   LayoutDashboard,
   Settings, // Settings icon
@@ -31,6 +32,7 @@ export default function BuyerSidebar({ sidebarOpen, setSidebarOpen }: SidebarPro
   const pathname = usePathname();
   const router = useRouter();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const { isAdmin } = useAuth();
   const basePath = "/general-dashboard/buyer-dashboard";
 
   // Navigation Items mapped to your specific list
@@ -44,7 +46,7 @@ export default function BuyerSidebar({ sidebarOpen, setSidebarOpen }: SidebarPro
     { name: "Reviews & Ratings", icon: Star, href: `${basePath}/reviews-ratings` },
     { name: "Disputes/Complaints", icon: AlertOctagon, href: `${basePath}/disputes` },
     { name: "Profile & Settings", icon: Settings, href: `${basePath}/profile-settings` },
-    { name: "# Admin Auth Panel", icon: Server, href: `/general-dashboard/admin-dashboard/dashboard` },
+    ...(isAdmin ? [{ name: "# Admin Auth Panel", icon: Server, href: `/general-dashboard/admin-dashboard/dashboard` }] : []),
   ];
 
   return (

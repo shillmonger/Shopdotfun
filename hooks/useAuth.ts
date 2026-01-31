@@ -5,7 +5,7 @@ interface ExtendedUser {
   id: string;
   name?: string | null;
   email?: string | null;
-  role?: string;
+  roles?: string[];
 }
 
 interface ExtendedSession extends Session {
@@ -19,8 +19,9 @@ export function useAuth() {
   const user = extendedSession?.user;
   const isAuthenticated = status === "authenticated";
   const isLoading = status === "loading";
-  const isBuyer = user?.role === "buyer";
-  const isSeller = user?.role === "seller";
+  const isBuyer = user?.roles?.includes("buyer");
+  const isSeller = user?.roles?.includes("seller");
+  const isAdmin = user?.roles?.includes("admin");
 
   return {
     session: extendedSession,
@@ -29,6 +30,7 @@ export function useAuth() {
     isLoading,
     isBuyer,
     isSeller,
+    isAdmin,
     update,
   };
 }
