@@ -60,6 +60,16 @@ export interface Seller extends UserBase {
   businessName: string;
   businessAddress: string;
   cryptoPayoutDetails?: CryptoPayoutDetails[];
+  userBalance?: number;
+  paymentHistory?: Array<{
+    paymentId: ObjectId;
+    amountReceived: number;
+    cryptoAmount: string;
+    cryptoMethod: string;
+    receivedAt: Date;
+    orderTotal: number;
+    orderId: string;
+  }>;
 }
 
 export type User = Buyer | Seller;
@@ -388,6 +398,98 @@ class UserModel {
       return result;
     } catch (error) {
       console.error('UserModel.updateUserBalance error:', error);
+      throw error;
+    }
+  }
+
+  static async updateSellerBalance(sellerEmail: string, amountToAdd: number) {
+    try {
+      const client = await clientPromise;
+      const db = client.db('shop_dot_fun');
+      
+      const result = await db.collection('sellers').findOneAndUpdate(
+        { email: sellerEmail },
+        { 
+          $inc: { userBalance: amountToAdd },
+          $set: { updatedAt: new Date() }
+        },
+        { returnDocument: 'after' }
+      );
+      
+      return result;
+    } catch (error) {
+      console.error('UserModel.updateSellerBalance error:', error);
+      throw error;
+    }
+  }
+
+  static async addSellerPaymentHistory(sellerEmail: string, paymentData: {
+    paymentId: ObjectId;
+    amountReceived: number;
+    cryptoAmount: string;
+    cryptoMethod: string;
+    orderTotal: number;
+    orderId: string;
+  }) {
+    try {
+      const client = await clientPromise;
+      const db = client.db('shop_dot_fun');
+      
+      const update: any = {
+        $push: {
+          paymentHistory: {
+            ...paymentData,
+            receivedAt: new Date()
+          }
+        },
+        $set: { updatedAt: new Date() }
+      };
+      
+      const result = await db.collection('sellers').findOneAndUpdate(
+        { email: sellerEmail },
+        update,
+        { returnDocument: 'after' }
+      );
+      
+      return result;
+    } catch (error) {
+      console.error('UserModel.addSellerPaymentHistory error:', error);
+      throw error;
+    }
+  }
+
+  static async addBuyerPaymentHistory(buyerEmail: string, paymentData: {
+    paymentId: ObjectId;
+    amountDeducted: number;
+    cryptoAmount: string;
+    cryptoMethod: string;
+    orderTotal: number;
+    orderId: string;
+  }) {
+    try {
+      const client = await clientPromise;
+      const db = client.db('shop_dot_fun');
+      
+      const update: any = {
+        $push: {
+          paymentHistory: {
+            ...paymentData,
+            approvedAt: new Date(),
+            amountPaid: paymentData.amountDeducted
+          }
+        },
+        $set: { updatedAt: new Date() }
+      };
+      
+      const result = await db.collection('buyers').findOneAndUpdate(
+        { email: buyerEmail },
+        update,
+        { returnDocument: 'after' }
+      );
+      
+      return result;
+    } catch (error) {
+      console.error('UserModel.addBuyerPaymentHistory error:', error);
       throw error;
     }
   }

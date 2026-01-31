@@ -133,7 +133,11 @@ export default function MonitorOrdersPage() {
     const result = await updateOrderStatus(orderId, updates);
     
     if (result.success) {
-      toast.success(`Action: ${actionType} successful`);
+      if (actionType === 'release') {
+        toast.success(`Payment released successfully! Amount transferred from buyer to seller.`);
+      } else {
+        toast.success(`Action: ${actionType} successful`);
+      }
       
       // Update the local order state
       setOrders(prevOrders => 

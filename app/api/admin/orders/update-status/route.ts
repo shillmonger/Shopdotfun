@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import OrderModel from '@/models/Order';
+import UserModel from '@/models/User';
 import { validateStatusUpdate } from '@/lib/order-status';
+import { ObjectId } from 'mongodb';
 
 export async function PATCH(request: NextRequest) {
   try {
@@ -42,6 +44,51 @@ export async function PATCH(request: NextRequest) {
 
     // Update the order
     const updatedOrder = await OrderModel.updateStatus(orderId, updates);
+
+    // Handle payment release logic
+    if (updates.payment === 'paid' && order.status.payment !== 'paid') {
+      try {
+        // Get buyer and seller information
+        const buyerEmail = order.buyerInfo.email;
+        const sellerEmail = order.sellerInfo.sellerEmail;
+        const orderAmount = order.paymentInfo.amount;
+        const paymentId = order.paymentInfo.paymentId;
+        const cryptoAmount = order.paymentInfo.cryptoAmount;
+        const cryptoMethod = order.paymentInfo.cryptoMethodUsed;
+
+        // Deduct amount from buyer's balance
+        await UserModel.updateUserBalance(buyerEmail, -orderAmount);
+        
+        // Add deduction record to buyer's payment history
+        await UserModel.addBuyerPaymentHistory(buyerEmail, {
+          paymentId: new ObjectId(paymentId),
+          amountDeducted: orderAmount,
+          cryptoAmount,
+          cryptoMethod,
+          orderTotal: orderAmount,
+          orderId: order.orderId
+        });
+
+        // Credit amount to seller's balance
+        await UserModel.updateSellerBalance(sellerEmail, orderAmount);
+        
+        // Add credit record to seller's payment history
+        await UserModel.addSellerPaymentHistory(sellerEmail, {
+          paymentId: new ObjectId(paymentId),
+          amountReceived: orderAmount,
+          cryptoAmount,
+          cryptoMethod,
+          orderTotal: orderAmount,
+          orderId: order.orderId
+        });
+
+        console.log(`Payment released: ${orderAmount} deducted from ${buyerEmail} and credited to ${sellerEmail}`);
+      } catch (balanceError) {
+        console.error('Error updating user balances:', balanceError);
+        // Don't fail the order update if balance update fails
+        // Log it for manual intervention
+      }
+    }
 
     return NextResponse.json({
       success: true,
