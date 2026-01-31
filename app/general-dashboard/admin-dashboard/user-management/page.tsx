@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { 
   Users, 
   ShieldCheck, 
@@ -10,10 +10,8 @@ import {
   UserX, 
   ShieldAlert,
   Clock,
-  ArrowRightLeft,
   ChevronRight,
   UserCircle,
-  UserCog,
   Eye,
   CheckCircle2,
   ChevronDown,
@@ -22,7 +20,9 @@ import {
   Globe,
   Wallet,
   MapPin,
-  CreditCard
+  Lock,
+  Unlock,
+  ShieldQuestion
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -35,16 +35,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -52,63 +42,191 @@ import AdminHeader from "@/components/admin-dashboard/AdminHeader";
 import AdminSidebar from "@/components/admin-dashboard/AdminSidebar";
 import AdminNav from "@/components/admin-dashboard/AdminNav";
 
-// Mock Data structure based on your JSON
-const INITIAL_USERS = [
-  { 
-    _id: "697631f018a6fccafd099ba5", 
-    name: "Shillmonger Buyer", 
-    email: "shillmonger0@gmail.com", 
-    phone: "+2348059268860",
-    country: "Nigeria",
-    roles: ["buyer"], 
-    status: "Active", 
-    image: "https://github.com/shadcn.png",
-    userBalance: 284.68,
-    addresses: [{ street: "33/34 Ogbuozo street", city: "Enugu", state: "Ebonyi" }],
-    paymentHistory: [{ amountPaid: 142.34, cryptoMethod: "usdt" }],
-    createdAt: "2026-01-25T15:08:31.904Z"
-  },
-  { 
-    _id: "69762e2c67e2d514e2dedfc2", 
-    name: "Shillmonger Seller", 
-    email: "seller@gmail.com", 
-    phone: "+2348059268860",
-    country: "Nigeria",
-    businessName: "Shillmonger Products",
-    businessAddress: "33/34 Ogbuozo street",
-    roles: ["seller", "admin"], 
-    status: "Active", 
-    image: "", 
-    cryptoPayoutDetails: [{ walletName: "Solana", currency: "SOL" }],
-    createdAt: "2026-01-25T14:52:28.244Z"
-  },
-];
+// Types
+interface Buyer {
+  _id: string;
+  name: string;
+  email: string;
+  phone: string;
+  country: string;
+  roles: string[];
+  status?: string;
+  profileImage?: string;
+  userBalance?: number;
+  addresses?: Array<{
+    fullName: string;
+    phone: string;
+    street: string;
+    city: string;
+    state: string;
+    country: string;
+    isDefault: boolean;
+  }>;
+  paymentHistory?: Array<{
+    paymentId: string;
+    amountPaid: number;
+    cryptoAmount: string;
+    cryptoMethod: string;
+    orderTotal: number;
+    approvedAt: string;
+  }>;
+  createdAt: string;
+  updatedAt: string;
+  userType?: 'buyer';
+}
+
+interface Seller {
+  _id: string;
+  name: string;
+  email: string;
+  phone: string;
+  country: string;
+  businessName?: string;
+  businessAddress?: string;
+  roles: string[];
+  status?: string;
+  profileImage?: string;
+  cryptoPayoutDetails?: Array<{
+    walletName: string;
+    walletAddress: string;
+    network: string;
+    currency: string;
+    isDefault: boolean;
+    verified: boolean;
+  }>;
+  createdAt: string;
+  updatedAt: string;
+  userType?: 'seller';
+}
+
+type User = Buyer | Seller;
+
+// Fallback profile image
+const FALLBACK_IMAGE = "https://github.com/shadcn.png";
 
 export default function UserRBACPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [users, setUsers] = useState(INITIAL_USERS);
-  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const stats = useMemo(() => ({
-    total: users.length,
-    sellers: users.filter(u => u.roles.includes("seller")).length,
-    buyers: users.filter(u => u.roles.includes("buyer")).length,
-    admins: users.filter(u => u.roles.includes("admin")).length,
-  }), [users]);
+  // Fetch users on component mount
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
-  const toggleAdminRole = (userId: string) => {
-    setUsers(users.map(u => {
-      if (u._id === userId) {
-        const hasAdmin = u.roles.includes("admin");
-        const newRoles = hasAdmin 
-          ? u.roles.filter(r => r !== "admin") 
-          : [...u.roles, "admin"];
-        
-        toast.success(hasAdmin ? "Admin Access Revoked" : "Admin Access Granted");
-        return { ...u, roles: newRoles };
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Fetch both buyers and sellers
+      const [buyersResponse, sellersResponse] = await Promise.all([
+        fetch('/api/admin/users/buyers'),
+        fetch('/api/admin/users/sellers')
+      ]);
+
+      if (!buyersResponse.ok || !sellersResponse.ok) {
+        throw new Error('Failed to fetch users');
       }
-      return u;
-    }));
+
+      const buyers = await buyersResponse.json();
+      const sellers = await sellersResponse.json();
+
+      // Combine and add default status if not present
+      const allUsers = [
+        ...buyers.map((buyer: Buyer) => ({ 
+          ...buyer, 
+          userType: 'buyer',
+          status: buyer.status || 'Active',
+          profileImage: buyer.profileImage || FALLBACK_IMAGE
+        })),
+        ...sellers.map((seller: Seller) => ({ 
+          ...seller, 
+          userType: 'seller',
+          status: seller.status || 'Active',
+          profileImage: seller.profileImage || FALLBACK_IMAGE
+        }))
+      ];
+
+      setUsers(allUsers);
+    } catch (err) {
+      console.error('Error fetching users:', err);
+      setError('Failed to load users');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleAdminRole = async (userId: string, userType: 'buyer' | 'seller') => {
+    try {
+      const user = users.find(u => u._id === userId);
+      const hasAdmin = user?.roles.includes("admin");
+      
+      const response = await fetch('/api/admin/users/update-role', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          userType: userType + 's', // buyers or sellers
+          action: hasAdmin ? 'remove' : 'add'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update role');
+      }
+
+      // Update local state
+      setUsers(users.map(u => {
+        if (u._id === userId) {
+          const newRoles = hasAdmin 
+            ? u.roles.filter(r => r !== "admin") 
+            : [...u.roles, "admin"];
+          toast.success(hasAdmin ? "Admin Privileges Removed" : "Admin Privileges Granted");
+          return { ...u, roles: newRoles };
+        }
+        return u;
+      }));
+    } catch (err) {
+      console.error('Error updating role:', err);
+      toast.error('Failed to update role');
+    }
+  };
+
+  const toggleUserStatus = async (userId: string, currentStatus: string, userType: 'buyer' | 'seller') => {
+    try {
+      const newStatus = currentStatus === "Active" ? "Suspended" : "Active";
+      
+      const response = await fetch('/api/admin/users/update-status', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          userType: userType + 's', // buyers or sellers
+          status: newStatus
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update status');
+      }
+
+      // Update local state
+      setUsers(users.map(u => u._id === userId ? { ...u, status: newStatus } : u));
+      toast(newStatus === "Suspended" ? "User Suspended" : "User Activated", {
+        description: `Account status updated to ${newStatus}`,
+        icon: newStatus === "Active" ? <Unlock className="w-4 h-4"/> : <Lock className="w-4 h-4"/>
+      });
+    } catch (err) {
+      console.error('Error updating status:', err);
+      toast.error('Failed to update status');
+    }
   };
 
   return (
@@ -121,109 +239,128 @@ export default function UserRBACPage() {
         <main className="flex-1 overflow-y-auto p-4 md:p-10 pb-32">
           <div className="max-w-7xl mx-auto">
             
-            {/* Header & Stats */}
             <div className="mb-10">
               <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter italic leading-none">
-                Identity <span className="text-primary not-italic">Manager</span>
+                Control <span className="text-primary not-italic">Center</span>
               </h1>
-              
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
-                {[
-                  { label: "Total Users", val: stats.total, icon: Users },
-                  { label: "Sellers", val: stats.sellers, icon: UserPlus },
-                  { label: "Buyers", val: stats.buyers, icon: UserCircle },
-                  { label: "Admins", val: stats.admins, icon: ShieldCheck },
-                ].map((s, i) => (
-                  <div key={i} className="bg-card border border-border p-5 rounded-[2rem] flex items-center justify-between">
-                    <div>
-                      <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">{s.label}</p>
-                      <p className="text-2xl font-black italic tracking-tighter">{s.val}</p>
-                    </div>
-                    <s.icon className="w-8 h-8 opacity-10 text-primary" />
-                  </div>
-                ))}
-              </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
               
-              {/* User List Table */}
               <div className="lg:col-span-8 bg-card border border-border rounded-[2rem] overflow-hidden shadow-sm">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="bg-muted/30 border-b border-border">
-                        <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground">User</th>
-                        <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground">Assigned Roles</th>
-                        <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border">
-                      {users.map((user) => (
-                        <tr key={user._id} className="hover:bg-muted/10 transition-colors group">
-                          <td className="px-6 py-5">
-                            <div className="flex items-center gap-3">
-                              <Avatar className="h-10 w-10 border-2 border-primary/20">
-                                <AvatarImage src={user.image} />
-                                <AvatarFallback className="font-black text-xs">{user.name.substring(0,2).toUpperCase()}</AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="font-black text-sm uppercase italic tracking-tighter">{user.name}</p>
-                                <p className="text-[9px] font-bold text-muted-foreground uppercase">{user.email}</p>
+                {loading ? (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="text-center space-y-2">
+                      <Clock className="w-8 h-8 mx-auto animate-spin opacity-50" />
+                      <p className="text-[10px] font-black uppercase text-muted-foreground italic">Loading users...</p>
+                    </div>
+                  </div>
+                ) : error ? (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="text-center space-y-2">
+                      <ShieldAlert className="w-8 h-8 mx-auto opacity-20" />
+                      <p className="text-[10px] font-black uppercase text-destructive italic">{error}</p>
+                      <Button onClick={fetchUsers} size="sm" className="text-[10px] font-black uppercase">
+                        Retry
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr className="bg-muted/30 border-b border-border">
+                          <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground">Identity</th>
+                          <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground">Status</th>
+                          <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground">Role Action</th>
+                          <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground text-right">Status Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {users.map((user) => (
+                          <tr key={user._id} className="hover:bg-muted/5 transition-colors group">
+                            <td className="px-6 py-5">
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-10 w-10 border-2 border-primary/20">
+                                  <AvatarImage src={user.profileImage} />
+                                  <AvatarFallback className="font-black text-xs">{user.name.substring(0,2).toUpperCase()}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <p className="font-black text-sm uppercase italic tracking-tighter leading-tight">{user.name}</p>
+                                  <div className="flex gap-1 mt-0.5">
+                                    {user.roles.map(r => (
+                                      <span key={r} className={`text-[7px] font-black uppercase px-1.5 py-0 rounded border ${r === 'admin' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>{r}</span>
+                                    ))}
+                                  </div>
+                                </div>
                               </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-5">
-                            <div className="flex flex-wrap gap-1">
-                              {user.roles.map(role => (
-                                <span key={role} className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full border ${
-                                  role === 'admin' ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted text-foreground border-border'
-                                }`}>
-                                  {role}
-                                </span>
-                              ))}
-                            </div>
-                          </td>
-                          <td className="px-6 py-5 text-right">
-                            <div className="flex justify-end gap-2">
-                              {/* Manage Admin Rights */}
+                            </td>
+                            
+                            <td className="px-6 py-5">
+                              <span className={`text-[9px] font-black uppercase px-2 py-1 rounded-md border ${
+                                user.status === "Active" ? "bg-green-500/10 text-green-500 border-green-500/20" : "bg-destructive/10 text-destructive border-destructive/20"
+                              }`}>
+                                {user.status}
+                              </span>
+                            </td>
+
+                            <td className="px-6 py-5">
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <Button variant="outline" size="sm" className="h-8 rounded-lg text-[10px] font-black uppercase">
-                                    Role Action <ChevronDown className="ml-2 w-3 h-3" />
+                                  <Button variant="outline" size="sm" className="h-8 rounded-lg text-[10px] font-black uppercase border-dashed">
+                                    <ShieldQuestion className="w-3 h-3 mr-2" /> Permissions <ChevronDown className="ml-2 w-3 h-3" />
                                   </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="font-black uppercase text-[10px]">
-                                  <DropdownMenuLabel>Modify Privileges</DropdownMenuLabel>
-                                  <DropdownMenuSeparator />
+                                <DropdownMenuContent align="start" className="font-black uppercase text-[10px]">
                                   {user.roles.includes("admin") ? (
-                                    <DropdownMenuItem className="text-destructive" onClick={() => toggleAdminRole(user._id)}>
-                                      Remove Admin Role
+                                    <DropdownMenuItem onClick={() => toggleAdminRole(user._id, user.userType!)} className="text-destructive">
+                                      Remove Admin
                                     </DropdownMenuItem>
                                   ) : (
-                                    <DropdownMenuItem className="text-primary" onClick={() => toggleAdminRole(user._id)}>
-                                      Make Admin
+                                    <DropdownMenuItem onClick={() => toggleAdminRole(user._id, user.userType!)} className="text-primary">
+                                      Set as Admin
                                     </DropdownMenuItem>
                                   )}
                                 </DropdownMenuContent>
                               </DropdownMenu>
+                            </td>
 
-                              <button 
-                                onClick={() => setSelectedUser(user)}
-                                className="p-2 border border-border rounded-lg hover:bg-foreground hover:text-background transition-all"
-                              >
-                                <Eye className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                            <td className="px-6 py-5 text-right flex justify-end gap-2">
+                               <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="secondary" size="sm" className="h-8 rounded-lg text-[10px] font-black uppercase">
+                                      Access <ChevronDown className="ml-2 w-3 h-3" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" className="font-black uppercase text-[10px]">
+                                    {user.status === "Active" ? (
+                                      <DropdownMenuItem onClick={() => toggleUserStatus(user._id, user.status!, user.userType!)} className="text-destructive">
+                                        <UserX className="w-3 h-3 mr-2" /> Suspend User
+                                      </DropdownMenuItem>
+                                    ) : (
+                                      <DropdownMenuItem onClick={() => toggleUserStatus(user._id, user.status!, user.userType!)} className="text-green-500">
+                                        <CheckCircle2 className="w-3 h-3 mr-2" /> Activate User
+                                      </DropdownMenuItem>
+                                    )}
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+
+                                <button 
+                                  onClick={() => setSelectedUser(user)}
+                                  className="p-2 border border-border rounded-lg hover:bg-foreground hover:text-background transition-all"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
 
-              {/* Deep View Panel */}
+              {/* Deep View (Stays the same as before) */}
               <div className="lg:col-span-4">
                 {selectedUser ? (
                   <div className="bg-card border-2 border-primary rounded-[2rem] p-6 sticky top-24 space-y-6">
@@ -232,17 +369,15 @@ export default function UserRBACPage() {
                       <button onClick={() => setSelectedUser(null)} className="text-[10px] font-bold uppercase opacity-50 underline">Close</button>
                     </div>
 
-                    {/* Profile Header */}
                     <div className="flex flex-col items-center text-center space-y-3">
-                      <Avatar className="h-20 w-20 border-4 border-primary">
-                        <AvatarImage src={selectedUser.image} />
+                      <Avatar className="h-20 w-20 border-4 border-primary shadow-xl">
+                        <AvatarImage src={selectedUser.profileImage} />
                         <AvatarFallback className="text-2xl font-black">{selectedUser.name[0]}</AvatarFallback>
                       </Avatar>
                       <div>
                         <h4 className="font-black uppercase text-lg italic tracking-tighter">{selectedUser.name}</h4>
-                        <div className="flex gap-2 justify-center mt-1">
-                           {selectedUser.roles.includes("seller") ? <span className="bg-blue-500/10 text-blue-500 text-[8px] px-2 py-0.5 rounded-full font-bold uppercase">Seller Account</span> : <span className="bg-orange-500/10 text-orange-500 text-[8px] px-2 py-0.5 rounded-full font-bold uppercase">Buyer Account</span>}
-                        </div>
+                        <p className="text-[9px] font-bold text-muted-foreground uppercase">{selectedUser._id}</p>
+                        <p className="text-[8px] font-bold text-muted-foreground uppercase mt-1">{selectedUser.userType}</p>
                       </div>
                     </div>
 
@@ -256,40 +391,63 @@ export default function UserRBACPage() {
                        <div className="flex items-center gap-3 text-[10px] font-bold uppercase">
                           <Globe className="w-4 h-4 text-primary" /> {selectedUser.country}
                        </div>
+                       <div className="flex items-center gap-3 text-[10px] font-bold uppercase">
+                          <Clock className="w-4 h-4 text-primary" /> {new Date(selectedUser.createdAt).toLocaleDateString()}
+                       </div>
                     </div>
 
-                    {/* Conditional Data based on Role */}
                     <div className="space-y-4 pt-4 border-t border-border">
                       {selectedUser.roles.includes("buyer") ? (
                         <>
                           <div className="bg-muted/50 p-4 rounded-xl">
-                            <p className="text-[9px] font-black text-muted-foreground uppercase mb-1">Available Balance</p>
-                            <p className="text-2xl font-black italic text-primary">${selectedUser.userBalance.toFixed(2)}</p>
+                            <p className="text-[9px] font-black text-muted-foreground uppercase mb-1">Buyer Balance</p>
+                            <p className="text-2xl font-black italic text-primary">${(selectedUser as Buyer).userBalance?.toFixed(2) || '0.00'}</p>
                           </div>
-                          <div className="space-y-2">
-                             <p className="text-[10px] font-black uppercase flex items-center gap-2"><MapPin className="w-3 h-3"/> Shipping Address</p>
-                             <p className="text-[10px] text-muted-foreground leading-tight">{selectedUser.addresses[0]?.street}, {selectedUser.addresses[0]?.city}</p>
+                          <div className="space-y-1">
+                             <p className="text-[10px] font-black uppercase flex items-center gap-2"><MapPin className="w-3 h-3 text-primary"/> Address</p>
+                             <p className="text-[10px] text-muted-foreground leading-tight">
+                               {(selectedUser as Buyer).addresses && (selectedUser as Buyer).addresses.length > 0 
+                                 ? `${(selectedUser as Buyer).addresses[0]?.street}, ${(selectedUser as Buyer).addresses[0]?.city}`
+                                 : 'No address on file'
+                               }
+                             </p>
+                          </div>
+                          <div className="space-y-1">
+                             <p className="text-[10px] font-black uppercase flex items-center gap-2"><Wallet className="w-3 h-3 text-primary"/> Payment History</p>
+                             <p className="text-[10px] text-muted-foreground">
+                               {(selectedUser as Buyer).paymentHistory ? (selectedUser as Buyer).paymentHistory.length : 0} transactions
+                             </p>
                           </div>
                         </>
                       ) : (
                         <>
                           <div className="bg-muted/50 p-4 rounded-xl">
-                            <p className="text-[9px] font-black text-muted-foreground uppercase mb-1">Business Name</p>
-                            <p className="text-lg font-black italic text-primary uppercase">{selectedUser.businessName}</p>
+                            <p className="text-[9px] font-black text-muted-foreground uppercase mb-1">Business</p>
+                            <p className="text-lg font-black italic text-primary uppercase leading-none">{(selectedUser as Seller).businessName || 'N/A'}</p>
                           </div>
-                          <div className="space-y-2">
-                             <p className="text-[10px] font-black uppercase flex items-center gap-2"><Wallet className="w-3 h-3"/> Payout Wallet</p>
-                             <p className="text-[10px] text-muted-foreground font-mono">{selectedUser.cryptoPayoutDetails[0]?.walletName} ({selectedUser.cryptoPayoutDetails[0]?.currency})</p>
+                          <div className="space-y-1">
+                             <p className="text-[10px] font-black uppercase flex items-center gap-2"><MapPin className="w-3 h-3 text-primary"/> Business Address</p>
+                             <p className="text-[10px] text-muted-foreground leading-tight">{(selectedUser as Seller).businessAddress || 'N/A'}</p>
+                          </div>
+                          <div className="space-y-1">
+                             <p className="text-[10px] font-black uppercase flex items-center gap-2"><Wallet className="w-3 h-3 text-primary"/> Payout Details</p>
+                             <p className="text-[10px] text-muted-foreground font-mono">
+                               {(selectedUser as Seller).cryptoPayoutDetails && (selectedUser as Seller).cryptoPayoutDetails.length > 0
+                                 ? `${(selectedUser as Seller).cryptoPayoutDetails[0]?.walletName} • ${(selectedUser as Seller).cryptoPayoutDetails[0]?.currency}`
+                                 : 'No payout details'
+                               }
+                             </p>
                           </div>
                         </>
                       )}
                     </div>
-
-                    <p className="text-[8px] font-bold text-center text-muted-foreground uppercase">Joined: {new Date(selectedUser.createdAt).toLocaleDateString()}</p>
                   </div>
                 ) : (
-                  <div className="h-full border-2 border-dashed border-border rounded-[2rem] flex items-center justify-center p-10 text-center">
-                    <p className="text-[10px] font-black uppercase text-muted-foreground italic">Select a user to inspect deep metadata</p>
+                  <div className="h-[400px] border-2 border-dashed border-border rounded-[2rem] flex items-center justify-center p-10 text-center">
+                    <div className="space-y-2">
+                      <ShieldAlert className="w-8 h-8 mx-auto opacity-20" />
+                      <p className="text-[10px] font-black uppercase text-muted-foreground italic">Select user for deep inspection</p>
+                    </div>
                   </div>
                 )}
               </div>
