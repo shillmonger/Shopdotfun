@@ -10,7 +10,7 @@ import {
   UserX, 
   ShieldAlert,
   Clock,
-  ChevronRight,
+  PackageSearch,
   UserCircle,
   Eye,
   CheckCircle2,
@@ -22,7 +22,10 @@ import {
   MapPin,
   Lock,
   Unlock,
-  ShieldQuestion
+  ShieldQuestion,
+  ShoppingCart,
+  Store,
+  Shield
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -101,7 +104,6 @@ interface Seller {
 
 type User = Buyer | Seller;
 
-// Fallback profile image
 const FALLBACK_IMAGE = "https://github.com/shadcn.png";
 
 export default function UserRBACPage() {
@@ -110,8 +112,10 @@ export default function UserRBACPage() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Filter State
+  const [filterType, setFilterType] = useState<'all' | 'buyer' | 'seller' | 'admin'>('all');
 
-  // Fetch users on component mount
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -120,8 +124,6 @@ export default function UserRBACPage() {
     try {
       setLoading(true);
       setError(null);
-      
-      // Fetch both buyers and sellers
       const [buyersResponse, sellersResponse] = await Promise.all([
         fetch('/api/admin/users/buyers'),
         fetch('/api/admin/users/sellers')
@@ -134,17 +136,16 @@ export default function UserRBACPage() {
       const buyers = await buyersResponse.json();
       const sellers = await sellersResponse.json();
 
-      // Combine and add default status if not present
       const allUsers = [
         ...buyers.map((buyer: Buyer) => ({ 
           ...buyer, 
-          userType: 'buyer',
+          userType: 'buyer' as const,
           status: buyer.status || 'Active',
           profileImage: buyer.profileImage || FALLBACK_IMAGE
         })),
         ...sellers.map((seller: Seller) => ({ 
           ...seller, 
-          userType: 'seller',
+          userType: 'seller' as const,
           status: seller.status || 'Active',
           profileImage: seller.profileImage || FALLBACK_IMAGE
         }))
@@ -159,6 +160,23 @@ export default function UserRBACPage() {
     }
   };
 
+  // Calculated Stats
+  const stats = useMemo(() => {
+    return {
+      total: users.length,
+      sellers: users.filter(u => u.userType === 'seller').length,
+      buyers: users.filter(u => u.userType === 'buyer').length,
+      admins: users.filter(u => u.roles.includes('admin')).length,
+    };
+  }, [users]);
+
+  // Filtered Users
+  const filteredUsers = useMemo(() => {
+    if (filterType === 'all') return users;
+    if (filterType === 'admin') return users.filter(u => u.roles.includes('admin'));
+    return users.filter(u => u.userType === filterType);
+  }, [users, filterType]);
+
   const toggleAdminRole = async (userId: string, userType: 'buyer' | 'seller') => {
     try {
       const user = users.find(u => u._id === userId);
@@ -166,21 +184,16 @@ export default function UserRBACPage() {
       
       const response = await fetch('/api/admin/users/update-role', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId,
-          userType: userType + 's', // buyers or sellers
+          userType: userType + 's',
           action: hasAdmin ? 'remove' : 'add'
         })
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to update role');
-      }
+      if (!response.ok) throw new Error('Failed to update role');
 
-      // Update local state
       setUsers(users.map(u => {
         if (u._id === userId) {
           const newRoles = hasAdmin 
@@ -192,7 +205,6 @@ export default function UserRBACPage() {
         return u;
       }));
     } catch (err) {
-      console.error('Error updating role:', err);
       toast.error('Failed to update role');
     }
   };
@@ -200,31 +212,24 @@ export default function UserRBACPage() {
   const toggleUserStatus = async (userId: string, currentStatus: string, userType: 'buyer' | 'seller') => {
     try {
       const newStatus = currentStatus === "Active" ? "Suspended" : "Active";
-      
       const response = await fetch('/api/admin/users/update-status', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId,
-          userType: userType + 's', // buyers or sellers
+          userType: userType + 's',
           status: newStatus
         })
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to update status');
-      }
+      if (!response.ok) throw new Error('Failed to update status');
 
-      // Update local state
       setUsers(users.map(u => u._id === userId ? { ...u, status: newStatus } : u));
       toast(newStatus === "Suspended" ? "User Suspended" : "User Activated", {
         description: `Account status updated to ${newStatus}`,
         icon: newStatus === "Active" ? <Unlock className="w-4 h-4"/> : <Lock className="w-4 h-4"/>
       });
     } catch (err) {
-      console.error('Error updating status:', err);
       toast.error('Failed to update status');
     }
   };
@@ -239,15 +244,110 @@ export default function UserRBACPage() {
         <main className="flex-1 overflow-y-auto p-4 md:p-10 pb-32">
           <div className="max-w-7xl mx-auto">
             
-            <div className="mb-10">
-              <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter italic leading-none">
-                Control <span className="text-primary not-italic">Center</span>
-              </h1>
-            </div>
+            <div className="mb-10 space-y-8">
+
+  {/* HEADER */}
+  <div>
+    <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter italic leading-none">
+      Control <span className="text-primary not-italic">Center</span>
+    </h1>
+
+    <p className="mt-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+      <PackageSearch className="w-3 h-3 text-primary" />
+      Managing • Users
+    </p>
+  </div>
+
+  {/* STATS CARDS */}
+  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-6">
+
+  {/* TOTAL USERS */}
+  <div className="relative bg-card border border-border rounded-2xl p-6 shadow-md overflow-hidden">
+
+    <Users className="absolute top-4 right-4 w-8 h-8 text-primary/20" />
+
+    <p className="text-xs font-black uppercase tracking-wider text-muted-foreground">
+      Total Users
+    </p>
+
+    <p className="mt-3 text-2xl md:text-3xl font-black italic">
+      {stats.total}
+    </p>
+  </div>
+
+
+  {/* SELLERS */}
+  <div className="relative bg-card border border-border rounded-2xl p-6 shadow-md overflow-hidden">
+
+    <Store className="absolute top-4 right-4 w-8 h-8 text-green-500/20" />
+
+    <p className="text-xs font-black uppercase tracking-wider text-muted-foreground">
+      Total Sellers
+    </p>
+
+    <p className="mt-3 text-2xl md:text-3xl font-black italic text-primary">
+      {stats.sellers}
+    </p>
+  </div>
+
+
+  {/* BUYERS */}
+  <div className="relative bg-card border border-border rounded-2xl p-6 shadow-md overflow-hidden">
+
+    <ShoppingCart className="absolute top-4 right-4 w-8 h-8 text-blue-500/20" />
+
+    <p className="text-xs font-black uppercase tracking-wider text-muted-foreground">
+      Total Buyers
+    </p>
+
+    <p className="mt-3 text-2xl md:text-3xl font-black italic">
+      {stats.buyers}
+    </p>
+  </div>
+
+
+  {/* ADMINS */}
+  <div className="relative bg-card border border-border rounded-2xl p-6 shadow-md overflow-hidden">
+
+    <Shield className="absolute top-4 right-4 w-8 h-8 text-red-500/20" />
+
+    <p className="text-xs font-black uppercase tracking-wider text-muted-foreground">
+      Total Admins
+    </p>
+
+    <p className="mt-3 text-2xl md:text-3xl font-black italic">
+      {stats.admins}
+    </p>
+  </div>
+
+</div>
+
+
+</div>
+
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
               
               <div className="lg:col-span-8 bg-card border border-border rounded-[2rem] overflow-hidden shadow-sm">
+                {/* TABLE HEADER WITH FILTER */}
+                <div className="p-6 border-b border-border flex items-center justify-between bg-muted/10">
+                  <p className="text-[10px] font-black uppercase italic text-muted-foreground tracking-widest">Database Registry</p>
+                  
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="h-8 rounded-lg cursor-pointer text-[10px] font-black uppercase border-2">
+                        <Filter className="w-3 h-3 mr-2" /> Filter: {filterType} <ChevronDown className="ml-2 w-3 h-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="font-black uppercase text-[10px]">
+                      <DropdownMenuItem className="cursor-pointer" onClick={() => setFilterType('all')}>All Users</DropdownMenuItem>
+                      <DropdownMenuItem className="cursor-pointer" onClick={() => setFilterType('buyer')}>Buyers Only</DropdownMenuItem>
+                      <DropdownMenuItem className="cursor-pointer" onClick={() => setFilterType('seller')}>Sellers Only</DropdownMenuItem>
+                      <DropdownMenuItem className="cursor-pointer" onClick={() => setFilterType('admin')}>Admins Only</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
                 {loading ? (
                   <div className="flex items-center justify-center h-64">
                     <div className="text-center space-y-2">
@@ -260,9 +360,7 @@ export default function UserRBACPage() {
                     <div className="text-center space-y-2">
                       <ShieldAlert className="w-8 h-8 mx-auto opacity-20" />
                       <p className="text-[10px] font-black uppercase text-destructive italic">{error}</p>
-                      <Button onClick={fetchUsers} size="sm" className="text-[10px] font-black uppercase">
-                        Retry
-                      </Button>
+                      <Button onClick={fetchUsers} size="sm" className="text-[10px] font-black uppercase">Retry</Button>
                     </div>
                   </div>
                 ) : (
@@ -277,21 +375,21 @@ export default function UserRBACPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border">
-                        {users.map((user) => (
+                        {filteredUsers.map((user) => (
                           <tr key={user._id} className="hover:bg-muted/5 transition-colors group">
                             <td className="px-6 py-5">
                               <div className="flex items-center gap-3">
-                                <Avatar className="h-10 w-10 border-2 border-primary/20">
+                                <Avatar className="h-12 w-12 border-2 rounded-lg primary/20">
                                   <AvatarImage src={user.profileImage} />
                                   <AvatarFallback className="font-black text-xs">{user.name.substring(0,2).toUpperCase()}</AvatarFallback>
                                 </Avatar>
                                 <div>
-                                  <p className="font-black text-sm uppercase italic tracking-tighter leading-tight">{user.name}</p>
-                                  <div className="flex gap-1 mt-0.5">
+                                  <div className="flex gap-1 mb-1">
                                     {user.roles.map(r => (
                                       <span key={r} className={`text-[7px] font-black uppercase px-1.5 py-0 rounded border ${r === 'admin' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>{r}</span>
                                     ))}
                                   </div>
+                                  <p className="font-black text-sm uppercase italic tracking-tighter leading-tight">{user.name}</p>
                                 </div>
                               </div>
                             </td>
@@ -307,17 +405,17 @@ export default function UserRBACPage() {
                             <td className="px-6 py-5">
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <Button variant="outline" size="sm" className="h-8 rounded-lg text-[10px] font-black uppercase border-dashed">
+                                  <Button variant="outline" size="sm" className="h-8 rounded-lg cursor-pointer text-[10px] font-black uppercase border-dashed">
                                     <ShieldQuestion className="w-3 h-3 mr-2" /> Permissions <ChevronDown className="ml-2 w-3 h-3" />
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="start" className="font-black uppercase text-[10px]">
                                   {user.roles.includes("admin") ? (
-                                    <DropdownMenuItem onClick={() => toggleAdminRole(user._id, user.userType!)} className="text-destructive">
+                                    <DropdownMenuItem onClick={() => toggleAdminRole(user._id, user.userType!)} className="text-destructive cursor-pointer font-black">
                                       Remove Admin
                                     </DropdownMenuItem>
                                   ) : (
-                                    <DropdownMenuItem onClick={() => toggleAdminRole(user._id, user.userType!)} className="text-primary">
+                                    <DropdownMenuItem onClick={() => toggleAdminRole(user._id, user.userType!)} className="text-primary cursor-pointer font-black">
                                       Set as Admin
                                     </DropdownMenuItem>
                                   )}
@@ -325,20 +423,20 @@ export default function UserRBACPage() {
                               </DropdownMenu>
                             </td>
 
-                            <td className="px-6 py-5 text-right flex justify-end gap-2">
+                            <td className="px-6 py-5 text-right flex item-center justify-end gap-2">
                                <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
-                                    <Button variant="secondary" size="sm" className="h-8 rounded-lg text-[10px] font-black uppercase">
+                                    <Button variant="secondary" size="sm" className="h-8 rounded-lg cursor-pointer text-[10px] font-black uppercase">
                                       Access <ChevronDown className="ml-2 w-3 h-3" />
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end" className="font-black uppercase text-[10px]">
                                     {user.status === "Active" ? (
-                                      <DropdownMenuItem onClick={() => toggleUserStatus(user._id, user.status!, user.userType!)} className="text-destructive">
+                                      <DropdownMenuItem onClick={() => toggleUserStatus(user._id, user.status!, user.userType!)} className="text-destructive cursor-pointer font-black">
                                         <UserX className="w-3 h-3 mr-2" /> Suspend User
                                       </DropdownMenuItem>
                                     ) : (
-                                      <DropdownMenuItem onClick={() => toggleUserStatus(user._id, user.status!, user.userType!)} className="text-green-500">
+                                      <DropdownMenuItem onClick={() => toggleUserStatus(user._id, user.status!, user.userType!)} className="text-green-500 cursor-pointer font-black">
                                         <CheckCircle2 className="w-3 h-3 mr-2" /> Activate User
                                       </DropdownMenuItem>
                                     )}
@@ -347,7 +445,7 @@ export default function UserRBACPage() {
 
                                 <button 
                                   onClick={() => setSelectedUser(user)}
-                                  className="p-2 border border-border rounded-lg hover:bg-foreground hover:text-background transition-all"
+                                  className="p-2 border border-border rounded-lg cursor-pointer hover:bg-foreground hover:text-background transition-all"
                                 >
                                   <Eye className="w-4 h-4" />
                                 </button>
@@ -374,25 +472,24 @@ export default function UserRBACPage() {
                     );
                   }
 
-                  // TypeScript now knows selectedUser is not null
-                  const isBuyer = selectedUser.roles.includes("buyer");
+                  const isBuyer = selectedUser.userType === 'buyer';
                   
                   return (
                     <div className="bg-card border-2 border-primary rounded-[2rem] p-6 sticky top-24 space-y-6">
                       <div className="flex justify-between items-center">
                         <h3 className="text-xl font-black uppercase italic tracking-tighter">Deep View</h3>
-                        <button onClick={() => setSelectedUser(null)} className="text-[10px] font-bold uppercase opacity-50 underline">Close</button>
+                        <button onClick={() => setSelectedUser(null)} className="text-[10px] font-bold uppercase opacity-50 underline cursor-pointer">Close</button>
                       </div>
 
                       <div className="flex flex-col items-center text-center space-y-3">
-                        <Avatar className="h-20 w-20 border-4 border-primary shadow-xl">
+                        <Avatar className="h-40 w-40 border-4 rounded-2xl border-primary ">
                           <AvatarImage src={selectedUser.profileImage} />
                           <AvatarFallback className="text-2xl font-black">{selectedUser.name[0]}</AvatarFallback>
                         </Avatar>
                         <div>
                           <h4 className="font-black uppercase text-lg italic tracking-tighter">{selectedUser.name}</h4>
                           <p className="text-[9px] font-bold text-muted-foreground uppercase">{selectedUser._id}</p>
-                          <p className="text-[8px] font-bold text-muted-foreground uppercase mt-1">{selectedUser.userType || (isBuyer ? 'buyer' : 'seller')}</p>
+                          <p className="text-[8px] font-bold text-muted-foreground uppercase mt-1">{selectedUser.userType}</p>
                         </div>
                       </div>
 
@@ -421,16 +518,9 @@ export default function UserRBACPage() {
                             <div className="space-y-1">
                                <p className="text-[10px] font-black uppercase flex items-center gap-2"><MapPin className="w-3 h-3 text-primary"/> Address</p>
                                <p className="text-[10px] text-muted-foreground leading-tight">
-                                 {(selectedUser as Buyer).addresses && (selectedUser as Buyer).addresses.length > 0 
-                                   ? `${(selectedUser as Buyer).addresses[0]?.street}, ${(selectedUser as Buyer).addresses[0]?.city}`
-                                   : 'No address on file'
-                                 }
-                               </p>
-                            </div>
-                            <div className="space-y-1">
-                               <p className="text-[10px] font-black uppercase flex items-center gap-2"><Wallet className="w-3 h-3 text-primary"/> Payment History</p>
-                               <p className="text-[10px] text-muted-foreground">
-                                 {(selectedUser as Buyer).paymentHistory?.length ?? 0} transactions
+                                 {(selectedUser as Buyer).addresses && (selectedUser as Buyer).addresses!.length > 0 
+                                   ? `${(selectedUser as Buyer).addresses![0]?.street}, ${(selectedUser as Buyer).addresses![0]?.city}`
+                                   : 'No address on file'}
                                </p>
                             </div>
                           </>
@@ -443,15 +533,6 @@ export default function UserRBACPage() {
                             <div className="space-y-1">
                                <p className="text-[10px] font-black uppercase flex items-center gap-2"><MapPin className="w-3 h-3 text-primary"/> Business Address</p>
                                <p className="text-[10px] text-muted-foreground leading-tight">{(selectedUser as Seller).businessAddress || 'N/A'}</p>
-                            </div>
-                            <div className="space-y-1">
-                               <p className="text-[10px] font-black uppercase flex items-center gap-2"><Wallet className="w-3 h-3 text-primary"/> Payout Details</p>
-                               <p className="text-[10px] text-muted-foreground font-mono">
-                                 {(selectedUser as Seller).cryptoPayoutDetails && (selectedUser as Seller).cryptoPayoutDetails.length > 0
-                                   ? `${(selectedUser as Seller).cryptoPayoutDetails[0]?.walletName} • ${(selectedUser as Seller).cryptoPayoutDetails[0]?.currency}`
-                                   : 'No payout details'
-                                 }
-                               </p>
                             </div>
                           </>
                         )}
