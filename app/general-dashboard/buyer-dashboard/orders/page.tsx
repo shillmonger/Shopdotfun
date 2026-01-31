@@ -278,13 +278,11 @@ function OrderCard({
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-10">
           {/* Image – smaller */}
           <div className="relative w-full lg:w-44 shrink-0 flex justify-center">
-            <div className="absolute top-1.5 left-1.5 w-40 h-40 bg-primary/10 rounded-2xl -rotate-6 border border-primary/20" />
-            <div className="absolute top-0.5 left-0.5 w-40 h-40 bg-muted rounded-2xl rotate-2 border border-border" />
             <div className="relative w-40 h-40 rounded-2xl overflow-hidden border-2 border-card shadow-xl z-10">
               <img
                 src={mainImage?.url || "/placeholder.png"}
                 alt={order.productInfo.name}
-                className="w-full h-full object-cover hover:scale-105 transition duration-400"
+                className="w-full h-full object-cover cursor-pointer hover:scale-105 transition duration-400"
               />
             </div>
           </div>
@@ -411,19 +409,9 @@ export default function BuyerOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const { user, isAuthenticated } = useAuth();
-
-  // Redirect to unauthorized page if not authenticated
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push("/auth/unauthorized");
-    }
-  }, [isAuthenticated, router]);
 
   // Fetch orders on component mount
   useEffect(() => {
-    if (!isAuthenticated) return;
-
     const loadOrders = async () => {
       try {
         setLoading(true);
@@ -440,7 +428,7 @@ export default function BuyerOrdersPage() {
     };
 
     loadOrders();
-  }, [isAuthenticated]);
+  }, []);
 
   // Count orders by status
   const pendingCount = orders.filter(order => order.status.shipping === 'pending').length;
