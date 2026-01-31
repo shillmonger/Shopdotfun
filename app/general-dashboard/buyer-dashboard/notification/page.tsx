@@ -429,7 +429,7 @@ export default function BuyerNotificationsPage() {
 
                           {notif.relatedOrderId && (
                             <Link 
-                              href={`/buyer-dashboard/orders`}
+                              href={`/general-dashboard/buyer-dashboard/orders`}
                               className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase text-primary hover:underline"
                             >
                               View Order <ChevronRight className="w-3 h-3" />

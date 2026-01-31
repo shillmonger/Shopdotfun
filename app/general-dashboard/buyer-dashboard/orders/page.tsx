@@ -19,6 +19,7 @@ import {
   Ban,
   CheckCircle2,
   Loader2,
+  ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -33,7 +34,7 @@ import {
   getBuyerActionColor,
   shouldHideBuyerAction,
   canBuyerAct,
-  OrderStatus
+  OrderStatus,
 } from "@/lib/order-status";
 
 /* ======================================================
@@ -151,29 +152,37 @@ async function fetchBuyerOrders(): Promise<{
     throw new Error("Failed to fetch orders");
   }
   const result = await response.json();
-  return result.success ? result : { orders: [], stats: { pending: 0, shipped: 0, total: 0 } };
+  return result.success
+    ? result
+    : { orders: [], stats: { pending: 0, shipped: 0, total: 0 } };
 }
 
-async function updateOrderStatus(orderId: string, updates: Partial<OrderStatus>): Promise<{ success: boolean; error?: string }> {
+async function updateOrderStatus(
+  orderId: string,
+  updates: Partial<OrderStatus>,
+): Promise<{ success: boolean; error?: string }> {
   try {
-    const response = await fetch('/api/buyer/orders/update-status', {
-      method: 'PATCH',
+    const response = await fetch("/api/buyer/orders/update-status", {
+      method: "PATCH",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ orderId, updates }),
     });
 
     const result = await response.json();
-    
+
     if (!response.ok) {
-      return { success: false, error: result.error || 'Failed to update status' };
+      return {
+        success: false,
+        error: result.error || "Failed to update status",
+      };
     }
 
     return { success: true };
   } catch (error) {
-    console.error('Error updating order status:', error);
-    return { success: false, error: 'Network error' };
+    console.error("Error updating order status:", error);
+    return { success: false, error: "Network error" };
   }
 }
 
@@ -227,12 +236,14 @@ function OrderCard({
   const canAct = canBuyerAct(order.status);
   const shippingLabel = getShippingStatusLabel(order.status.shipping);
   const shippingColor = getShippingStatusColor(order.status.shipping);
-  
+
   // Only show buyer action if not 'none'
-  const buyerActionLabel = !shouldHideBuyerAction(order.status.buyerAction) 
-    ? getBuyerActionLabel(order.status.buyerAction) 
+  const buyerActionLabel = !shouldHideBuyerAction(order.status.buyerAction)
+    ? getBuyerActionLabel(order.status.buyerAction)
     : null;
-  const buyerActionColor = buyerActionLabel ? getBuyerActionColor(order.status.buyerAction) : null;
+  const buyerActionColor = buyerActionLabel
+    ? getBuyerActionColor(order.status.buyerAction)
+    : null;
 
   return (
     <div className="bg-card border border-border rounded-3xl shadow-sm hover:border-primary/40 transition-all duration-300 overflow-hidden">
@@ -242,7 +253,16 @@ function OrderCard({
           <div>
             <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
               {order.orderId} <span className="mx-1.5 opacity-30">|</span>{" "}
-              {formatDate(order.createdAt)}
+              {formatDate(order.createdAt)}{" "}
+              <span className="mx-1.5 opacity-30">|</span>{" "}
+              <Link
+                href={`/general-dashboard/buyer-dashboard/orders/order-tracking?orderId=${order.orderId}`}
+                className="text-primary hover:text-primary/80 transition-colors inline-flex items-center gap-1"
+              >
+                <Truck className="w-3 h-3" />
+                Track Order
+                <ExternalLink className="w-3 h-3" />
+              </Link>
             </p>
             <h3 className="mt-1 text-xl md:text-2xl font-black italic uppercase tracking-tight flex items-center gap-2.5">
               <Package className="w-5 h-5 text-primary" />
@@ -369,29 +389,18 @@ function OrderCard({
                 </button>
               </>
             )}
+            <Link
+              href={`/general-dashboard/buyer-dashboard/orders/order-tracking?orderId=${order.orderId}`}
+              className="flex-1 sm:flex-none bg-card border border-border cursor-pointer text-foreground px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 shadow-md hover:bg-muted hover:border-primary/40 transition-colors"
+            >
+              {/* <Truck className="w-3 h-3" /> */}
+              Track Order
+              <ExternalLink className="w-4 h-4" />
+            </Link>
           </div>
         </div>
 
-        {/* Complaint – more compact */}
-        {/* <div className="mt-7 p-0 md:p-5 bg-transparent md:bg-muted/20 rounded-none md:rounded-2xl border-0 md:border md:border-dashed md:border-border">
-          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 mb-2 block">
-            Case Filing (optional)
-          </label>
-          <div className="flex flex-col gap-3">
-            <textarea
-              placeholder="DESCRIBE YOUR PROBLEM IN DETAIL..."
-              value={problem}
-              onChange={(e) => onProblemChange(e.target.value)}
-              className="w-full min-h-[70px] bg-background border border-border px-4 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl focus:ring-2 ring-primary/20 outline-none resize-y"
-            />
-            <button
-              onClick={onSubmit}
-              className="w-full bg-foreground text-background cursor-pointer px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary transition-all active:scale-95 shadow-md"
-            >
-              Submit Support Ticket
-            </button>
-          </div>
-        </div> */}
+
       </div>
     </div>
   );
@@ -431,8 +440,12 @@ export default function BuyerOrdersPage() {
   }, []);
 
   // Count orders by status
-  const pendingCount = orders.filter(order => order.status.shipping === 'pending').length;
-  const shippedCount = orders.filter(order => order.status.shipping === 'shipped').length;
+  const pendingCount = orders.filter(
+    (order) => order.status.shipping === "pending",
+  ).length;
+  const shippedCount = orders.filter(
+    (order) => order.status.shipping === "shipped",
+  ).length;
 
   // Filter orders based on search term
   const filteredOrders = orders.filter(
@@ -443,45 +456,45 @@ export default function BuyerOrdersPage() {
 
   const handleAction = async (orderId: string, action: string) => {
     let updates: Partial<OrderStatus> = {};
-    
+
     switch (action) {
-      case 'Received':
-        updates = { buyerAction: 'received' };
+      case "Received":
+        updates = { buyerAction: "received" };
         break;
-      case 'Delayed':
-        updates = { buyerAction: 'delayed' };
+      case "Delayed":
+        updates = { buyerAction: "delayed" };
         break;
-      case 'Damaged':
-        updates = { buyerAction: 'damaged' };
+      case "Damaged":
+        updates = { buyerAction: "damaged" };
         break;
       default:
         return;
     }
 
     const result = await updateOrderStatus(orderId, updates);
-    
+
     if (result.success) {
       toast.success(`${action} action completed successfully`);
-      
+
       // Update the local order state
-      setOrders(prevOrders => 
-        prevOrders.map(order => {
+      setOrders((prevOrders) =>
+        prevOrders.map((order) => {
           if (order.orderId === orderId) {
             const updatedOrder = { ...order };
             if (updates.buyerAction) {
               updatedOrder.status.buyerAction = updates.buyerAction;
             }
-            if (updates.buyerAction === 'received') {
-              updatedOrder.status.shipping = 'received';
+            if (updates.buyerAction === "received") {
+              updatedOrder.status.shipping = "received";
             }
             updatedOrder.updatedAt = new Date();
             return updatedOrder;
           }
           return order;
-        })
+        }),
       );
     } else {
-      toast.error(result.error || 'Failed to update order');
+      toast.error(result.error || "Failed to update order");
     }
   };
 
@@ -611,10 +624,10 @@ export default function BuyerOrdersPage() {
                     onAction={(a) => handleAction(order.orderId, a)}
                     onSubmit={() => submitProblem(order.orderId)}
                     onUpdateOrder={(orderId, updatedOrder) => {
-                      setOrders(prevOrders => 
-                        prevOrders.map(order => 
-                          order.orderId === orderId ? updatedOrder : order
-                        )
+                      setOrders((prevOrders) =>
+                        prevOrders.map((order) =>
+                          order.orderId === orderId ? updatedOrder : order,
+                        ),
                       );
                     }}
                   />
