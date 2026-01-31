@@ -32,7 +32,7 @@ import {
   getShippingStatusColor,
   getPaymentStatusColor,
   canMarkAsShipped,
-  OrderStatus
+  OrderStatus,
 } from "@/lib/order-status";
 
 interface OrderItem {
@@ -80,26 +80,32 @@ interface Order {
   updatedAt?: string | Date;
 }
 
-async function updateOrderStatus(orderId: string, updates: Partial<OrderStatus>): Promise<{ success: boolean; error?: string }> {
+async function updateOrderStatus(
+  orderId: string,
+  updates: Partial<OrderStatus>,
+): Promise<{ success: boolean; error?: string }> {
   try {
-    const response = await fetch('/api/seller/orders/update-status', {
-      method: 'PATCH',
+    const response = await fetch("/api/seller/orders/update-status", {
+      method: "PATCH",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ orderId, updates }),
     });
 
     const result = await response.json();
-    
+
     if (!response.ok) {
-      return { success: false, error: result.error || 'Failed to update status' };
+      return {
+        success: false,
+        error: result.error || "Failed to update status",
+      };
     }
 
     return { success: true };
   } catch (error) {
-    console.error('Error updating order status:', error);
-    return { success: false, error: 'Network error' };
+    console.error("Error updating order status:", error);
+    return { success: false, error: "Network error" };
   }
 }
 
@@ -119,25 +125,25 @@ export default function OrdersReceivedPage() {
   const [error, setError] = useState<string | null>(null);
 
   const handleMarkAsShipped = async (orderId: string) => {
-    const result = await updateOrderStatus(orderId, { shipping: 'shipped' });
-    
+    const result = await updateOrderStatus(orderId, { shipping: "shipped" });
+
     if (result.success) {
-      toast.success('Order marked as shipped successfully');
-      
+      toast.success("Order marked as shipped successfully");
+
       // Update the local order state
-      setOrders(prevOrders => 
-        prevOrders.map(order => {
+      setOrders((prevOrders) =>
+        prevOrders.map((order) => {
           if (order.id === orderId) {
             const updatedOrder = { ...order };
-            updatedOrder.status.shipping = 'shipped';
+            updatedOrder.status.shipping = "shipped";
             updatedOrder.updatedAt = new Date();
             return updatedOrder;
           }
           return order;
-        })
+        }),
       );
     } else {
-      toast.error(result.error || 'Failed to update order');
+      toast.error(result.error || "Failed to update order");
     }
   };
 
@@ -251,10 +257,18 @@ export default function OrdersReceivedPage() {
                 </div>
               ) : (
                 orders.map((order) => {
-                  const shippingLabel = getShippingStatusLabel(order.status.shipping);
-                  const shippingColor = getShippingStatusColor(order.status.shipping);
-                  const paymentLabel = getPaymentStatusLabel(order.status.payment);
-                  const paymentColor = getPaymentStatusColor(order.status.payment);
+                  const shippingLabel = getShippingStatusLabel(
+                    order.status.shipping,
+                  );
+                  const shippingColor = getShippingStatusColor(
+                    order.status.shipping,
+                  );
+                  const paymentLabel = getPaymentStatusLabel(
+                    order.status.payment,
+                  );
+                  const paymentColor = getPaymentStatusColor(
+                    order.status.payment,
+                  );
                   const canShip = canMarkAsShipped(order.status);
 
                   return (
@@ -285,9 +299,15 @@ export default function OrdersReceivedPage() {
                             <span
                               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest transition-all ${shippingColor}`}
                             >
-                              {order.status.shipping === 'pending' && <Clock className="w-3 h-3" />}
-                              {order.status.shipping === 'shipped' && <Truck className="w-3 h-3" />}
-                              {order.status.shipping === 'received' && <CheckCircle2 className="w-3 h-3" />}
+                              {order.status.shipping === "pending" && (
+                                <Clock className="w-3 h-3" />
+                              )}
+                              {order.status.shipping === "shipped" && (
+                                <Truck className="w-3 h-3" />
+                              )}
+                              {order.status.shipping === "received" && (
+                                <CheckCircle2 className="w-3 h-3" />
+                              )}
                               {shippingLabel}
                             </span>
 
@@ -295,8 +315,12 @@ export default function OrdersReceivedPage() {
                             <span
                               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest transition-all ${paymentColor}`}
                             >
-                              {order.status.payment === 'pending' && <Clock className="w-3 h-3" />}
-                              {order.status.payment === 'paid' && <CheckCircle2 className="w-3 h-3" />}
+                              {order.status.payment === "pending" && (
+                                <Clock className="w-3 h-3" />
+                              )}
+                              {order.status.payment === "paid" && (
+                                <CheckCircle2 className="w-3 h-3" />
+                              )}
                               {paymentLabel}
                             </span>
                           </div>
@@ -485,15 +509,22 @@ export default function OrdersReceivedPage() {
                             })()}
                           </div>
 
-                          <div className="flex items-center gap-3 md:w-auto">
+                          <div className="flex items-center gap-3 md:w-auto w-full justify-between">
                             {canShip && (
-                              <button 
+                              <button
                                 onClick={() => handleMarkAsShipped(order.id)}
                                 className="flex-1 md:flex-none bg-primary cursor-pointer text-primary-foreground text-center px-8 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2"
                               >
                                 Mark as Shipped <Truck className="w-4 h-4" />
                               </button>
                             )}
+                            <Link
+                              href={`/general-dashboard/seller-dashboard/orders-management/buyer-info?orderId=${order.id}`}
+                              className="bg-card border border-border px-4 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all flex items-center justify-center gap-2 hover:border-primary/40"
+                            >
+                              <User className="w-4 h-4" />
+                              Buyer Info
+                            </Link>
                           </div>
                         </div>
                       </div>

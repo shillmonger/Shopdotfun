@@ -261,7 +261,7 @@ export default function UserRBACPage() {
 
     <p className="mt-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
       <PackageSearch className="w-3 h-3 text-primary" />
-      Managing • Users
+      Managing •{stats.total}• Users
     </p>
   </div>
 
