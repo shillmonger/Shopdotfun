@@ -225,10 +225,17 @@ export default function UserRBACPage() {
       if (!response.ok) throw new Error('Failed to update status');
 
       setUsers(users.map(u => u._id === userId ? { ...u, status: newStatus } : u));
-      toast(newStatus === "Suspended" ? "User Suspended" : "User Activated", {
-        description: `Account status updated to ${newStatus}`,
-        icon: newStatus === "Active" ? <Unlock className="w-4 h-4"/> : <Lock className="w-4 h-4"/>
-      });
+      if (newStatus === "Suspended") {
+        toast.error("User Suspended", {
+          description: `Account status updated to ${newStatus}`,
+          icon: <Lock className="w-4 h-4"/>
+        });
+      } else {
+        toast.success("User Activated", {
+          description: `Account status updated to ${newStatus}`,
+          icon: <Unlock className="w-4 h-4"/>
+        });
+      }
     } catch (err) {
       toast.error('Failed to update status');
     }
