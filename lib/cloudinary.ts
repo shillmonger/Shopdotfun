@@ -113,3 +113,77 @@ export async function uploadToCloudinary(file: File): Promise<CloudinaryUploadRe
     throw error;
   }
 }
+
+export async function uploadProfileImage(file: File): Promise<CloudinaryUploadResult> {
+  try {
+    console.log('Starting profile image upload for file:', file.name, 'Size:', file.size, 'bytes');
+    
+    const validation = validateFile(file);
+    if (!validation.valid) {
+      throw new Error(validation.error);
+    }
+
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    
+    const result = await new Promise<UploadApiResponse>((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { 
+          folder: 'shopdotfun/profiles',
+          resource_type: 'auto',
+          chunk_size: 6 * 1024 * 1024,
+          quality: 'auto:good',
+          fetch_format: 'auto',
+          width: 500,
+          height: 500,
+          crop: 'fill',
+          gravity: 'face'
+        },
+        (error: UploadApiErrorResponse | undefined, result: UploadApiResponse | undefined) => {
+          if (error) {
+            console.error('Cloudinary profile upload error:', error);
+            return reject(new Error(error.message || 'Profile upload failed'));
+          }
+          if (!result) {
+            return reject(new Error('No response from Cloudinary'));
+          }
+          resolve(result);
+        }
+      );
+      
+      uploadStream.on('error', (error: Error) => {
+        console.error('Profile upload stream error:', error);
+        reject(error);
+      });
+      
+      uploadStream.end(buffer);
+    });
+
+    if (!result.secure_url) {
+      throw new Error('Failed to get secure URL from Cloudinary');
+    }
+
+    const thumbnailUrl = cloudinary.url(result.public_id, {
+      width: 150,
+      height: 150,
+      crop: 'fill',
+      quality: 'auto:good',
+      fetch_format: 'auto',
+      gravity: 'face'
+    });
+
+    return {
+      url: result.secure_url,
+      publicId: result.public_id,
+      format: result.format || '',
+      width: result.width || 0,
+      height: result.height || 0,
+      bytes: result.bytes || 0,
+      secure_url: result.secure_url,
+      thumbnail_url: thumbnailUrl
+    };
+  } catch (error) {
+    console.error('Error in uploadProfileImage:', error);
+    throw error;
+  }
+}

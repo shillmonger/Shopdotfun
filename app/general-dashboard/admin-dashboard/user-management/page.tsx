@@ -7,63 +7,108 @@ import {
   UserPlus, 
   Search, 
   Filter, 
-  MoreVertical, 
   UserX, 
   ShieldAlert,
   Clock,
   ArrowRightLeft,
   ChevronRight,
   UserCircle,
-  Activity,
-  UserCog
+  UserCog,
+  Eye,
+  CheckCircle2,
+  ChevronDown,
+  Mail,
+  Phone,
+  Globe,
+  Wallet,
+  MapPin,
+  CreditCard
 } from "lucide-react";
 import { toast } from "sonner";
+
+// Shadcn UI Components
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 import AdminHeader from "@/components/admin-dashboard/AdminHeader";
 import AdminSidebar from "@/components/admin-dashboard/AdminSidebar";
 import AdminNav from "@/components/admin-dashboard/AdminNav";
 
-// Mock User Data
+// Mock Data structure based on your JSON
 const INITIAL_USERS = [
-  { id: "U-882", name: "Chidi Benson", email: "chidi@example.com", role: "Buyer", status: "Active", lastLogin: "2h ago" },
-  { id: "U-901", name: "Sarah Williams", email: "sarah@store.io", role: "Seller", status: "Active", lastLogin: "5m ago" },
-  { id: "U-001", name: "Super Admin", email: "admin@platform.com", role: "Admin", status: "Active", lastLogin: "Now" },
-  { id: "U-442", name: "David Okoro", email: "david@test.com", role: "Buyer", status: "Suspended", lastLogin: "3 days ago" },
+  { 
+    _id: "697631f018a6fccafd099ba5", 
+    name: "Shillmonger Buyer", 
+    email: "shillmonger0@gmail.com", 
+    phone: "+2348059268860",
+    country: "Nigeria",
+    roles: ["buyer"], 
+    status: "Active", 
+    image: "https://github.com/shadcn.png",
+    userBalance: 284.68,
+    addresses: [{ street: "33/34 Ogbuozo street", city: "Enugu", state: "Ebonyi" }],
+    paymentHistory: [{ amountPaid: 142.34, cryptoMethod: "usdt" }],
+    createdAt: "2026-01-25T15:08:31.904Z"
+  },
+  { 
+    _id: "69762e2c67e2d514e2dedfc2", 
+    name: "Shillmonger Seller", 
+    email: "seller@gmail.com", 
+    phone: "+2348059268860",
+    country: "Nigeria",
+    businessName: "Shillmonger Products",
+    businessAddress: "33/34 Ogbuozo street",
+    roles: ["seller", "admin"], 
+    status: "Active", 
+    image: "", 
+    cryptoPayoutDetails: [{ walletName: "Solana", currency: "SOL" }],
+    createdAt: "2026-01-25T14:52:28.244Z"
+  },
 ];
 
 export default function UserRBACPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [users, setUsers] = useState(INITIAL_USERS);
-  const [selectedUser, setSelectedUser] = useState<typeof INITIAL_USERS[0] | null>(null);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
 
-  // Stats Logic
   const stats = useMemo(() => ({
     total: users.length,
-    sellers: users.filter(u => u.role === "Seller").length,
-    buyers: users.filter(u => u.role === "Buyer").length,
-    suspended: users.filter(u => u.status === "Suspended").length,
+    sellers: users.filter(u => u.roles.includes("seller")).length,
+    buyers: users.filter(u => u.roles.includes("buyer")).length,
+    admins: users.filter(u => u.roles.includes("admin")).length,
   }), [users]);
 
-  const handleRoleChange = (userId: string, currentRole: string, newRole: string) => {
-    // SECURITY RULE: Prevent self-downgrading (Assuming U-001 is current session)
-    if (userId === "U-001" && newRole !== "Admin") {
-      return toast.error("Privilege Lock", {
-        description: "You cannot remove your own &quot;Admin&quot; privileges for security reasons."
-      });
-    }
-
-    setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
-    toast.success("Role Updated", {
-      description: `User &quot;${userId}&quot; has been assigned the &quot;${newRole}&quot; role.`
-    });
-  };
-
-  const handleStatusUpdate = (userId: string, currentStatus: string) => {
-    const nextStatus = currentStatus === "Active" ? "Suspended" : "Active";
-    setUsers(users.map(u => u.id === userId ? { ...u, status: nextStatus } : u));
-    toast.warning(`User ${nextStatus}`, {
-      description: `Account access has been ${nextStatus === "Active" ? "restored" : "revoked"}.`
-    });
+  const toggleAdminRole = (userId: string) => {
+    setUsers(users.map(u => {
+      if (u._id === userId) {
+        const hasAdmin = u.roles.includes("admin");
+        const newRoles = hasAdmin 
+          ? u.roles.filter(r => r !== "admin") 
+          : [...u.roles, "admin"];
+        
+        toast.success(hasAdmin ? "Admin Access Revoked" : "Admin Access Granted");
+        return { ...u, roles: newRoles };
+      }
+      return u;
+    }));
   };
 
   return (
@@ -79,15 +124,15 @@ export default function UserRBACPage() {
             {/* Header & Stats */}
             <div className="mb-10">
               <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter italic leading-none">
-                Access <span className="text-primary not-italic">Control</span>
+                Identity <span className="text-primary not-italic">Manager</span>
               </h1>
               
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
                 {[
                   { label: "Total Users", val: stats.total, icon: Users },
-                  { label: "Total Sellers", val: stats.sellers, icon: UserPlus },
-                  { label: "Total Buyers", val: stats.buyers, icon: UserCircle },
-                  { label: "Suspended", val: stats.suspended, icon: ShieldAlert },
+                  { label: "Sellers", val: stats.sellers, icon: UserPlus },
+                  { label: "Buyers", val: stats.buyers, icon: UserCircle },
+                  { label: "Admins", val: stats.admins, icon: ShieldCheck },
                 ].map((s, i) => (
                   <div key={i} className="bg-card border border-border p-5 rounded-[2rem] flex items-center justify-between">
                     <div>
@@ -104,64 +149,70 @@ export default function UserRBACPage() {
               
               {/* User List Table */}
               <div className="lg:col-span-8 bg-card border border-border rounded-[2rem] overflow-hidden shadow-sm">
-                <div className="p-6 border-b border-border flex justify-between items-center bg-muted/20">
-                  <div className="relative w-64">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <input type="text" placeholder="Search by name/email..." className="w-full bg-background border border-border rounded-xl pl-10 pr-4 py-2 text-xs font-bold outline-none" />
-                  </div>
-                  <button className="p-2.5 bg-background border border-border rounded-xl hover:bg-muted transition-all">
-                    <Filter className="w-4 h-4" />
-                  </button>
-                </div>
-
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
                     <thead>
                       <tr className="bg-muted/30 border-b border-border">
-                        <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground">User Profile</th>
-                        <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground">Role</th>
-                        <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground">Status</th>
-                        <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground text-right">Control</th>
+                        <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground">User</th>
+                        <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground">Assigned Roles</th>
+                        <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
                       {users.map((user) => (
-                        <tr key={user.id} className="hover:bg-muted/10 transition-colors group">
+                        <tr key={user._id} className="hover:bg-muted/10 transition-colors group">
                           <td className="px-6 py-5">
-                            <p className="font-black text-sm uppercase italic tracking-tighter">{user.name}</p>
-                            <p className="text-[9px] font-bold text-muted-foreground uppercase">{user.email}</p>
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-10 w-10 border-2 border-primary/20">
+                                <AvatarImage src={user.image} />
+                                <AvatarFallback className="font-black text-xs">{user.name.substring(0,2).toUpperCase()}</AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-black text-sm uppercase italic tracking-tighter">{user.name}</p>
+                                <p className="text-[9px] font-bold text-muted-foreground uppercase">{user.email}</p>
+                              </div>
+                            </div>
                           </td>
                           <td className="px-6 py-5">
-                            <select 
-                              value={user.role} 
-                              onChange={(e) => handleRoleChange(user.id, user.role, e.target.value)}
-                              className="bg-background border border-border rounded-lg px-2 py-1 text-[10px] font-black uppercase outline-none focus:ring-1 ring-primary cursor-pointer"
-                            >
-                              <option value="Buyer">Buyer</option>
-                              <option value="Seller">Seller</option>
-                              <option value="Admin">Admin</option>
-                            </select>
-                          </td>
-                          <td className="px-6 py-5">
-                            <span className={`text-[9px] font-black uppercase px-2 py-1 rounded-md border ${
-                              user.status === "Active" ? "bg-green-500/10 text-green-500 border-green-500/20" : "bg-destructive/10 text-destructive border-destructive/20"
-                            }`}>
-                              {user.status}
-                            </span>
+                            <div className="flex flex-wrap gap-1">
+                              {user.roles.map(role => (
+                                <span key={role} className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full border ${
+                                  role === 'admin' ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted text-foreground border-border'
+                                }`}>
+                                  {role}
+                                </span>
+                              ))}
+                            </div>
                           </td>
                           <td className="px-6 py-5 text-right">
                             <div className="flex justify-end gap-2">
+                              {/* Manage Admin Rights */}
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="outline" size="sm" className="h-8 rounded-lg text-[10px] font-black uppercase">
+                                    Role Action <ChevronDown className="ml-2 w-3 h-3" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="font-black uppercase text-[10px]">
+                                  <DropdownMenuLabel>Modify Privileges</DropdownMenuLabel>
+                                  <DropdownMenuSeparator />
+                                  {user.roles.includes("admin") ? (
+                                    <DropdownMenuItem className="text-destructive" onClick={() => toggleAdminRole(user._id)}>
+                                      Remove Admin Role
+                                    </DropdownMenuItem>
+                                  ) : (
+                                    <DropdownMenuItem className="text-primary" onClick={() => toggleAdminRole(user._id)}>
+                                      Make Admin
+                                    </DropdownMenuItem>
+                                  )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+
                               <button 
                                 onClick={() => setSelectedUser(user)}
                                 className="p-2 border border-border rounded-lg hover:bg-foreground hover:text-background transition-all"
                               >
-                                <Activity className="w-4 h-4" />
-                              </button>
-                              <button 
-                                onClick={() => handleStatusUpdate(user.id, user.status)}
-                                className={`p-2 border border-border rounded-lg transition-all ${user.status === 'Active' ? 'hover:bg-destructive hover:text-white' : 'hover:bg-green-500 hover:text-white'}`}
-                              >
-                                <UserX className="w-4 h-4" />
+                                <Eye className="w-4 h-4" />
                               </button>
                             </div>
                           </td>
@@ -172,65 +223,79 @@ export default function UserRBACPage() {
                 </div>
               </div>
 
-              {/* Role Context & Audit Panel */}
-              <div className="lg:col-span-4 space-y-6">
+              {/* Deep View Panel */}
+              <div className="lg:col-span-4">
                 {selectedUser ? (
-                  <div className="bg-card border-2 border-primary rounded-[2rem] p-8 space-y-6 sticky top-24">
-                    <div className="flex justify-between items-start">
+                  <div className="bg-card border-2 border-primary rounded-[2rem] p-6 sticky top-24 space-y-6">
+                    <div className="flex justify-between items-center">
                       <h3 className="text-xl font-black uppercase italic tracking-tighter">Deep View</h3>
                       <button onClick={() => setSelectedUser(null)} className="text-[10px] font-bold uppercase opacity-50 underline">Close</button>
                     </div>
-                    
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                        <span>User UUID</span>
-                        <span className="text-foreground">{selectedUser.id}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                        <span>Last Login</span>
-                        <span className="text-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> {selectedUser.lastLogin}</span>
-                      </div>
-                    </div>
 
-                    <div className="pt-6 border-t border-border space-y-4">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-primary">Role Permissions</p>
-                      <div className="bg-background rounded-xl p-4 border border-border space-y-3">
-                        <div className="flex items-center gap-3">
-                          <ShieldCheck className="w-4 h-4 text-primary" />
-                          <span className="text-[9px] font-bold uppercase">Access to platform logs</span>
+                    {/* Profile Header */}
+                    <div className="flex flex-col items-center text-center space-y-3">
+                      <Avatar className="h-20 w-20 border-4 border-primary">
+                        <AvatarImage src={selectedUser.image} />
+                        <AvatarFallback className="text-2xl font-black">{selectedUser.name[0]}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h4 className="font-black uppercase text-lg italic tracking-tighter">{selectedUser.name}</h4>
+                        <div className="flex gap-2 justify-center mt-1">
+                           {selectedUser.roles.includes("seller") ? <span className="bg-blue-500/10 text-blue-500 text-[8px] px-2 py-0.5 rounded-full font-bold uppercase">Seller Account</span> : <span className="bg-orange-500/10 text-orange-500 text-[8px] px-2 py-0.5 rounded-full font-bold uppercase">Buyer Account</span>}
                         </div>
-                        {selectedUser.role === "Admin" && (
-                          <div className="flex items-center gap-3">
-                            <UserCog className="w-4 h-4 text-primary" />
-                            <span className="text-[9px] font-bold uppercase">Can modify seller fees</span>
-                          </div>
-                        )}
                       </div>
                     </div>
 
-                    <button className="w-full py-4 bg-foreground text-background rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary transition-all flex items-center justify-center gap-2">
-                      View Linked Orders <ChevronRight className="w-3 h-3" />
-                    </button>
+                    <div className="space-y-4 pt-4 border-t border-border">
+                       <div className="flex items-center gap-3 text-[10px] font-bold uppercase">
+                          <Mail className="w-4 h-4 text-primary" /> {selectedUser.email}
+                       </div>
+                       <div className="flex items-center gap-3 text-[10px] font-bold uppercase">
+                          <Phone className="w-4 h-4 text-primary" /> {selectedUser.phone}
+                       </div>
+                       <div className="flex items-center gap-3 text-[10px] font-bold uppercase">
+                          <Globe className="w-4 h-4 text-primary" /> {selectedUser.country}
+                       </div>
+                    </div>
+
+                    {/* Conditional Data based on Role */}
+                    <div className="space-y-4 pt-4 border-t border-border">
+                      {selectedUser.roles.includes("buyer") ? (
+                        <>
+                          <div className="bg-muted/50 p-4 rounded-xl">
+                            <p className="text-[9px] font-black text-muted-foreground uppercase mb-1">Available Balance</p>
+                            <p className="text-2xl font-black italic text-primary">${selectedUser.userBalance.toFixed(2)}</p>
+                          </div>
+                          <div className="space-y-2">
+                             <p className="text-[10px] font-black uppercase flex items-center gap-2"><MapPin className="w-3 h-3"/> Shipping Address</p>
+                             <p className="text-[10px] text-muted-foreground leading-tight">{selectedUser.addresses[0]?.street}, {selectedUser.addresses[0]?.city}</p>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="bg-muted/50 p-4 rounded-xl">
+                            <p className="text-[9px] font-black text-muted-foreground uppercase mb-1">Business Name</p>
+                            <p className="text-lg font-black italic text-primary uppercase">{selectedUser.businessName}</p>
+                          </div>
+                          <div className="space-y-2">
+                             <p className="text-[10px] font-black uppercase flex items-center gap-2"><Wallet className="w-3 h-3"/> Payout Wallet</p>
+                             <p className="text-[10px] text-muted-foreground font-mono">{selectedUser.cryptoPayoutDetails[0]?.walletName} ({selectedUser.cryptoPayoutDetails[0]?.currency})</p>
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    <p className="text-[8px] font-bold text-center text-muted-foreground uppercase">Joined: {new Date(selectedUser.createdAt).toLocaleDateString()}</p>
                   </div>
                 ) : (
-                  <div className="bg-primary/5 border border-dashed border-primary/30 rounded-[2rem] p-10 text-center space-y-4">
-                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto text-primary">
-                      <ArrowRightLeft className="w-8 h-8" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-black uppercase italic tracking-tighter">Security Protocol</h4>
-                      <p className="text-[10px] text-muted-foreground font-bold uppercase leading-relaxed mt-2">
-                        Admin delegations require active 2FA. Changes to &quot;Admin&quot; roles are logged in the immutable audit trail.
-                      </p>
-                    </div>
+                  <div className="h-full border-2 border-dashed border-border rounded-[2rem] flex items-center justify-center p-10 text-center">
+                    <p className="text-[10px] font-black uppercase text-muted-foreground italic">Select a user to inspect deep metadata</p>
                   </div>
                 )}
               </div>
             </div>
-
           </div>
         </main>
-
         <AdminNav />
       </div>
     </div>

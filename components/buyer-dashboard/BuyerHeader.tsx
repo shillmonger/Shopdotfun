@@ -13,6 +13,7 @@ interface HeaderProps {
 interface BuyerData {
   name: string;
   email: string;
+  profileImage?: string;
 }
 
 export default function BuyerHeader({ sidebarOpen, setSidebarOpen }: HeaderProps) {
@@ -28,7 +29,8 @@ export default function BuyerHeader({ sidebarOpen, setSidebarOpen }: HeaderProps
           const data = await response.json();
           setBuyer({
             name: data.name,
-            email: data.email
+            email: data.email,
+            profileImage: data.profileImage
           });
         }
       } catch (error) {
@@ -111,7 +113,7 @@ export default function BuyerHeader({ sidebarOpen, setSidebarOpen }: HeaderProps
             </p>
           </div>
           <Avatar className="h-9 w-9 border-2 border-foreground/20 rounded-xl p-0.5">
-            <AvatarImage src="https://github.com/shadcn.png" className="rounded-lg" />
+            <AvatarImage src={buyer?.profileImage || "https://github.com/shadcn.png"} className="rounded-lg" />
             <AvatarFallback className="rounded-lg font-bold">
               {isLoading ? '...' : buyer?.name?.charAt(0) || 'B'}
             </AvatarFallback>

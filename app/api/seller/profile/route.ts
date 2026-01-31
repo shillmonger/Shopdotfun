@@ -26,6 +26,11 @@ export async function GET() {
     // Remove sensitive data before sending the response
     const { password, ...sellerData } = seller;
     
+    // Add GitHub default profile image if none exists
+    if (!sellerData.profileImage) {
+      sellerData.profileImage = 'https://github.com/shadcn.png';
+    }
+    
     return NextResponse.json(sellerData);
   } catch (error) {
     console.error('Error fetching seller profile:', error);

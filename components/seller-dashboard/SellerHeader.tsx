@@ -14,6 +14,7 @@ interface SellerData {
   name: string;
   email: string;
   businessName?: string;
+  profileImage?: string;
 }
 
 export default function SellerHeader({ sidebarOpen, setSidebarOpen }: HeaderProps) {
@@ -30,7 +31,8 @@ export default function SellerHeader({ sidebarOpen, setSidebarOpen }: HeaderProp
           setSeller({
             name: data.name,
             email: data.email,
-            businessName: data.businessName
+            businessName: data.businessName,
+            profileImage: data.profileImage
           });
         }
       } catch (error) {
@@ -110,7 +112,7 @@ export default function SellerHeader({ sidebarOpen, setSidebarOpen }: HeaderProp
           </div>
           
           <Avatar className="h-9 w-9 md:h-11 md:w-11 border-2 border-foreground/20 hover:border-foreground transition-all rounded-xl p-0.5 cursor-pointer">
-            <AvatarImage src="https://github.com/shadcn.png" className="rounded-lg" />
+            <AvatarImage src={seller?.profileImage || 'https://github.com/shadcn.png'} className="rounded-lg" />
             <AvatarFallback className="rounded-lg bg-foreground text-background font-bold">
               {isLoading ? '...' : seller?.name?.charAt(0) || 'S'}
             </AvatarFallback>

@@ -42,7 +42,7 @@ export async function PUT(request: Request) {
     }
 
     const data = await request.json();
-    const { name, email, phone } = data;
+    const { name, email, phone, profileImage } = data;
 
     // Basic validation
     if (!name || !email || !phone) {
@@ -52,17 +52,23 @@ export async function PUT(request: Request) {
     const client = await clientPromise;
     const db = client.db('shop_dot_fun');
     
+    // Prepare update object
+    const updateData: any = {
+      name,
+      email,
+      phone,
+      updatedAt: new Date(),
+    };
+
+    // Add profile image if provided
+    if (profileImage !== undefined) {
+      updateData.profileImage = profileImage;
+    }
+    
     // Update the buyer's information
     const result = await db.collection('buyers').updateOne(
       { email: session.user.email },
-      {
-        $set: {
-          name,
-          email,
-          phone,
-          updatedAt: new Date(),
-        },
-      }
+      { $set: updateData }
     );
 
     if (result.matchedCount === 0) {

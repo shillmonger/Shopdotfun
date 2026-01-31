@@ -56,11 +56,6 @@ export default function BuyerSidebar({
       href: `${basePath}/audit-logs` 
     },
     {
-      name: "User Management",
-      icon: UserCircle,
-      href: `${basePath}/user-management`,
-    },
-    {
       name: "Order Monitoring",
       icon: Truck,
       href: `${basePath}/order-monitoring`,
@@ -86,19 +81,14 @@ export default function BuyerSidebar({
       href: `${basePath}/sellers-payouts`,
     },
     {
-      name: "Refund Management",
-      icon: RefreshCw,
-      href: `${basePath}/refund-management`,
-    },
-    {
-      name: "Dispute Resolution",
-      icon: AlertOctagon,
-      href: `${basePath}/dispute-resolution`,
-    },
-    {
       name: "Commission Settings",
       icon: Percent,
       href: `${basePath}/commission-settings`,
+    },
+     {
+      name: "User Management",
+      icon: UserCircle,
+      href: `${basePath}/user-management`,
     },
     {
       name: "Email Notifications",

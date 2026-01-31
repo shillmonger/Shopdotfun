@@ -112,6 +112,9 @@ export default function SellerProfilePage() {
           businessAddress: data.businessAddress || "",
         });
 
+        // Set profile image from database or use default
+        setProfileImage(data.profileImage || 'https://github.com/shadcn.png');
+
         // Set last update time if available from server
         if (data.updatedAt) {
           setLastUpdate(formatDate(data.updatedAt));
@@ -135,7 +138,8 @@ export default function SellerProfilePage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordsMatch, setPasswordsMatch] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [profileImage, setProfileImage] = useState<string | null>("https://github.com/shadcn.png");
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   // Crypto Payout State
   const [cryptoPayout, setCryptoPayout] = useState({
@@ -308,12 +312,34 @@ export default function SellerProfilePage() {
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setProfileImage(reader.result as string);
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    setIsUploadingImage(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/seller/profile-image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to upload image');
+      }
+
+      const data = await response.json();
+      setProfileImage(data.profileImage);
+      toast.success('Profile image updated successfully');
+    } catch (error) {
+      console.error('Error uploading profile image:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to upload profile image');
+    } finally {
+      setIsUploadingImage(false);
     }
   };
 
@@ -365,10 +391,21 @@ export default function SellerProfilePage() {
                           </div>
                         )}
                       </div>
-                      <label htmlFor="profile-upload" className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground p-2.5 rounded-xl cursor-pointer shadow-xl border border-background hover:scale-110 transition-transform">
-                        <Camera className="w-5 h-5" />
+                      <label htmlFor="profile-upload" className={`absolute -bottom-2 -right-2 bg-primary text-primary-foreground p-2.5 rounded-xl cursor-pointer shadow-xl border border-background hover:scale-110 transition-transform ${isUploadingImage ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                        {isUploadingImage ? (
+                          <div className="w-5 h-5 animate-spin border-2 border-white border-t-transparent rounded-full" />
+                        ) : (
+                          <Camera className="w-5 h-5" />
+                        )}
                       </label>
-                      <input id="profile-upload" type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                      <input 
+                        id="profile-upload" 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={handleImageUpload}
+                        disabled={isUploadingImage}
+                      />
                     </div>
                     <p className="text-sm font-black uppercase text-center">{businessInfo.businessName || 'Your Business'}</p>
                     <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight">Verified Merchant</p>

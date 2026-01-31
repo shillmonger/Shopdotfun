@@ -74,8 +74,9 @@ export default function UserSettingsPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordsMatch, setPasswordsMatch] = useState(true);
   
-  // Static profile image URL
-  const profileImage = "https://github.com/shadcn.png";
+  // Profile image state
+  const [profileImage, setProfileImage] = useState("https://github.com/shadcn.png");
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   
   // Fetch buyer profile data
   useEffect(() => {
@@ -91,6 +92,9 @@ export default function UserSettingsPage() {
           email: data.email || "",
           phone: data.phone || "",
         });
+        
+        // Set profile image from database or use default
+        setProfileImage(data.profileImage || "https://github.com/shadcn.png");
         
         // Format and set the member since date
         if (data.createdAt) {
@@ -193,6 +197,39 @@ export default function UserSettingsPage() {
     }
   };
   
+  // Handle profile image upload
+  const handleProfileImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingImage(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await fetch('/api/buyer/profile-image', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to upload profile image');
+      }
+      
+      setProfileImage(data.profileImage);
+      toast.success('Profile image updated successfully');
+    } catch (error: unknown) {
+      console.error('Error uploading profile image:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to upload profile image';
+      toast.error(errorMessage);
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
   // Handle input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -241,6 +278,21 @@ export default function UserSettingsPage() {
                       <div className="w-32 h-32 rounded-2xl overflow-hidden border-2 border-primary bg-muted shadow-2xl">
                         <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
                       </div>
+                      <label className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground p-2.5 rounded-xl cursor-pointer hover:bg-primary/90 transition-colors shadow-lg">
+                        <Camera className="w-5 h-5" />
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleProfileImageUpload}
+                          className="hidden"
+                          disabled={isUploadingImage}
+                        />
+                      </label>
+                      {isUploadingImage && (
+                        <div className="absolute inset-0 bg-black/50 rounded-2xl flex items-center justify-center">
+                          <Loader2 className="w-6 h-6 animate-spin text-white" />
+                        </div>
+                      )}
                     </div>
                     <p className="text-sm font-black uppercase">{personalInfo.name || 'Loading...'}</p>
                     <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight">Buyer Account</p>
