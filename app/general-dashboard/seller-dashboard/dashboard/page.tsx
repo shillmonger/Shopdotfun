@@ -38,14 +38,88 @@ export default function SellerOverviewPage() {
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [paginationInfo, setPaginationInfo] = useState<any>(null);
+  const [stats, setStats] = useState([
+    {
+      label: "Total Sales",
+      value: "$0",
+      icon: DollarSign,
+      trend: "+12%",
+      href: "/general-dashboard/seller-dashboard/analytics",
+    },
+    {
+      label: "Can Withdraw",
+      value: "$0",
+      icon: CheckCircle2,
+      trend: "Ready",
+      href: "/general-dashboard/seller-dashboard/request-payout",
+    },
+    {
+      label: "Pending Ship",
+      value: "0",
+      icon: Clock,
+      trend: "Urgent",
+      href: "/general-dashboard/seller-dashboard/orders-management",
+    },
+    {
+      label: "Orders Today",
+      value: "0",
+      icon: Package,
+      trend: "+",
+      href: "/general-dashboard/seller-dashboard/orders-management",
+    }
+  ]);
+  const [statsLoading, setStatsLoading] = useState(true);
 
-  // Mock Stats
-  const stats = [
-    { label: "Total Sales", value: "$12,450", icon: DollarSign, trend: "+12%" },
-    { label: "Orders Today", value: "8", icon: Package, trend: "+2" },
-    { label: "Pending Ship", value: "3", icon: Clock, trend: "Urgent" },
-    { label: "Available", value: "$4,200", icon: CheckCircle2, trend: "Ready" },
-  ];
+
+  const fetchStats = async () => {
+    try {
+      setStatsLoading(true);
+      const response = await fetch("/api/seller/stats");
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          const { totalSales, canWithdraw, ordersToday, pendingShip } = data.data;
+          
+          setStats([
+            {
+              label: "Total Sales",
+              value: `$${totalSales.toFixed(2)}`,
+              icon: DollarSign,
+              trend: "+12%",
+              href: "/dashboard/sales",
+            },
+            {
+              label: "Can Withdraw",
+              value: `$${canWithdraw.toFixed(2)}`,
+              icon: CheckCircle2,
+              trend: "Ready",
+              href: "/dashboard/withdraw",
+            },
+            {
+              label: "Pending Ship",
+              value: pendingShip.toString(),
+              icon: Clock,
+              trend: "Urgent",
+              href: "/dashboard/shipments/pending",
+            },
+            {
+              label: "Orders Today",
+              value: ordersToday.toString(),
+              icon: Package,
+              trend: "+",
+              href: "/dashboard/orders",
+            }
+          ]);
+        }
+      } else {
+        console.error("Failed to fetch stats");
+      }
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
 
   const fetchRecentOrders = async () => {
     try {
@@ -105,6 +179,7 @@ export default function SellerOverviewPage() {
     };
 
     fetchUserData();
+    fetchStats();
     fetchRecentOrders();
 
     // Check wallet connection status
@@ -182,30 +257,66 @@ export default function SellerOverviewPage() {
             </section>
 
             {/* B. Key Metrics (Stat Cards) */}
-            <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {stats.map((stat, i) => (
-                <div
-                  key={i}
-                  className="bg-card border border-border p-5 rounded-3xl relative overflow-hidden group"
-                >
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="p-2 bg-muted rounded-xl text-primary">
-                      <stat.icon className="w-5 h-5" />
-                    </div>
-                    <span className="text-[9px] font-black uppercase tracking-tighter bg-foreground/5 px-2 py-0.5 rounded-full">
-                      {stat.trend}
-                    </span>
-                  </div>
-                  <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
-                    {stat.label}
-                  </p>
-                  <p className="text-3xl font-black italic tracking-tighter mt-1">
-                    {stat.value}
-                  </p>
-                  <div className="absolute bottom-0 left-0 h-1 bg-primary w-0 group-hover:w-full transition-all duration-500" />
-                </div>
-              ))}
-            </section>
+<section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+  {statsLoading ? (
+    // Loading skeleton for stats
+    Array.from({ length: 4 }).map((_, i) => (
+      <div key={i} className="bg-card border border-border rounded-3xl p-4 lg:p-5 min-h-[120px] animate-pulse">
+        <div className="flex justify-between items-start mb-4 lg:mb-3">
+          <div className="p-2 bg-muted rounded-xl w-9 h-9"></div>
+          <div className="h-4 w-12 bg-muted rounded-full"></div>
+        </div>
+        <div className="h-8 w-20 bg-muted rounded mb-2"></div>
+        <div className="h-3 w-16 bg-muted rounded"></div>
+      </div>
+    ))
+  ) : (
+    stats.map((stat, i) => (
+      <Link
+        key={i}
+        href={stat.href}
+        className="group block focus:outline-none"
+      >
+        <div
+          className="
+            bg-card
+            border border-border
+            rounded-3xl
+            p-4 lg:p-5
+            min-h-[120px]
+            transition-all
+            hover:bg-muted/40
+          "
+        >
+          {/* Top Row */}
+          <div className="flex justify-between items-start mb-4 lg:mb-3">
+            <div className="p-2 bg-muted rounded-xl text-primary">
+              <stat.icon className="w-5 h-5" />
+            </div>
+
+            <span className="text-[9px] font-black uppercase tracking-tighter bg-foreground/5 px-2 py-0.5 rounded-full">
+              {stat.trend}
+            </span>
+          </div>
+
+          
+          {/* Value */}
+          <p className="text-2xl lg:text-3xl font-black italic tracking-tighter mb-1">
+            {stat.value}
+          </p>
+
+          {/* Label */}
+          <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
+            {stat.label}
+          </p>
+
+        </div>
+      </Link>
+    ))
+  )}
+</section>
+
+
 
             {/* D. Alerts & Actions (Sticky Notifications) */}
             <section className="space-y-4">
@@ -400,7 +511,7 @@ export default function SellerOverviewPage() {
                             </td>
                             <td className="px-6 py-5 text-right">
                               <Link
-                                href={`/general-dashboard/seller-dashboard/orders-management/${order.id}`}
+                                href={`/general-dashboard/seller-dashboard/orders-management`}
                                 className="p-2 inline-block bg-muted rounded-lg group-hover:bg-primary group-hover:text-primary-foreground transition-all"
                               >
                                 <ChevronRight className="w-4 h-4" />

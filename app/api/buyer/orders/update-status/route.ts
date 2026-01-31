@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import OrderModel from '@/models/Order';
+import { Product } from '@/models/Product';
 import { validateStatusUpdate } from '@/lib/order-status';
 
 export async function PATCH(request: NextRequest) {
@@ -41,6 +42,33 @@ export async function PATCH(request: NextRequest) {
     // Special handling for "Received" action
     if (updates.buyerAction === 'received') {
       updates.shipping = 'received';
+      
+      // Deduct product quantity from seller's product stock
+      try {
+        const productCode = order.productInfo.productCode;
+        const orderQuantity = order.productInfo.quantity;
+        
+        // Find the product and deduct the quantity
+        const product = await Product.findOne({ productCode: productCode });
+        if (product) {
+          const newStock = Math.max(0, product.stock - orderQuantity);
+          await Product.updateOne(
+            { productCode: productCode },
+            { 
+              $set: { 
+                stock: newStock,
+                updatedAt: new Date()
+              }
+            }
+          );
+          console.log(`Deducted ${orderQuantity} from product ${productCode}. New stock: ${newStock}`);
+        } else {
+          console.warn(`Product with code ${productCode} not found for stock deduction`);
+        }
+      } catch (stockError) {
+        console.error('Error deducting product stock:', stockError);
+        // Continue with order update even if stock deduction fails
+      }
     }
 
     // Update the order
