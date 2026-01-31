@@ -40,6 +40,8 @@ export default function BuyerOverviewPage() {
     active: number;
     received: number;
   }>({ active: 0, received: 0 });
+  const [recentOrders, setRecentOrders] = useState<any[]>([]);
+  const [shippedOrder, setShippedOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -73,6 +75,20 @@ export default function BuyerOverviewPage() {
             active: ordersData.stats?.pending || 0,
             received: ordersData.stats?.shipped || 0,
           });
+        }
+
+        // Fetch recent orders
+        const recentOrdersResponse = await fetch("/api/buyer/recent-orders");
+        if (recentOrdersResponse.ok) {
+          const recentOrdersData = await recentOrdersResponse.json();
+          setRecentOrders(recentOrdersData.recentOrders || []);
+        }
+
+        // Fetch shipped order for attention section
+        const shippedOrderResponse = await fetch("/api/buyer/shipped-order");
+        if (shippedOrderResponse.ok) {
+          const shippedOrderData = await shippedOrderResponse.json();
+          setShippedOrder(shippedOrderData.shippedOrder);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -186,34 +202,60 @@ export default function BuyerOverviewPage() {
                     <AlertCircle className="w-4 h-4 text-primary" /> Attention
                     Required
                   </h2>
-                  <div className="bg-foreground text-background p-6 rounded-3xl flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl">
-                    <div className="flex items-center gap-4 flex-1 min-w-0">
-                      <div className="bg-primary p-3 rounded-2xl shrink-0">
-                        <Package className="w-6 h-6 text-primary-foreground" />
+                  {shippedOrder ? (
+                    <div className="bg-foreground text-background p-6 rounded-3xl flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl">
+                      <div className="flex items-center gap-4 flex-1 min-w-0">
+                        <div className="w-16 h-16 bg-muted rounded-2xl overflow-hidden shrink-0">
+                          {shippedOrder.productInfo?.images?.[0]?.url ? (
+                            <img
+                              src={shippedOrder.productInfo.images[0].url}
+                              alt={shippedOrder.productInfo.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Package className="w-8 h-8 text-foreground/50" />
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="min-w-0">
+                          <p className="text-xs font-black uppercase tracking-widest opacity-70 truncate">
+                            Order #{shippedOrder.orderId}
+                          </p>
+
+                          <h3 className="text-lg font-black uppercase italic tracking-tighter truncate">
+                            {shippedOrder.productInfo?.name || 'Product'} has been shipped
+                          </h3>
+
+                          <p className="text-[10px] font-medium opacity-60 mt-1 uppercase truncate">
+                            Track your delivery - shipped on {new Date(shippedOrder.updatedAt).toLocaleDateString('en-US', { 
+                              month: 'short', 
+                              day: 'numeric', 
+                              year: 'numeric' 
+                            })}
+                          </p>
+                        </div>
                       </div>
 
-                      <div className="min-w-0">
-                        <p className="text-xs font-black uppercase tracking-widest opacity-70 truncate">
-                          Order #ORD-99281
-                        </p>
-
-                        <h3 className="text-lg font-black uppercase italic tracking-tighter truncate">
-                          Confirm your delivery
-                        </h3>
-
-                        <p className="text-[10px] font-medium opacity-60 mt-1 uppercase truncate">
-                          Item reached your local hub 2 hours ago.
-                        </p>
-                      </div>
+                      <Link
+                        href="/general-dashboard/buyer-dashboard/orders"
+                        className="w-full md:w-auto bg-background text-foreground px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-primary-foreground transition-all text-center"
+                      >
+                        Track Order
+                      </Link>
                     </div>
-
-                    <Link
-                      href="/buyer/orders/tracking"
-                      className="w-full md:w-auto bg-background text-foreground px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-primary-foreground transition-all text-center"
-                    >
-                      Confirm Now
-                    </Link>
-                  </div>
+                  ) : (
+                    <div className="bg-card border border-border p-6 rounded-3xl text-center">
+                      <Package className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-sm font-black uppercase tracking-tighter mb-2">
+                        No shipped orders
+                      </p>
+                      <p className="text-[10px] text-muted-foreground uppercase">
+                        Your shipped orders will appear here
+                      </p>
+                    </div>
+                  )}
                 </section>
 
                 {/* 3️⃣ Recent Orders Section */}
@@ -223,40 +265,111 @@ export default function BuyerOverviewPage() {
                       Recent Orders
                     </h2>
                     <Link
-                      href="/buyer/orders"
+                      href="/general-dashboard/buyer-dashboard/orders"
                       className="text-[10px] font-black uppercase tracking-widest text-primary hover:underline"
                     >
                       View All
                     </Link>
                   </div>
                   <div className="bg-card border border-border rounded-3xl overflow-hidden divide-y divide-border">
-                    {[1, 2].map((_, i) => (
-                      <div
-                        key={i}
-                        className="p-5 flex items-center justify-between hover:bg-muted/30 transition-colors"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-muted rounded-xl flex items-center justify-center font-black text-xs">
-                            IMG
+                    {loading ? (
+                      // Loading skeleton
+                      [1, 2].map((_, i) => (
+                        <div
+                          key={i}
+                          className="p-5 flex items-center justify-between"
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-muted rounded-xl animate-pulse"></div>
+                            <div className="space-y-2">
+                              <div className="h-4 w-48 bg-muted rounded animate-pulse"></div>
+                              <div className="h-3 w-32 bg-muted rounded animate-pulse"></div>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-sm font-black uppercase italic tracking-tighter">
-                              Premium Wireless Headphones
-                            </p>
-                            <p className="text-[10px] font-bold text-muted-foreground uppercase">
-                              ORD-7728 • Jan 18, 2026
-                            </p>
+                          <div className="flex items-center gap-4">
+                            <div className="h-6 w-16 bg-muted rounded-full animate-pulse"></div>
+                            <div className="h-4 w-16 bg-muted rounded animate-pulse"></div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-4">
-                          <span className="hidden md:block text-[9px] font-black uppercase px-2 py-1 rounded-full border border-amber-500/20 bg-amber-500/10 text-amber-500">
-                            Shipped
-                          </span>
-                          <p className="font-black italic">$299.00</p>
-                          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                      ))
+                    ) : recentOrders.length > 0 ? (
+                      recentOrders.map((order, i) => (
+                        <div
+                          key={i}
+                          className="p-5 flex items-center justify-between hover:bg-muted/30 transition-colors"
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 sm:w-12 sm:h-12 bg-muted rounded-lg sm:rounded-xl overflow-hidden">
+  {order.productImage ? (
+    <img
+      src={order.productImage}
+      alt={order.productName}
+      className="w-full h-full object-cover"
+    />
+  ) : (
+    <div className="w-full h-full flex items-center justify-center font-black text-xs">
+      IMG
+    </div>
+  )}
+</div>
+
+                            <div>
+                              <p className="text-sm font-black uppercase italic tracking-tighter">
+                                {order.productName}
+                              </p>
+                              <p className="text-[10px] font-bold text-muted-foreground uppercase">
+                                {order.orderId} • {new Date(order.createdAt).toLocaleDateString('en-US', { 
+                                  month: 'short', 
+                                  day: 'numeric', 
+                                  year: 'numeric' 
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="hidden md:flex items-center gap-4">
+  <span
+    className={`text-[9px] font-black uppercase px-2 py-1 rounded-full border ${
+      order.status === 'shipped' 
+        ? 'border-amber-500/20 bg-amber-500/10 text-amber-500'
+        : order.status === 'pending'
+        ? 'border-blue-500/20 bg-blue-500/10 text-blue-500'
+        : 'border-green-500/20 bg-green-500/10 text-green-500'
+    }`}
+  >
+    {order.status === 'shipped'
+      ? 'Shipped'
+      : order.status === 'pending'
+      ? 'Pending'
+      : order.status === 'received'
+      ? 'Received'
+      : order.status}
+  </span>
+
+  <p className="font-black italic">${order.price.toFixed(2)}</p>
+
+  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+</div>
+
                         </div>
+                      ))
+                    ) : (
+                      // No orders state
+                      <div className="p-8 text-center">
+                        <Package className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                        <p className="text-sm font-black uppercase tracking-tighter mb-2">
+                          No orders yet
+                        </p>
+                        <p className="text-[10px] text-muted-foreground uppercase mb-4">
+                          Start shopping to see your orders here
+                        </p>
+                        <Link
+                          href="/general-dashboard/buyer-dashboard/browse-product"
+                          className="inline-block bg-primary text-primary-foreground px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all"
+                        >
+                          Start Shopping
+                        </Link>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </section>
               </div>
