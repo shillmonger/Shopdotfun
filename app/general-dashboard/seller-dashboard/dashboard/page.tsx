@@ -35,6 +35,9 @@ export default function SellerOverviewPage() {
   const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+  const [recentOrders, setRecentOrders] = useState<any[]>([]);
+  const [paginationInfo, setPaginationInfo] = useState<any>(null);
 
   // Mock Stats
   const stats = [
@@ -44,33 +47,65 @@ export default function SellerOverviewPage() {
     { label: "Available", value: "$4,200", icon: CheckCircle2, trend: "Ready" },
   ];
 
-  const recentOrders = [
-    { id: "ORD-1120", buyer: "Alex Johnson", total: 125.0, status: "Pending" },
-    { id: "ORD-1118", buyer: "Sarah Smith", total: 85.5, status: "Shipped" },
-    { id: "ORD-1115", buyer: "Mike Ross", total: 210.0, status: "Delivered" },
-  ];
+  const fetchRecentOrders = async () => {
+    try {
+      setOrdersLoading(true);
+      const response = await fetch("/api/seller/orders/recent?limit=10");
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          // Transform the data to match the frontend format
+          const transformedOrders = data.data.map((order: any) => ({
+            id: order.id,
+            buyer: order.buyer,
+            country: order.shippingAddress?.country || "N/A",
+            productCode: order.items[0]?.productCode || "N/A",
+            image:
+              order.items[0]?.images?.[0]?.thumbnailUrl ||
+              "/api/placeholder/40/40",
+            total: order.total,
+            status:
+              order.status?.shipping === "pending"
+                ? "Pending"
+                : order.status?.shipping === "shipped"
+                  ? "Shipped"
+                  : "Delivered",
+          }));
+          setRecentOrders(transformedOrders);
+          setPaginationInfo(data.pagination);
+        }
+      } else {
+        console.error("Failed to fetch recent orders");
+      }
+    } catch (error) {
+      console.error("Error fetching recent orders:", error);
+    } finally {
+      setOrdersLoading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await fetch('/api/seller/profile');
+        const response = await fetch("/api/seller/profile");
         if (response.ok) {
           const data = await response.json();
           setUserData({
-            name: data.name || 'Seller',
+            name: data.name || "Seller",
             email: data.email,
             country: data.country,
-            image: data.image
+            image: data.image,
           });
         }
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.error("Error fetching user data:", error);
       } finally {
         setLoading(false);
       }
     };
 
     fetchUserData();
+    fetchRecentOrders();
 
     // Check wallet connection status
     const checkWalletStatus = async () => {
@@ -129,7 +164,7 @@ export default function SellerOverviewPage() {
                   {loading ? (
                     <div className="h-10 w-64 bg-muted rounded animate-pulse"></div>
                   ) : (
-                    getGreeting(userData?.name || 'Seller')
+                    getGreeting(userData?.name || "Seller")
                   )}
                 </h1>
 
@@ -139,15 +174,12 @@ export default function SellerOverviewPage() {
               </div>
 
               <Link
-  href="general-dashboard/seller-dashboard/add-product"
-  className="bg-primary text-primary-foreground px-8 py-4 rounded-xl text-xs font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-primary/20 w-full md:w-auto block text-center"
->
-  + Add New Product
-</Link>
-
+                href="general-dashboard/seller-dashboard/add-product"
+                className="bg-primary text-primary-foreground px-8 py-4 rounded-xl text-xs font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-primary/20 w-full md:w-auto block text-center"
+              >
+                + Add New Product
+              </Link>
             </section>
-
-          
 
             {/* B. Key Metrics (Stat Cards) */}
             <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -175,8 +207,7 @@ export default function SellerOverviewPage() {
               ))}
             </section>
 
-
-              {/* D. Alerts & Actions (Sticky Notifications) */}
+            {/* D. Alerts & Actions (Sticky Notifications) */}
             <section className="space-y-4">
               {!isWalletConnected ? (
                 <div className="bg-amber-500 text-black p-5 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4 shadow-lg border-2 border-black/10">
@@ -221,51 +252,135 @@ export default function SellerOverviewPage() {
               )}
             </section>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-              {/* C. Recent Orders Table */}
-              <div className="lg:col-span-8">
-                <div className="bg-card border border-border rounded-3xl overflow-hidden">
-                  <div className="p-6 border-b border-border flex justify-between items-end">
-                    <h2 className="text-sm font-black uppercase tracking-widest">
-                      Recent Orders
-                    </h2>
-                    <Link
-                      href="/seller/orders"
-                      className="text-[10px] font-black uppercase text-primary hover:underline"
-                    >
-                      View All Orders
-                    </Link>
+            {/* C. Recent Orders Table */}
+            <div className="col-span-1">
+              <div className="bg-card border border-border rounded-3xl overflow-hidden">
+                <div className="p-6 border-b border-border flex justify-between items-end">
+                  <h2 className="text-sm font-black uppercase tracking-widest">
+                    Recent Orders
+                  </h2>
+                  <Link
+                    href="/general-dashboard/seller-dashboard/orders-management"
+                    className="text-[10px] font-black uppercase text-primary hover:underline"
+                  >
+                    View All Orders
+                  </Link>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="bg-muted/30 border-b border-border">
+                        <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground">
+                          Image
+                        </th>
+                        <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground">
+                          Order ID
+                        </th>
+                        <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground">
+                          Buyer
+                        </th>
+                        <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground">
+                          Country
+                        </th>
+                        <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground">
+                          Product Code
+                        </th>
+                        <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground">
+                          Amount
+                        </th>
+                        <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground">
+                          Status
+                        </th>
+                        <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {ordersLoading ? (
+                        // Loading skeleton
+                        Array.from({ length: 5 }).map((_, index) => (
+                          <tr key={index} className="animate-pulse">
+                            <td className="px-6 py-5">
+                              <div className="w-10 h-10 bg-muted rounded-lg"></div>
+                            </td>
+                            <td className="px-6 py-5">
+                              <div className="h-4 w-20 bg-muted rounded"></div>
+                            </td>
+                            <td className="px-6 py-5">
+                              <div className="h-4 w-16 bg-muted rounded"></div>
+                            </td>
+                            <td className="px-6 py-5">
+                              <div className="h-4 w-12 bg-muted rounded"></div>
+                            </td>
+                            <td className="px-6 py-5">
+                              <div className="h-4 w-16 bg-muted rounded"></div>
+                            </td>
+                            <td className="px-6 py-5">
+                              <div className="h-4 w-12 bg-muted rounded"></div>
+                            </td>
+                            <td className="px-6 py-5">
+                              <div className="h-6 w-16 bg-muted rounded-full"></div>
+                            </td>
+                            <td className="px-6 py-5">
+                              <div className="h-8 w-8 bg-muted rounded-lg"></div>
+                            </td>
+                          </tr>
+                        ))
+                      ) : recentOrders.length === 0 && paginationInfo?.totalOrders === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={8}
+                            className="px-6 py-12 text-center text-muted-foreground"
+                          >
+                            <div className="flex flex-col items-center gap-2">
+                              <div className="relative mb-6 group">
+                    <img
+                      src="https://i.postimg.cc/LXSKYHG4/empty-box-removebg-preview.png"
+                      alt="Empty Box"
+                      className="w-40 h-40 object-contain cursor-pointer grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500 ease-out"
+                    />
+                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-16 h-1 bg-primary/20 blur-sm rounded-full" />
                   </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                      <thead>
-                        <tr className="bg-muted/30 border-b border-border">
-                          <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground">
-                            Order ID
-                          </th>
-                          <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground">
-                            Buyer
-                          </th>
-                          <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground">
-                            Amount
-                          </th>
-                          <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground">
-                            Status
-                          </th>
-                          <th className="px-6 py-4 text-[10px] font-black uppercase text-muted-foreground"></th>
+                              <h3 className="text-2xl font-black uppercase italic tracking-tighter mb-2">
+                                No Orders found
+                              </h3>
+
+                              <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest max-w-[250px] leading-relaxed">
+                                Your recent orders will appear here
+                              </p>
+
+                              <Link 
+                                                href="/general-dashboard/seller-dashboard/orders-management" 
+                                                className="inline-block bg-foreground text-background cursor-pointer px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-primary hover:text-primary-foreground hover:shadow-[0_10px_30px_rgba(var(--primary),0.3)] transition-all"
+                                              >
+                                                Check Orders
+                                              </Link>
+                            </div>
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border">
-                        {recentOrders.map((order) => (
+                      ) : (
+                        recentOrders.map((order) => (
                           <tr
                             key={order.id}
                             className="hover:bg-muted/20 transition-colors group"
                           >
+                            <td className="px-6 py-5">
+                              <img
+                                src={order.image}
+                                alt="Product"
+                                className="w-12 h-12 rounded-lg object-cover"
+                              />
+                            </td>
                             <td className="px-6 py-5 font-black text-sm uppercase tracking-tighter italic">
                               {order.id}
                             </td>
                             <td className="px-6 py-5 text-xs font-bold">
                               {order.buyer}
+                            </td>
+                            <td className="px-6 py-5 text-xs font-bold">
+                              {order.country}
+                            </td>
+                            <td className="px-6 py-5 text-xs font-bold">
+                              {order.productCode}
                             </td>
                             <td className="px-6 py-5 font-black italic">
                               ${order.total.toFixed(2)}
@@ -275,7 +390,9 @@ export default function SellerOverviewPage() {
                                 className={`text-[9px] font-black uppercase px-2 py-1 rounded-full border ${
                                   order.status === "Pending"
                                     ? "border-amber-500/20 text-amber-500 bg-amber-500/5"
-                                    : "border-green-500/20 text-green-500 bg-green-500/5"
+                                    : order.status === "Shipped"
+                                      ? "border-blue-500/20 text-blue-500 bg-blue-500/5"
+                                      : "border-green-500/20 text-green-500 bg-green-500/5"
                                 }`}
                               >
                                 {order.status}
@@ -283,44 +400,18 @@ export default function SellerOverviewPage() {
                             </td>
                             <td className="px-6 py-5 text-right">
                               <Link
-                                href={`/seller/orders/${order.id}`}
+                                href={`/general-dashboard/seller-dashboard/orders-management/${order.id}`}
                                 className="p-2 inline-block bg-muted rounded-lg group-hover:bg-primary group-hover:text-primary-foreground transition-all"
                               >
                                 <ChevronRight className="w-4 h-4" />
                               </Link>
                             </td>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
                 </div>
-              </div>
-
-              {/* Sidebar info (Account Health / Stock) */}
-              <div className="lg:col-span-4 space-y-8">
-                {/* Account Health */}
-                <section className="bg-foreground text-background rounded-3xl p-6">
-                  <h2 className="text-xs font-black uppercase tracking-widest mb-4 flex items-center gap-2 opacity-60">
-                    Account Health
-                  </h2>
-                  <div className="flex items-end justify-between">
-                    <p className="text-4xl font-black italic tracking-tighter">
-                      50%
-                    </p>
-                    <span className="text-[10px] font-black uppercase ">
-                      Excellent
-                    </span>
-                  </div>
-                  <div className="w-full h-1.5 bg-muted/40 dark:bg-muted/60 rounded-full mt-4 overflow-hidden">
-                    <div className="h-full bg-primary w-[98%]" />
-                  </div>
-
-                  <p className="text-[9px] font-medium uppercase mt-4 opacity-50 leading-relaxed">
-                    Maintain a high health score to get boosted in search
-                    results.
-                  </p>
-                </section>
               </div>
             </div>
           </div>

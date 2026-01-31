@@ -203,6 +203,27 @@ class OrderModel {
     
     return await db.collection('orders').countDocuments(query);
   }
+
+  static async findRecentOrders(query: any = {}, options: { limit?: number; skip?: number; sort?: any } = {}) {
+    try {
+      const client = await clientPromise;
+      const db = client.db(dbName);
+      
+      const {
+        limit = 10,
+        skip = 0,
+        sort = { createdAt: -1 }
+      } = options;
+      
+      let cursor = db.collection('orders').find(query);
+      cursor = cursor.sort(sort).skip(skip).limit(limit);
+      
+      return await cursor.toArray();
+    } catch (error) {
+      console.error('OrderModel.findRecentOrders error:', error);
+      throw error;
+    }
+  }
 }
 
 export default OrderModel;
