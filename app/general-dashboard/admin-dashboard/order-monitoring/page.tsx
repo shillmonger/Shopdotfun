@@ -300,7 +300,7 @@ export default function MonitorOrdersPage() {
                           </div>
                         </td>
 
-                        <td className="px-6 py-5 font-black italic text-sm whitespace-nowrap">{order.amount}</td>
+                        <td className="px-6 py-5 font-black italic text-sm whitespace-nowrap">{order.productInfo?.price || 0} USD</td>
 
                         <td className="px-6 py-5">
                           {/* Status Matrix with proper labels */}
