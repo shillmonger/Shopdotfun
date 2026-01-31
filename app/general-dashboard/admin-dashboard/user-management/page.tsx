@@ -360,96 +360,105 @@ export default function UserRBACPage() {
                 )}
               </div>
 
-              {/* Deep View (Stays the same as before) */}
+              {/* Deep View */}
               <div className="lg:col-span-4">
-                {selectedUser ? (
-                  <div className="bg-card border-2 border-primary rounded-[2rem] p-6 sticky top-24 space-y-6">
-                    <div className="flex justify-between items-center">
-                      <h3 className="text-xl font-black uppercase italic tracking-tighter">Deep View</h3>
-                      <button onClick={() => setSelectedUser(null)} className="text-[10px] font-bold uppercase opacity-50 underline">Close</button>
-                    </div>
+                {(() => {
+                  if (!selectedUser) {
+                    return (
+                      <div className="h-[400px] border-2 border-dashed border-border rounded-[2rem] flex items-center justify-center p-10 text-center">
+                        <div className="space-y-2">
+                          <ShieldAlert className="w-8 h-8 mx-auto opacity-20" />
+                          <p className="text-[10px] font-black uppercase text-muted-foreground italic">Select user for deep inspection</p>
+                        </div>
+                      </div>
+                    );
+                  }
 
-                    <div className="flex flex-col items-center text-center space-y-3">
-                      <Avatar className="h-20 w-20 border-4 border-primary shadow-xl">
-                        <AvatarImage src={selectedUser.profileImage} />
-                        <AvatarFallback className="text-2xl font-black">{selectedUser.name[0]}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <h4 className="font-black uppercase text-lg italic tracking-tighter">{selectedUser.name}</h4>
-                        <p className="text-[9px] font-bold text-muted-foreground uppercase">{selectedUser._id}</p>
-                        <p className="text-[8px] font-bold text-muted-foreground uppercase mt-1">{selectedUser.userType}</p>
+                  // TypeScript now knows selectedUser is not null
+                  const isBuyer = selectedUser.roles.includes("buyer");
+                  
+                  return (
+                    <div className="bg-card border-2 border-primary rounded-[2rem] p-6 sticky top-24 space-y-6">
+                      <div className="flex justify-between items-center">
+                        <h3 className="text-xl font-black uppercase italic tracking-tighter">Deep View</h3>
+                        <button onClick={() => setSelectedUser(null)} className="text-[10px] font-bold uppercase opacity-50 underline">Close</button>
+                      </div>
+
+                      <div className="flex flex-col items-center text-center space-y-3">
+                        <Avatar className="h-20 w-20 border-4 border-primary shadow-xl">
+                          <AvatarImage src={selectedUser.profileImage} />
+                          <AvatarFallback className="text-2xl font-black">{selectedUser.name[0]}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <h4 className="font-black uppercase text-lg italic tracking-tighter">{selectedUser.name}</h4>
+                          <p className="text-[9px] font-bold text-muted-foreground uppercase">{selectedUser._id}</p>
+                          <p className="text-[8px] font-bold text-muted-foreground uppercase mt-1">{selectedUser.userType || (isBuyer ? 'buyer' : 'seller')}</p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4 pt-4 border-t border-border">
+                         <div className="flex items-center gap-3 text-[10px] font-bold uppercase">
+                            <Mail className="w-4 h-4 text-primary" /> {selectedUser.email}
+                         </div>
+                         <div className="flex items-center gap-3 text-[10px] font-bold uppercase">
+                            <Phone className="w-4 h-4 text-primary" /> {selectedUser.phone}
+                         </div>
+                         <div className="flex items-center gap-3 text-[10px] font-bold uppercase">
+                            <Globe className="w-4 h-4 text-primary" /> {selectedUser.country}
+                         </div>
+                         <div className="flex items-center gap-3 text-[10px] font-bold uppercase">
+                            <Clock className="w-4 h-4 text-primary" /> {new Date(selectedUser.createdAt).toLocaleDateString()}
+                         </div>
+                      </div>
+
+                      <div className="space-y-4 pt-4 border-t border-border">
+                        {isBuyer ? (
+                          <>
+                            <div className="bg-muted/50 p-4 rounded-xl">
+                              <p className="text-[9px] font-black text-muted-foreground uppercase mb-1">Buyer Balance</p>
+                              <p className="text-2xl font-black italic text-primary">${(selectedUser as Buyer).userBalance?.toFixed(2) || '0.00'}</p>
+                            </div>
+                            <div className="space-y-1">
+                               <p className="text-[10px] font-black uppercase flex items-center gap-2"><MapPin className="w-3 h-3 text-primary"/> Address</p>
+                               <p className="text-[10px] text-muted-foreground leading-tight">
+                                 {(selectedUser as Buyer).addresses && (selectedUser as Buyer).addresses.length > 0 
+                                   ? `${(selectedUser as Buyer).addresses[0]?.street}, ${(selectedUser as Buyer).addresses[0]?.city}`
+                                   : 'No address on file'
+                                 }
+                               </p>
+                            </div>
+                            <div className="space-y-1">
+                               <p className="text-[10px] font-black uppercase flex items-center gap-2"><Wallet className="w-3 h-3 text-primary"/> Payment History</p>
+                               <p className="text-[10px] text-muted-foreground">
+                                 {(selectedUser as Buyer).paymentHistory?.length ?? 0} transactions
+                               </p>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="bg-muted/50 p-4 rounded-xl">
+                              <p className="text-[9px] font-black text-muted-foreground uppercase mb-1">Business</p>
+                              <p className="text-lg font-black italic text-primary uppercase leading-none">{(selectedUser as Seller).businessName || 'N/A'}</p>
+                            </div>
+                            <div className="space-y-1">
+                               <p className="text-[10px] font-black uppercase flex items-center gap-2"><MapPin className="w-3 h-3 text-primary"/> Business Address</p>
+                               <p className="text-[10px] text-muted-foreground leading-tight">{(selectedUser as Seller).businessAddress || 'N/A'}</p>
+                            </div>
+                            <div className="space-y-1">
+                               <p className="text-[10px] font-black uppercase flex items-center gap-2"><Wallet className="w-3 h-3 text-primary"/> Payout Details</p>
+                               <p className="text-[10px] text-muted-foreground font-mono">
+                                 {(selectedUser as Seller).cryptoPayoutDetails && (selectedUser as Seller).cryptoPayoutDetails.length > 0
+                                   ? `${(selectedUser as Seller).cryptoPayoutDetails[0]?.walletName} • ${(selectedUser as Seller).cryptoPayoutDetails[0]?.currency}`
+                                   : 'No payout details'
+                                 }
+                               </p>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
-
-                    <div className="space-y-4 pt-4 border-t border-border">
-                       <div className="flex items-center gap-3 text-[10px] font-bold uppercase">
-                          <Mail className="w-4 h-4 text-primary" /> {selectedUser.email}
-                       </div>
-                       <div className="flex items-center gap-3 text-[10px] font-bold uppercase">
-                          <Phone className="w-4 h-4 text-primary" /> {selectedUser.phone}
-                       </div>
-                       <div className="flex items-center gap-3 text-[10px] font-bold uppercase">
-                          <Globe className="w-4 h-4 text-primary" /> {selectedUser.country}
-                       </div>
-                       <div className="flex items-center gap-3 text-[10px] font-bold uppercase">
-                          <Clock className="w-4 h-4 text-primary" /> {new Date(selectedUser.createdAt).toLocaleDateString()}
-                       </div>
-                    </div>
-
-                    <div className="space-y-4 pt-4 border-t border-border">
-                      {selectedUser.roles.includes("buyer") ? (
-                        <>
-                          <div className="bg-muted/50 p-4 rounded-xl">
-                            <p className="text-[9px] font-black text-muted-foreground uppercase mb-1">Buyer Balance</p>
-                            <p className="text-2xl font-black italic text-primary">${(selectedUser as Buyer).userBalance?.toFixed(2) || '0.00'}</p>
-                          </div>
-                          <div className="space-y-1">
-                             <p className="text-[10px] font-black uppercase flex items-center gap-2"><MapPin className="w-3 h-3 text-primary"/> Address</p>
-                             <p className="text-[10px] text-muted-foreground leading-tight">
-                               {(selectedUser as Buyer).addresses && (selectedUser as Buyer).addresses.length > 0 
-                                 ? `${(selectedUser as Buyer).addresses[0]?.street}, ${(selectedUser as Buyer).addresses[0]?.city}`
-                                 : 'No address on file'
-                               }
-                             </p>
-                          </div>
-                          <div className="space-y-1">
-                             <p className="text-[10px] font-black uppercase flex items-center gap-2"><Wallet className="w-3 h-3 text-primary"/> Payment History</p>
-                             <p className="text-[10px] text-muted-foreground">
-                               {(selectedUser as Buyer).paymentHistory ? (selectedUser as Buyer).paymentHistory.length : 0} transactions
-                             </p>
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <div className="bg-muted/50 p-4 rounded-xl">
-                            <p className="text-[9px] font-black text-muted-foreground uppercase mb-1">Business</p>
-                            <p className="text-lg font-black italic text-primary uppercase leading-none">{(selectedUser as Seller).businessName || 'N/A'}</p>
-                          </div>
-                          <div className="space-y-1">
-                             <p className="text-[10px] font-black uppercase flex items-center gap-2"><MapPin className="w-3 h-3 text-primary"/> Business Address</p>
-                             <p className="text-[10px] text-muted-foreground leading-tight">{(selectedUser as Seller).businessAddress || 'N/A'}</p>
-                          </div>
-                          <div className="space-y-1">
-                             <p className="text-[10px] font-black uppercase flex items-center gap-2"><Wallet className="w-3 h-3 text-primary"/> Payout Details</p>
-                             <p className="text-[10px] text-muted-foreground font-mono">
-                               {(selectedUser as Seller).cryptoPayoutDetails && (selectedUser as Seller).cryptoPayoutDetails.length > 0
-                                 ? `${(selectedUser as Seller).cryptoPayoutDetails[0]?.walletName} • ${(selectedUser as Seller).cryptoPayoutDetails[0]?.currency}`
-                                 : 'No payout details'
-                               }
-                             </p>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="h-[400px] border-2 border-dashed border-border rounded-[2rem] flex items-center justify-center p-10 text-center">
-                    <div className="space-y-2">
-                      <ShieldAlert className="w-8 h-8 mx-auto opacity-20" />
-                      <p className="text-[10px] font-black uppercase text-muted-foreground italic">Select user for deep inspection</p>
-                    </div>
-                  </div>
-                )}
+                  );
+                })()}
               </div>
             </div>
           </div>
