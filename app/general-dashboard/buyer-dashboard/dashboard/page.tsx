@@ -42,6 +42,7 @@ export default function BuyerOverviewPage() {
   }>({ active: 0, received: 0 });
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [shippedOrder, setShippedOrder] = useState<any>(null);
+  const [recentPayments, setRecentPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -89,6 +90,15 @@ export default function BuyerOverviewPage() {
         if (shippedOrderResponse.ok) {
           const shippedOrderData = await shippedOrderResponse.json();
           setShippedOrder(shippedOrderData.shippedOrder);
+        }
+
+        // Fetch recent payments for wallet summary
+        const recentPaymentsResponse = await fetch(
+          "/api/buyer/recent-payments",
+        );
+        if (recentPaymentsResponse.ok) {
+          const recentPaymentsData = await recentPaymentsResponse.json();
+          setRecentPayments(recentPaymentsData.recentPayments || []);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -203,9 +213,11 @@ export default function BuyerOverviewPage() {
                     Required
                   </h2>
                   {shippedOrder ? (
-                    <div className="bg-foreground text-background p-6 rounded-3xl flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl">
-                      <div className="flex items-center gap-4 flex-1 min-w-0">
-                        <div className="w-16 h-16 bg-muted rounded-2xl overflow-hidden shrink-0">
+                    <div className="bg-foreground text-background p-5 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl">
+                      {/* Left Section */}
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 flex-1 min-w-0 w-full">
+                        {/* Product Image */}
+                        <div className="w-20 h-20 sm:w-16 sm:h-16 bg-muted cursor-pointer rounded-2xl overflow-hidden shrink-0 border-2 border-black dark:border-white box-border p-[2px]">
                           {shippedOrder.productInfo?.images?.[0]?.url ? (
                             <img
                               src={shippedOrder.productInfo.images[0].url}
@@ -219,28 +231,37 @@ export default function BuyerOverviewPage() {
                           )}
                         </div>
 
-                        <div className="min-w-0">
-                          <p className="text-xs font-black uppercase tracking-widest opacity-70 truncate">
+                        {/* Text Content */}
+                        <div className="min-w-0 w-full">
+                          {/* Order ID */}
+                          <p className="text-xs font-black uppercase tracking-widest opacity-70 sm:truncate">
                             Order #{shippedOrder.orderId}
                           </p>
 
-                          <h3 className="text-lg font-black uppercase italic tracking-tighter truncate">
-                            {shippedOrder.productInfo?.name || 'Product'} has been shipped
+                          {/* Title */}
+                          <h3 className="text-sm font-black uppercase italic tracking-tighter sm:truncate">
+                            {shippedOrder.productInfo?.name || "Product"} has
+                            been shipped
                           </h3>
 
-                          <p className="text-[10px] font-medium opacity-60 mt-1 uppercase truncate">
-                            Track your delivery - shipped on {new Date(shippedOrder.updatedAt).toLocaleDateString('en-US', { 
-                              month: 'short', 
-                              day: 'numeric', 
-                              year: 'numeric' 
+                          {/* Date */}
+                          <p className="text-[10px] font-medium opacity-60 mt-1 uppercase sm:truncate">
+                            Track your delivery – shipped on{" "}
+                            {new Date(
+                              shippedOrder.updatedAt,
+                            ).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
                             })}
                           </p>
                         </div>
                       </div>
 
+                      {/* Button */}
                       <Link
                         href="/general-dashboard/buyer-dashboard/orders"
-                        className="w-full md:w-auto bg-background text-foreground px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-primary-foreground transition-all text-center"
+                        className="w-full md:w-auto bg-background text-foreground px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-center"
                       >
                         Track Order
                       </Link>
@@ -300,56 +321,61 @@ export default function BuyerOverviewPage() {
                         >
                           <div className="flex items-center gap-4">
                             <div className="w-14 h-14 sm:w-12 sm:h-12 bg-muted rounded-lg sm:rounded-xl overflow-hidden">
-  {order.productImage ? (
-    <img
-      src={order.productImage}
-      alt={order.productName}
-      className="w-full h-full object-cover"
-    />
-  ) : (
-    <div className="w-full h-full flex items-center justify-center font-black text-xs">
-      IMG
-    </div>
-  )}
-</div>
+                              {order.productImage ? (
+                                <img
+                                  src={order.productImage}
+                                  alt={order.productName}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center font-black text-xs">
+                                  IMG
+                                </div>
+                              )}
+                            </div>
 
                             <div>
                               <p className="text-sm font-black uppercase italic tracking-tighter">
                                 {order.productName}
                               </p>
                               <p className="text-[10px] font-bold text-muted-foreground uppercase">
-                                {order.orderId} • {new Date(order.createdAt).toLocaleDateString('en-US', { 
-                                  month: 'short', 
-                                  day: 'numeric', 
-                                  year: 'numeric' 
-                                })}
+                                {order.orderId} •{" "}
+                                {new Date(order.createdAt).toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    month: "short",
+                                    day: "numeric",
+                                    year: "numeric",
+                                  },
+                                )}
                               </p>
                             </div>
                           </div>
                           <div className="hidden md:flex items-center gap-4">
-  <span
-    className={`text-[9px] font-black uppercase px-2 py-1 rounded-full border ${
-      order.status === 'shipped' 
-        ? 'border-amber-500/20 bg-amber-500/10 text-amber-500'
-        : order.status === 'pending'
-        ? 'border-blue-500/20 bg-blue-500/10 text-blue-500'
-        : 'border-green-500/20 bg-green-500/10 text-green-500'
-    }`}
-  >
-    {order.status === 'shipped'
-      ? 'Shipped'
-      : order.status === 'pending'
-      ? 'Pending'
-      : order.status === 'received'
-      ? 'Received'
-      : order.status}
-  </span>
+                            <span
+                              className={`text-[9px] font-black uppercase px-2 py-1 rounded-full border ${
+                                order.status === "shipped"
+                                  ? "border-amber-500/20 bg-amber-500/10 text-amber-500"
+                                  : order.status === "pending"
+                                    ? "border-blue-500/20 bg-blue-500/10 text-blue-500"
+                                    : "border-green-500/20 bg-green-500/10 text-green-500"
+                              }`}
+                            >
+                              {order.status === "shipped"
+                                ? "Shipped"
+                                : order.status === "pending"
+                                  ? "Pending"
+                                  : order.status === "received"
+                                    ? "Received"
+                                    : order.status}
+                            </span>
 
-  <p className="font-black italic">${order.price.toFixed(2)}</p>
+                            <p className="font-black italic">
+                              ${order.price.toFixed(2)}
+                            </p>
 
-  <ChevronRight className="w-4 h-4 text-muted-foreground" />
-</div>
-
+                            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                          </div>
                         </div>
                       ))
                     ) : (
@@ -383,22 +409,55 @@ export default function BuyerOverviewPage() {
                     Summary
                   </h2>
                   <div className="space-y-4">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground font-medium">
-                        Last Payment
-                      </span>
-                      <span className="font-black">$193.50</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground font-medium">
-                        Refund Status
-                      </span>
-                      <span className="text-blue-500 font-black uppercase text-[10px]">
-                        None Pending
-                      </span>
-                    </div>
+                    {loading ? (
+                      // Loading skeleton
+                      [1, 2].map((_, i) => (
+                        <div key={i} className="flex justify-between text-sm">
+                          <span className="text-muted-foreground font-medium">
+                            <div className="h-4 w-24 bg-muted rounded animate-pulse"></div>
+                          </span>
+                          <span className="font-black">
+                            <div className="h-4 w-16 bg-muted rounded animate-pulse"></div>
+                          </span>
+                        </div>
+                      ))
+                    ) : recentPayments.length > 0 ? (
+                      recentPayments.map((payment, index) => (
+                        <div
+                          key={payment._id}
+                          className="flex justify-between text-sm"
+                        >
+                          <span className="text-muted-foreground font-medium">
+                            {index === 0 ? "Last Payment" : "Previous Payment"}
+                          </span>
+                          <span
+                            className={`font-black ${
+                              payment.status === "approved"
+                                ? "text-green-500"
+                                : payment.status === "pending"
+                                  ? "text-blue-500"
+                                  : "text-foreground"
+                            }`}
+                          >
+                            $
+                            {payment.buyerInfo?.amountToPay?.toFixed(2) ||
+                              "0.00"}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-4">
+                        <PiggyBank className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                        <p className="text-sm font-black uppercase tracking-tighter mb-2">
+                          No payments yet
+                        </p>
+                        <p className="text-[10px] text-muted-foreground uppercase">
+                          Your payments history will appear here
+                        </p>
+                      </div>
+                    )}
                     <Link
-                      href="/buyer/payments"
+                      href="/general-dashboard/buyer-dashboard/payments"
                       className="block w-full text-center py-3 border border-border rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-muted transition-colors mt-4"
                     >
                       View Payment Ledger

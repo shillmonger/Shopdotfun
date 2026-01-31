@@ -137,6 +137,22 @@ class BuyerPaymentModel {
       throw error;
     }
   }
+
+  static async findByBuyerEmail(buyerEmail: string, limit: number = 2) {
+    try {
+      const client = await clientPromise;
+      const db = client.db(dbName);
+      
+      return await db.collection('buyerPayments')
+        .find({ 'buyerInfo.email': buyerEmail })
+        .sort({ 'buyerInfo.timePaid': -1 })
+        .limit(limit)
+        .toArray();
+    } catch (error) {
+      console.error('BuyerPaymentModel.findByBuyerEmail error:', error);
+      throw error;
+    }
+  }
 }
 
 export default BuyerPaymentModel;
