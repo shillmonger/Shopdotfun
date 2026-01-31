@@ -605,11 +605,10 @@ export default function SellerProfilePage() {
           onChange={(e) => setCryptoPayout({...cryptoPayout, network: e.target.value})}
           required
         >
-          <option value="Ethereum">ERC-20 (Ethereum)</option>
-          <option value="Tron">TRC-20 (Tron)</option>
-          <option value="BSC">BEP-20 (BSC)</option>
-          <option value="Bitcoin">Bitcoin</option>
-          <option value="Solana">Solana</option>
+          <option value="Vertcoin">Vertcoin (VTC)</option>
+          <option value="USDT">USDT Tether (Bep20)</option>
+          <option value="Bitcoin">Bitcoin (BTC)</option>
+          <option value="Litecoin">Litecoin</option>
         </select>
       </div>
 

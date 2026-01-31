@@ -39,8 +39,7 @@ const CRYPTO_OPTIONS = [
   { label: "VTC (Vertcoin)", value: "VTC" },
   { label: "USDT (Tether)", value: "USDT" },
   { label: "BTC (Bitcoin)", value: "BTC" },
-  { label: "SOL (Solana)", value: "SOL" },
-  { label: "ETH (Ethereum)", value: "ETH" },
+  { label: "LTC (Litecoin)", value: "LTC" },
 ];
 
 const JUMIA_CATEGORIES = [

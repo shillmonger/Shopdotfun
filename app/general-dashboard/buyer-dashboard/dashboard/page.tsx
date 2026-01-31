@@ -435,7 +435,7 @@ export default function BuyerOverviewPage() {
                               payment.status === "approved"
                                 ? "text-green-500"
                                 : payment.status === "pending"
-                                  ? "text-blue-500"
+                                  ? "text-yellow-500"
                                   : "text-foreground"
                             }`}
                           >
@@ -464,6 +464,8 @@ export default function BuyerOverviewPage() {
                     </Link>
                   </div>
                 </section>
+
+
 
                 {/* 7️⃣ Notifications Panel */}
                 <section className="bg-card border border-border rounded-3xl p-6">
