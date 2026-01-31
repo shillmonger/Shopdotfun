@@ -60,7 +60,7 @@ export default function OrderTrackingPage() {
           <div className="max-w-4xl mx-auto">
             {/* Header */}
             <div className="mb-10">
-              <Link href="/buyer/orders" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors mb-4">
+              <Link href="/general-dashboard/buyer-dashboard/orders" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors mb-4">
                 <ChevronLeft className="w-3 h-3" /> Back to Orders
               </Link>
               <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter italic">

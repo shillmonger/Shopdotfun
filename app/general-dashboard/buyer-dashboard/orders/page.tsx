@@ -375,7 +375,7 @@ function OrderCard({
         </div>
 
         {/* Complaint – more compact */}
-        <div className="mt-7 p-0 md:p-5 bg-transparent md:bg-muted/20 rounded-none md:rounded-2xl border-0 md:border md:border-dashed md:border-border">
+        {/* <div className="mt-7 p-0 md:p-5 bg-transparent md:bg-muted/20 rounded-none md:rounded-2xl border-0 md:border md:border-dashed md:border-border">
           <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 mb-2 block">
             Case Filing (optional)
           </label>
@@ -393,7 +393,7 @@ function OrderCard({
               Submit Support Ticket
             </button>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

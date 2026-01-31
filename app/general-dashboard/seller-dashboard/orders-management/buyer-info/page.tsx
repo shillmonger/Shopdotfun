@@ -66,7 +66,7 @@ export default function MarkAsShippedPage() {
             
             {/* Navigation & Header */}
             <div className="mb-10">
-              <Link href="/seller/orders" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors mb-4">
+              <Link href="/general-dashboard/seller-dashboard/orders-management" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors mb-4">
                 <ArrowLeft className="w-3 h-3" /> Back to Orders
               </Link>
               <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter italic">
