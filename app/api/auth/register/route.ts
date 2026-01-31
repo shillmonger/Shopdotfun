@@ -45,6 +45,7 @@ export async function POST(req: Request) {
       country: string;
       businessName?: string;
       businessAddress?: string;
+      status: 'Active' | 'Suspended';
     };
 
     const userData: UserData = {
@@ -53,6 +54,7 @@ export async function POST(req: Request) {
       password, // In a real app, you should hash the password
       phone,
       country,
+      status: 'Active', // Set default status to Active for new users
     };
 
     // Add seller-specific fields if role is seller
