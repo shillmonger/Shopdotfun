@@ -4,19 +4,17 @@ import OrderModel from '@/models/Order';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { orderId: string } } // ✅ destructure here
+  context: { params: { orderId: string } }
 ) {
   try {
-    const token = await getToken({ req: request });
-
+    const token = await getToken({ req: request }); // ✅ now types match
     if (!token || !token.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const buyerEmail = token.email;
-    const { orderId } = params; // ✅ use params directly
+    const { orderId } = context.params;
 
-    // Find the specific order for this buyer
     const order = await OrderModel.findByOrderIdAndBuyerEmail(
       orderId,
       buyerEmail
@@ -26,15 +24,9 @@ export async function GET(
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
-    return NextResponse.json({
-      success: true,
-      order,
-    });
+    return NextResponse.json({ success: true, order });
   } catch (error) {
     console.error('Error fetching order:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch order' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch order' }, { status: 500 });
   }
 }
