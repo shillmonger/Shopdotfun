@@ -369,7 +369,7 @@ export default function BrowseProductsPage() {
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {products.map((product) => (
                     <div
                       key={product._id}
@@ -399,26 +399,15 @@ export default function BrowseProductsPage() {
                         )}
                         
                         {/* Star Rating */}
-                        <div className="absolute top-3 right-3 flex items-center gap-1 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full shadow-md">
+                        <div className="absolute top-3 right-3 pointer-events-auto flex items-center gap-1.5 bg-background/80 backdrop-blur-md border border-border px-2 py-1 rounded-full shadow-sm">
                           <button
                             onClick={() => addRating(product._id)}
                             disabled={ratingLoading === product._id || hasUserRated(product)}
-                            className={`p-1 rounded-full transition-all ${
-                              hasUserRated(product)
-                                ? 'cursor-default'
-                                : 'hover:bg-yellow-100 cursor-pointer'
-                            } ${ratingLoading === product._id ? 'animate-pulse' : ''}`}
-                            title={hasUserRated(product) ? 'You have rated this product' : 'Click to rate this product'}
+                            className={`transition-all active:scale-125 ${hasUserRated(product) ? 'cursor-default' : 'cursor-pointer hover:text-yellow-500'} ${ratingLoading === product._id ? 'animate-pulse' : ''}`}
                           >
-                            <Star
-                              className={`w-4 h-4 ${
-                                hasUserRated(product)
-                                  ? 'fill-yellow-400 text-yellow-400'
-                                  : 'text-gray-400'
-                              }`}
-                            />
+                            <Star className={`w-3.5 h-3.5 ${hasUserRated(product) ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`} />
                           </button>
-                          <span className="text-xs font-medium text-gray-700 min-w-[20px] text-center">
+                          <span className="text-[10px] font-bold tabular-nums">
                             {product.totalRatings || 0}
                           </span>
                         </div>
