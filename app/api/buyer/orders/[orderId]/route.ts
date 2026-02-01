@@ -4,16 +4,16 @@ import OrderModel from '@/models/Order';
 
 export async function GET(
   request: NextRequest,
-  context: { params: { orderId: string } }
+  { params }: { params: Promise<{ orderId: string }> }
 ) {
   try {
     const token = await getToken({ req: request }); // ✅ now types match
     if (!token || !token.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
+1
     const buyerEmail = token.email;
-    const { orderId } = context.params;
+    const { orderId } = await params;
 
     const order = await OrderModel.findByOrderIdAndBuyerEmail(
       orderId,
