@@ -44,7 +44,6 @@ export default function SellerSidebar({ sidebarOpen, setSidebarOpen }: SidebarPr
     { name: "Dashboard", icon: LayoutDashboard, href: `${basePath}/dashboard` },
     { name: "Add Product", icon: PlusCircle, href: `${basePath}/add-product` },
     { name: "My Products", icon: Package, href: `${basePath}/my-products` },
-    { name: "Notifications", icon: Bell, href: `${basePath}/notifications` },
     { name: "Orders Control", icon: Truck, href: `${basePath}/orders-management` },
     { name: "Tracking Info", icon: MapPin, href: `${basePath}/tracking-info` },
     { name: "Sales Analytics", icon: BarChart3, href: `${basePath}/analytics` },

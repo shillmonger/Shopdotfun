@@ -2,16 +2,9 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import {
-  Trophy,
-  Medal,
   TrendingUp,
-  Search,
-  Filter,
-  User,
   ArrowUpRight,
   Loader2,
-  ChevronUp,
-  ChevronDown
 } from "lucide-react";
 import SellerHeader from "@/components/seller-dashboard/SellerHeader";
 import SellerSidebar from "@/components/seller-dashboard/SellerSidebar";
@@ -24,8 +17,12 @@ TYPES & MOCK DATA
 interface SellerLeaderboardEntry {
   id: string;
   name: string;
+  businessName: string;
+  country: string;
   totalSales: number;
-  rating: number;
+  totalProducts: number;
+  totalSalesPercent: number;
+  totalProductsPercent: number;
   rank: number;
   joined: string;
   profileImage: string;
@@ -37,38 +34,35 @@ const trophyImages: Record<number, string> = {
   3: "https://pub-8297b2aff6f242709e9a4e96eeb6a803.r2.dev/Leaderboard%203.png",
 };
 
-/* ======================================================
-MAIN PAGE
-====================================================== */
-
 export default function SellerLeaderboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filter, setFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
-  
-  // Mocking the fetched data structure
-  const [sellers, setSellers] = useState<SellerLeaderboardEntry[]>([
-    { id: "1", name: "Neo Store", totalSales: 15400, rating: 4.9, rank: 1, joined: "Jan 2024", profileImage: "https://github.com/shadcn.png" },
-    { id: "2", name: "Cyber Tech", totalSales: 12200, rating: 4.8, rank: 2, joined: "Feb 2024", profileImage: "https://github.com/shadcn.png" },
-    { id: "3", name: "Elite Goods", totalSales: 9800, rating: 4.7, rank: 3, joined: "Mar 2024", profileImage: "https://github.com/shadcn.png" },
-    { id: "4", name: "Alpha Traders", totalSales: 8500, rating: 4.6, rank: 4, joined: "Apr 2024", profileImage: "https://github.com/shadcn.png" },
-    { id: "5", name: "Prime Vendor", totalSales: 7200, rating: 4.5, rank: 5, joined: "May 2024", profileImage: "https://github.com/shadcn.png" },
-  ]);
+  const [sellers, setSellers] = useState<SellerLeaderboardEntry[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => setIsLoading(false), 800);
-    return () => clearTimeout(timer);
+    const fetchLeaderboardData = async () => {
+      try {
+        const response = await fetch('/api/seller/leaderboard');
+        const result = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(result.error || 'Failed to fetch leaderboard data');
+        }
+        
+        setSellers(result.data || []);
+      } catch (err) {
+        console.error('Error fetching leaderboard:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load leaderboard');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchLeaderboardData();
   }, []);
 
   const topThree = useMemo(() => sellers.slice(0, 3), [sellers]);
-  
-  const filteredSellers = useMemo(() => {
-    return sellers.filter(s => 
-      s.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [sellers, searchTerm]);
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
@@ -81,30 +75,15 @@ export default function SellerLeaderboardPage() {
         <main className="flex-1 pb-32 overflow-y-auto p-4 md:p-6 lg:p-10 custom-scrollbar">
           <div className="max-w-6xl mx-auto space-y-10">
             
-            {/* Header Section */}
+            {/* Header Section - Simplified (Removed Search/Filter) */}
             <div className="flex flex-col md:flex-row justify-between items-end gap-5 border-b border-border pb-6">
               <div className="w-full md:w-auto">
-                <h1 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter leading-none">
+                <h1 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter leading-none">
                   Top <span className="text-primary not-italic">Sellers</span>
                 </h1>
                 <p className="mt-3 text-[10px] font-black uppercase text-muted-foreground flex items-center gap-2 tracking-[0.3em]">
                   <TrendingUp className="w-4 h-4 text-green-600" /> Live Performance Rankings
                 </p>
-              </div>
-
-              <div className="flex gap-3 w-full md:w-auto">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <input
-                    placeholder="SEARCH VENDORS..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full md:w-64 pl-10 pr-4 h-10 rounded-xl border bg-card text-[10px] font-black uppercase tracking-widest focus:ring-2 ring-primary/20 outline-none"
-                  />
-                </div>
-                <button className="border h-10 w-10 flex items-center justify-center rounded-xl hover:bg-muted transition cursor-pointer">
-                  <Filter className="w-4 h-4" />
-                </button>
               </div>
             </div>
 
@@ -113,80 +92,97 @@ export default function SellerLeaderboardPage() {
                 <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
                 <p className="text-[10px] font-black uppercase tracking-widest">Calculating Rankings...</p>
               </div>
+            ) : error ? (
+              <div className="flex flex-col items-center justify-center py-20">
+                <p className="text-red-500 font-black text-sm mb-4">{error}</p>
+                <button 
+                  onClick={() => window.location.reload()}
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-black"
+                >
+                  Retry
+                </button>
+              </div>
+            ) : sellers.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20">
+                <p className="text-muted-foreground font-black text-sm">No sellers found</p>
+              </div>
             ) : (
               <>
-                {/* Podium Section */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end pt-10 px-4">
+                {/* Podium Section - Responsive Flex Scroll */}
+                <div className="flex md:grid md:grid-cols-3 gap-10 items-end pt-10 px-4 overflow-x-auto pb-8 snap-x no-scrollbar md:overflow-visible">
+                  
                   {/* 2nd Place */}
-                  <div className="order-2 md:order-1 bg-card border border-border rounded-3xl p-6 flex flex-col items-center relative h-fit pt-12">
+                  <div className="min-w-[280px] md:min-w-0 flex-shrink-0 snap-center cursor-pointer order-2 md:order-1 bg-card border border-border rounded-3xl p-6 flex flex-col items-center relative h-fit pt-12">
                     <img src={trophyImages[2]} className="absolute -top-8 w-20 h-20 object-contain" alt="Silver" />
-                    <div className="w-20 h-20 rounded-full border-4 border-muted overflow-hidden mb-4">
-                      <img src={topThree[1].profileImage} alt="" className="w-full h-full" />
+                    <div className="w-25 h-25 rounded-2xl border-2 border-muted overflow-hidden mb-4">
+                      <img src={topThree[1].profileImage} alt="" className="w-full h-full cursor-pointer" />
                     </div>
-                    <h3 className="font-black italic uppercase text-lg">{topThree[1].name}</h3>
-                    <p className="text-primary font-black text-xl">${topThree[1].totalSales.toLocaleString()}</p>
-                    <div className="mt-4 px-4 py-1 bg-muted rounded-full text-[10px] font-black">RANK #2</div>
+                    <p className="text-primary font-black text-lg">{topThree[1].totalProductsPercent}%</p>
+                    <h3 className="font-black italic uppercase text-sm">{topThree[1].businessName}</h3>
+                    <div className="mt-2 px-4 py-1 bg-muted rounded-full text-[10px] font-black">RANK #2</div>
                   </div>
 
                   {/* 1st Place */}
-                  <div className="order-1 md:order-2 bg-foreground text-background rounded-3xl p-8 flex flex-col items-center relative transform md:scale-110 shadow-2xl pt-14">
+                  <div className="min-w-[300px] md:min-w-0 flex-shrink-0 cursor-pointer snap-center order-1 md:order-2 bg-foreground text-background rounded-3xl p-8 flex flex-col items-center relative transform md:scale-110 shadow-2xl pt-14">
                     <img src={trophyImages[1]} className="absolute -top-12 w-28 h-28 object-contain" alt="Gold" />
-                    <div className="w-24 h-24 rounded-full border-4 border-primary overflow-hidden mb-4">
-                      <img src={topThree[0].profileImage} alt="" className="w-full h-full" />
+                    <div className="w-30 h-30 rounded-2xl border-2 border-primary overflow-hidden mb-4">
+                      <img src={topThree[0].profileImage} alt="" className="w-full h-full cursor-pointer" />
                     </div>
-                    <h3 className="font-black italic uppercase text-2xl">{topThree[0].name}</h3>
-                    <p className="text-primary font-black text-3xl">${topThree[0].totalSales.toLocaleString()}</p>
-                    <div className="mt-4 px-6 py-2 bg-primary text-primary-foreground rounded-full text-xs font-black italic">ULTIMATE VENDOR</div>
+                    <p className="text-primary font-black text-primary-foreground text-3xl">{topThree[0].totalProductsPercent}%</p>
+                    <h3 className="font-black italic uppercase text-sm">{topThree[0].businessName}</h3>
+                    <div className="mt-2 px-6 py-2 bg-primary text-primary-foreground rounded-full text-xs font-black italic">IDOLO VENDOR</div>
                   </div>
 
                   {/* 3rd Place */}
-                  <div className="order-3 bg-card border border-border rounded-3xl p-6 flex flex-col items-center relative h-fit pt-12">
+                  <div className="min-w-[280px] md:min-w-0 flex-shrink-0 cursor-pointer snap-center order-3 bg-card border border-border rounded-3xl p-6 flex flex-col items-center relative h-fit pt-12">
                     <img src={trophyImages[3]} className="absolute -top-8 w-20 h-20 object-contain" alt="Bronze" />
-                    <div className="w-20 h-20 rounded-full border-4 border-muted overflow-hidden mb-4">
-                      <img src={topThree[2].profileImage} alt="" className="w-full h-full" />
+                    <div className="w-25 h-25 rounded-2xl border-2 border-muted overflow-hidden mb-4">
+                      <img src={topThree[2].profileImage} alt="" className="w-full h-full cursor-pointer" />
                     </div>
-                    <h3 className="font-black italic uppercase text-lg">{topThree[2].name}</h3>
-                    <p className="text-primary font-black text-xl">${topThree[2].totalSales.toLocaleString()}</p>
-                    <div className="mt-4 px-4 py-1 bg-muted rounded-full text-[10px] font-black">RANK #3</div>
+                    <p className="text-primary font-black text-lg">{topThree[2].totalProductsPercent}%</p>
+                    <h3 className="font-black italic uppercase text-sm">{topThree[2].businessName}</h3>
+                    <div className="mt-2 px-4 py-1 bg-muted rounded-full text-[10px] font-black">RANK #3</div>
                   </div>
                 </div>
 
-                {/* Table Section */}
-                <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-sm">
-                  <table className="w-full text-left border-collapse">
+                {/* Table Section - Horizontal Scrollable */}
+                <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-sm overflow-x-auto custom-scrollbar">
+                  <table className="w-full text-left border-collapse min-w-[800px]">
                     <thead>
                       <tr className="border-b border-border bg-muted/30">
                         <th className="p-6 text-[10px] font-black uppercase tracking-widest">Rank</th>
-                        <th className="p-6 text-[10px] font-black uppercase tracking-widest">Vendor</th>
-                        <th className="p-6 text-[10px] font-black uppercase tracking-widest">Total Sales</th>
-                        <th className="p-6 text-[10px] font-black uppercase tracking-widest">Rating</th>
-                        <th className="p-6 text-[10px] font-black uppercase tracking-widest">Action</th>
+                        <th className="p-6 text-[10px] font-black uppercase tracking-widest">Photo</th>
+                        <th className="p-6 text-[10px] font-black uppercase tracking-widest">Name & Joined</th>
+                        <th className="p-6 text-[10px] font-black uppercase tracking-widest">Country</th>
+                        <th className="p-6 text-[10px] font-black uppercase tracking-widest">Business Name</th>
+                        <th className="p-6 text-[10px] font-black uppercase tracking-widest text-right">Products %</th>
+                        <th className="p-6 text-[10px] font-black uppercase tracking-widest text-right">Sales %</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredSellers.map((seller) => (
+                      {sellers.map((seller) => (
                         <tr key={seller.id} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors group">
                           <td className="p-6 font-black italic text-xl">#{seller.rank}</td>
                           <td className="p-6">
-                            <div className="flex items-center gap-4">
-                              <img src={seller.profileImage} className="w-10 h-10 rounded-xl" alt="" />
-                              <div>
-                                <p className="font-black uppercase text-sm leading-none">{seller.name}</p>
-                                <p className="text-[9px] font-bold text-muted-foreground uppercase mt-1">Joined {seller.joined}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="p-6 font-black text-primary">${seller.totalSales.toLocaleString()}</td>
-                          <td className="p-6">
-                            <div className="flex items-center gap-1.5">
-                              <Trophy className="w-3 h-3 text-amber-500" />
-                              <span className="font-black text-sm">{seller.rating}</span>
-                            </div>
+                            <img src={seller.profileImage} className="w-12 h-12 rounded-2xl border-2 border-border" alt={seller.name} />
                           </td>
                           <td className="p-6">
-                            <button className="p-2 rounded-lg bg-muted group-hover:bg-primary group-hover:text-primary-foreground transition-all">
-                              <ArrowUpRight className="w-4 h-4" />
-                            </button>
+                             <p className="font-black uppercase text-sm leading-none">{seller.name}</p>
+                             <p className="text-[9px] font-bold text-muted-foreground uppercase mt-1">{seller.joined}</p>
+                          </td>
+                          <td className="p-6">
+                            <span className="px-3 py-1 bg-muted rounded-full text-[10px] font-black uppercase tracking-wider">
+                              {seller.country}
+                            </span>
+                          </td>
+                          <td className="p-6 font-bold text-sm uppercase">{seller.businessName}</td>
+                          <td className="p-6 text-right">
+                            <span className="px-3 py-1 bg-muted rounded-full text-[10px] font-black uppercase">
+                              {seller.totalProductsPercent}%
+                            </span>
+                          </td>
+                          <td className="p-6 font-black text-primary text-right text-lg">
+                            {seller.totalSalesPercent}%
                           </td>
                         </tr>
                       ))}
@@ -200,10 +196,12 @@ export default function SellerLeaderboardPage() {
       </div>
       
       <style jsx global>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: hsl(var(--primary)); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
     </div>
   );

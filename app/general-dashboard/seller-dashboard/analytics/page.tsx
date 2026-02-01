@@ -59,7 +59,7 @@ export default function SalesAnalyticsPage() {
             {/* Page Header & Controls */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 mb-10">
               <div>
-                <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter italic leading-none">
+                <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tighter italic leading-none">
                   Sales <span className="text-primary not-italic">Analytics</span>
                 </h1>
                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-3 flex items-center gap-2">
