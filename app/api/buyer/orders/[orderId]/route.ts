@@ -1,10 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import OrderModel from '@/models/Order';
 
 export async function GET(
-  request: Request,
-  { params }
+  request: NextRequest,
+  { params }: { params: { orderId: string } } // ✅ destructure here
 ) {
   try {
     const token = await getToken({ req: request });
@@ -14,8 +14,9 @@ export async function GET(
     }
 
     const buyerEmail = token.email;
-    const orderId = params.orderId;
+    const { orderId } = params; // ✅ use params directly
 
+    // Find the specific order for this buyer
     const order = await OrderModel.findByOrderIdAndBuyerEmail(
       orderId,
       buyerEmail
@@ -31,7 +32,6 @@ export async function GET(
     });
   } catch (error) {
     console.error('Error fetching order:', error);
-
     return NextResponse.json(
       { error: 'Failed to fetch order' },
       { status: 500 }
