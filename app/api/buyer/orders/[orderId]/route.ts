@@ -4,7 +4,7 @@ import OrderModel from '@/models/Order';
 
 export async function GET(
   request: NextRequest,
-  context: { params: { orderId: string } }
+  { params }: { params: { orderId: string } } // ✅ destructure here
 ) {
   try {
     const token = await getToken({ req: request });
@@ -14,7 +14,7 @@ export async function GET(
     }
 
     const buyerEmail = token.email;
-    const { orderId } = context.params;
+    const { orderId } = params; // ✅ use params directly
 
     // Find the specific order for this buyer
     const order = await OrderModel.findByOrderIdAndBuyerEmail(
