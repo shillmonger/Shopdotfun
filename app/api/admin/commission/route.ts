@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import CommissionModel, { CommissionSettings } from '@/models/Commission';
+import CommissionModel from '@/models/Commission';
 
 // GET commission settings
 export async function GET() {
