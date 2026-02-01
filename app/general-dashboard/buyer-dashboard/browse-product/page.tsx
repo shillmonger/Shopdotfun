@@ -11,6 +11,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { toast } from 'sonner';
+import { useSession } from 'next-auth/react';
 
 import BuyerHeader from "@/components/buyer-dashboard/BuyerHeader";
 import BuyerSidebar from "@/components/buyer-dashboard/BuyerSidebar";
@@ -44,9 +45,19 @@ interface Product {
     publicId: string;
   }>;
   category: string;
+  averageRating?: number;
+  totalRatings?: number;
+  reviews?: Array<{
+    userId: string;
+    userName: string;
+    rating: number;
+    comment: string;
+    createdAt: string;
+  }>;
 }
 
 export default function BrowseProductsPage() {
+  const { data: session } = useSession();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isFilterVisible, setIsFilterVisible] = useState(false);
 
@@ -62,6 +73,9 @@ export default function BrowseProductsPage() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [totalProducts, setTotalProducts] = useState(0);
+
+  // Rating states
+  const [ratingLoading, setRatingLoading] = useState<string | null>(null);
 
   // Fetch products function
   const fetchProducts = async (pageNum = 1, append = false) => {
@@ -107,6 +121,76 @@ export default function BrowseProductsPage() {
     setInStockOnly(false);
     setSearchQuery("");
     setPage(1);
+  };
+
+  // Rating functionality
+  const addRating = async (productId: string) => {
+    if (!session?.user?.email) {
+      toast.error('Please login to rate products');
+      return;
+    }
+
+    setRatingLoading(productId);
+    
+    try {
+      const response = await fetch('/api/buyer/ratings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productId
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Update the product in the local state
+        setProducts(prevProducts => 
+          prevProducts.map(product => {
+            if (product._id === productId) {
+              const updatedProduct: Product = {
+                ...product,
+                averageRating: data.averageRating,
+                totalRatings: data.totalRatings,
+                reviews: [
+                  ...(product.reviews || []),
+                  {
+                    userId: session.user.email || '',
+                    userName: session.user.name || 'Anonymous',
+                    rating: 1,
+                    comment: 'User rated this product',
+                    createdAt: new Date().toISOString()
+                  }
+                ]
+              };
+              return updatedProduct;
+            }
+            return product;
+          })
+        );
+        
+        toast.success('Rating added successfully!');
+      } else {
+        if (response.status === 400 && data.error === 'You have already rated this product') {
+          toast.info('You have already rated this product');
+        } else {
+          toast.error(data.error || 'Failed to add rating');
+        }
+      }
+    } catch (error) {
+      console.error('Error adding rating:', error);
+      toast.error('Failed to add rating');
+    } finally {
+      setRatingLoading(null);
+    }
+  };
+
+  // Helper function to check if user has rated a product
+  const hasUserRated = (product: Product) => {
+    if (!session?.user?.email || !product.reviews) return false;
+    return product.reviews.some(review => review.userId === session.user.email);
   };
 
   // Cart functionality
@@ -285,7 +369,7 @@ export default function BrowseProductsPage() {
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
                   {products.map((product) => (
                     <div
                       key={product._id}
@@ -313,6 +397,31 @@ export default function BrowseProductsPage() {
                             -{product.discount}%
                           </div>
                         )}
+                        
+                        {/* Star Rating */}
+                        <div className="absolute top-3 right-3 flex items-center gap-1 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full shadow-md">
+                          <button
+                            onClick={() => addRating(product._id)}
+                            disabled={ratingLoading === product._id || hasUserRated(product)}
+                            className={`p-1 rounded-full transition-all ${
+                              hasUserRated(product)
+                                ? 'cursor-default'
+                                : 'hover:bg-yellow-100 cursor-pointer'
+                            } ${ratingLoading === product._id ? 'animate-pulse' : ''}`}
+                            title={hasUserRated(product) ? 'You have rated this product' : 'Click to rate this product'}
+                          >
+                            <Star
+                              className={`w-4 h-4 ${
+                                hasUserRated(product)
+                                  ? 'fill-yellow-400 text-yellow-400'
+                                  : 'text-gray-400'
+                              }`}
+                            />
+                          </button>
+                          <span className="text-xs font-medium text-gray-700 min-w-[20px] text-center">
+                            {product.totalRatings || 0}
+                          </span>
+                        </div>
                       </div>
 
                       {/* Product Details */}
