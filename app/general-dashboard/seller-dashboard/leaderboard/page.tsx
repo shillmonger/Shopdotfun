@@ -164,7 +164,7 @@ export default function SellerLeaderboardPage() {
                         <tr key={seller.id} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors group">
                           <td className="p-6 font-black italic text-xl">#{seller.rank}</td>
                           <td className="p-6">
-                            <img src={seller.profileImage} className="w-12 h-12 rounded-2xl border-2 border-border" alt={seller.name} />
+                            <img src={seller.profileImage} className="w-12 h-12 rounded-lg border-2 border-border" alt={seller.name} />
                           </td>
                           <td className="p-6">
                              <p className="font-black uppercase text-sm leading-none">{seller.name}</p>
