@@ -24,6 +24,18 @@ import BuyerHeader from "@/components/buyer-dashboard/BuyerHeader";
 import BuyerSidebar from "@/components/buyer-dashboard/BuyerSidebar";
 import BuyerNav from "@/components/buyer-dashboard/BuyerNav";
 
+// Helper function to calculate time ago
+const getTimeAgo = (date: Date): string => {
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  
+  if (diffInSeconds < 60) return 'just now';
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
+  return `${Math.floor(diffInSeconds / 604800)}w ago`;
+};
+
 interface UserData {
   name: string;
   email: string;
@@ -43,6 +55,7 @@ export default function BuyerOverviewPage() {
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [shippedOrder, setShippedOrder] = useState<any>(null);
   const [recentPayments, setRecentPayments] = useState<any[]>([]);
+  const [paymentNotifications, setPaymentNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -59,6 +72,34 @@ export default function BuyerOverviewPage() {
             image: profileData.image,
           });
           setUserBalance(profileData.userBalance || 0);
+          
+          // Process payment history for notifications
+          if (profileData.paymentHistory && profileData.paymentHistory.length > 0) {
+            // Sort payments by approvedAt date (most recent first)
+            const sortedPayments = profileData.paymentHistory.sort((a: any, b: any) => 
+              new Date(b.approvedAt).getTime() - new Date(a.approvedAt).getTime()
+            );
+            
+            // Get the 2 most recent payments
+            const recentTwoPayments = sortedPayments.slice(0, 2);
+            
+            // Create notification messages for recent payments
+            const notifications = recentTwoPayments.map((payment: any) => {
+              const paymentDate = new Date(payment.approvedAt);
+              const timeAgo = getTimeAgo(paymentDate);
+              const cryptoMethod = payment.cryptoMethod ? payment.cryptoMethod.toUpperCase() : '';
+              
+              return {
+                title: "Payment Received",
+                desc: `You just got paid $${payment.amountPaid?.toFixed(2) || '0.00'} ${cryptoMethod ? `via ${cryptoMethod}` : ''}`,
+                time: timeAgo,
+                amount: payment.amountPaid,
+                cryptoMethod: payment.cryptoMethod
+              };
+            });
+            
+            setPaymentNotifications(notifications);
+          }
         }
 
         // Fetch cart data
@@ -473,33 +514,46 @@ export default function BuyerOverviewPage() {
                     <Bell className="w-4 h-4 text-primary" /> Notifications
                   </h2>
                   <div className="space-y-6">
-                    {[
-                      {
-                        title: "Price Drop",
-                        desc: "An item in your cart is now 10% off",
-                        time: "2h ago",
-                      },
-                      {
-                        title: "Order Update",
-                        desc: "ORD-99281 has been shipped",
-                        time: "5h ago",
-                      },
-                    ].map((n, i) => (
-                      <div key={i} className="flex gap-3 relative">
-                        <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
-                        <div>
-                          <p className="text-[11px] font-black uppercase tracking-tight">
-                            {n.title}
-                          </p>
-                          <p className="text-xs text-muted-foreground leading-tight mt-0.5">
-                            {n.desc}
-                          </p>
-                          <p className="text-[9px] font-bold text-muted-foreground uppercase mt-1">
-                            {n.time}
-                          </p>
+                    {loading ? (
+                      // Loading skeleton for notifications
+                      [1, 2].map((_, i) => (
+                        <div key={i} className="flex gap-3 relative">
+                          <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0 animate-pulse" />
+                          <div className="flex-1">
+                            <div className="h-4 w-24 bg-muted rounded animate-pulse mb-2"></div>
+                            <div className="h-3 w-48 bg-muted rounded animate-pulse mb-1"></div>
+                            <div className="h-3 w-16 bg-muted rounded animate-pulse"></div>
+                          </div>
                         </div>
+                      ))
+                    ) : paymentNotifications.length > 0 ? (
+                      paymentNotifications.map((notification, i) => (
+                        <div key={i} className="flex gap-3 relative">
+                          <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                          <div>
+                            <p className="text-[11px] font-black uppercase tracking-tight">
+                              {notification.title}
+                            </p>
+                            <p className="text-xs text-muted-foreground leading-tight mt-0.5">
+                              {notification.desc}
+                            </p>
+                            <p className="text-[9px] font-bold text-muted-foreground uppercase mt-1">
+                              {notification.time}
+                            </p>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-4">
+                        <Bell className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                        <p className="text-sm font-black uppercase tracking-tighter mb-2">
+                          No notifications
+                        </p>
+                        <p className="text-[10px] text-muted-foreground uppercase">
+                          Your payment notifications will appear here
+                        </p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </section>
 
@@ -515,7 +569,7 @@ export default function BuyerOverviewPage() {
                   </p>
                   <div className="grid grid-cols-2 gap-2 mt-6">
                     <Link
-                      href="/buyer/disputes"
+                      href="#"
                       className="bg-foreground text-background text-center py-2.5 rounded-lg text-[9px] font-black uppercase tracking-widest hover:opacity-90"
                     >
                       Open Dispute

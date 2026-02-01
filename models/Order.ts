@@ -197,6 +197,21 @@ class OrderModel {
     }
   }
 
+  static async findByOrderIdAndBuyerEmail(orderId: string, buyerEmail: string) {
+    try {
+      const client = await clientPromise;
+      const db = client.db(dbName);
+      
+      return await db.collection('orders').findOne({ 
+        orderId: orderId,
+        'buyerInfo.email': buyerEmail 
+      });
+    } catch (error) {
+      console.error('OrderModel.findByOrderIdAndBuyerEmail error:', error);
+      throw error;
+    }
+  }
+
   static async countDocuments(query: any = {}) {
     const client = await clientPromise;
     const db = client.db(dbName);
