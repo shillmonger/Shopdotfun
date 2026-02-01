@@ -21,7 +21,7 @@ export async function GET(request: Request) {
     const status = searchParams.get('status');
 
     // Build query for seller-specific orders
-    let query: any = { 'sellerInfo.sellerEmail': session.user.email };
+const query: any = { 'sellerInfo.sellerEmail': session.user.email };
     
     // Add status filter if provided
     if (status) {
