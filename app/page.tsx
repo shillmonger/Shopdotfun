@@ -11,7 +11,6 @@ import FeaturedCollection from "@/components/landing-page/FeaturedCollection";
 import { Button } from "@/components/ui/button";
 import { HotTrendingProducts } from "@/components/landing-page/HotTrendingProducts";
 import { PopularCategories } from "@/components/landing-page/PopularCategories";
-import { RealProducts } from "@/components/landing-page/RealProducts";
 import { HowItWorks } from "@/components/landing-page/HowItWorks";
 
 export default function HomePage() {
@@ -213,14 +212,9 @@ export default function HomePage() {
 
       {/* Hot Trending Products */}
       <HotTrendingProducts />
-
       
-
       {/* Featured Collection */}
       <FeaturedCollection />
-
-      {/* Category Deals Section */}
-      <RealProducts />
 
       {/* Popular Categories */}
       <PopularCategories />
