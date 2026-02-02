@@ -390,11 +390,10 @@ function OrderCard({
               </>
             )}
             <Link
-              href={`/general-dashboard/buyer-dashboard/orders/order-tracking?orderId=${order.orderId}`}
+              href={`/general-dashboard/buyer-dashboard/orders/disputes?orderId=${order.orderId}`}
               className="flex-1 sm:flex-none bg-card border border-border cursor-pointer text-foreground px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 shadow-md hover:bg-muted hover:border-primary/40 transition-colors"
             >
-              {/* <Truck className="w-3 h-3" /> */}
-              Track Order
+              Disputes
               <ExternalLink className="w-4 h-4" />
             </Link>
           </div>

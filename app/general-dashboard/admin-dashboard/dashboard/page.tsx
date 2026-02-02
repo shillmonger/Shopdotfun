@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Users, 
   Store, 
@@ -21,15 +21,47 @@ import AdminHeader from "@/components/admin-dashboard/AdminHeader";
 import AdminSidebar from "@/components/admin-dashboard/AdminSidebar";
 import AdminNav from "@/components/admin-dashboard/AdminNav";
 
+interface PlatformStats {
+  totalBuyers: number;
+  totalSellers: number;
+  totalOrders: number;
+  pendingPayments: number;
+}
+
 export default function AdminOverviewPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [stats, setStats] = useState<PlatformStats>({
+    totalBuyers: 0,
+    totalSellers: 0,
+    totalOrders: 0,
+    pendingPayments: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch('/api/admin/stats');
+        if (response.ok) {
+          const data = await response.json();
+          setStats(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
 
   // Aggregated Platform Stats
   const platformStats = [
-    { label: "Total Buyers", value: "12,840", icon: Users, trend: "+12%" },
-    { label: "Total Sellers", value: "1,205", icon: Store, trend: "+5%" },
-    { label: "Orders Today", value: "482", icon: ShoppingBag, trend: "+18%" },
-    { label: "Total Revenue", value: "$1.2M", icon: DollarSign, trend: "+24%" },
+    { label: "Total Buyers", value: loading ? "..." : stats.totalBuyers.toLocaleString(), icon: Users},
+    { label: "Total Sellers", value: loading ? "..." : stats.totalSellers.toLocaleString(), icon: Store},
+    { label: "Overall Orders", value: loading ? "..." : stats.totalOrders.toLocaleString(), icon: ShoppingBag},
+    { label: "Pending Payments", value: loading ? "..." : `$${stats.pendingPayments.toLocaleString()}`, icon: DollarSign},
   ];
 
   return (
@@ -61,16 +93,15 @@ export default function AdminOverviewPage() {
             </div>
 
             {/* A. Platform Stats Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
               {platformStats.map((stat, i) => (
-                <div key={i} className="bg-card border border-border p-6 rounded-[2rem] shadow-sm relative overflow-hidden group">
+                <div key={i} className="bg-card border border-border p-6 rounded-2xl shadow-sm relative overflow-hidden group">
                   <stat.icon className="absolute -right-2 -bottom-2 w-20 h-20 opacity-5 group-hover:scale-110 transition-transform" />
                   <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-1">{stat.label}</p>
                   <div className="flex items-end justify-between">
-                    <h3 className="text-3xl font-black italic tracking-tighter">{stat.value}</h3>
-                    <span className="text-[10px] font-black text-green-500 bg-green-500/10 px-2 py-0.5 rounded-md flex items-center gap-1">
-                      <TrendingUp className="w-3 h-3" /> {stat.trend}
-                    </span>
+                    <h3 className="text-3xl font-black italic tracking-tighter">
+                      {stat.value}
+                    </h3>
                   </div>
                 </div>
               ))}
@@ -91,7 +122,9 @@ export default function AdminOverviewPage() {
                       <div className="p-3 bg-primary/10 rounded-2xl text-primary">
                         <Clock className="w-6 h-6" />
                       </div>
-                      <span className="bg-primary text-white text-[10px] font-black px-3 py-1 rounded-full uppercase">12 Pending</span>
+<span className="bg-white dark:bg-primary text-black text-[10px] font-black px-3 py-1 rounded-full uppercase">
+  12 Pending
+</span>
                     </div>
                     <h4 className="text-lg font-black uppercase italic tracking-tighter">Seller Approvals</h4>
                     <p className="text-[10px] text-muted-foreground font-bold uppercase mt-1">Review merchant KYC &amp; store details</p>

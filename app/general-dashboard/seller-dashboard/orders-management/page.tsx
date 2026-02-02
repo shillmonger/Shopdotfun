@@ -5,7 +5,7 @@ import {
   ShoppingBag,
   User,
   CreditCard,
-  MapPin,
+  ExternalLink,
   Truck,
   Search,
   Filter,
@@ -509,23 +509,39 @@ export default function OrdersReceivedPage() {
                             })()}
                           </div>
 
-                          <div className="flex items-center gap-3 md:w-auto w-full justify-between">
-                            {canShip && (
-                              <button
-                                onClick={() => handleMarkAsShipped(order.id)}
-                                className="flex-1 md:flex-none bg-primary cursor-pointer text-primary-foreground text-center px-8 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2"
-                              >
-                                Mark as Shipped <Truck className="w-4 h-4" />
-                              </button>
-                            )}
-                            <Link
-                              href={`/general-dashboard/seller-dashboard/orders-management/buyer-info?orderId=${order.id}`}
-                              className="bg-card border border-border px-4 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all flex items-center justify-center gap-2 hover:border-primary/40"
-                            >
-                              <User className="w-4 h-4" />
-                              Buyer Info
-                            </Link>
-                          </div>
+                          <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto md:items-center md:justify-between">
+
+  {/* Links wrapper */}
+  <div className="flex w-full md:w-auto gap-3">
+
+    <Link
+      href={`/general-dashboard/seller-dashboard/orders-management/buyer-info?orderId=${order.id}`}
+      className="flex-1 bg-card border border-border px-4 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all flex items-center justify-center gap-2 hover:border-primary/40"
+    >
+      <User className="w-4 h-4" />
+      Infomations
+    </Link>
+
+    <Link
+      href={`/general-dashboard/seller-dashboard/orders-management/disputes`}
+      className="flex-1 bg-card border border-border cursor-pointer text-foreground px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 shadow-md hover:bg-muted hover:border-primary/40 transition-colors"
+    >
+      Disputes
+      <ExternalLink className="w-4 h-4" />
+    </Link>
+
+  </div>
+    {/* Button */}
+  {canShip && (
+    <button
+      onClick={() => handleMarkAsShipped(order.id)}
+      className="w-full md:w-auto bg-primary cursor-pointer text-primary-foreground text-center px-8 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2"
+    >
+      Mark as Shipped <Truck className="w-4 h-4" />
+    </button>
+  )}
+</div>
+
                         </div>
                       </div>
                     </div>

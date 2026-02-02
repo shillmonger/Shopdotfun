@@ -44,7 +44,6 @@ export default function BuyerSidebar({ sidebarOpen, setSidebarOpen }: SidebarPro
     { name: "Notifications", icon: Bell, href: `${basePath}/notification` },
     { name: "Payment History", icon: History, href: `${basePath}/payment-history` },
     { name: "Reviews & Ratings", icon: Star, href: `${basePath}/reviews-ratings` },
-    { name: "Disputes/Complaints", icon: AlertOctagon, href: `${basePath}/disputes` },
     { name: "Profile & Settings", icon: Settings, href: `${basePath}/profile-settings` },
     ...(isAdmin ? [{ name: "# Admin Auth Panel", icon: Server, href: `/general-dashboard/admin-dashboard/dashboard` }] : []),
   ];
