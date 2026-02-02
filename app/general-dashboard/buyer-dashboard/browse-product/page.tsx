@@ -370,109 +370,135 @@ export default function BrowseProductsPage() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {products.map((product) => (
-                    <div
-                      key={product._id}
-                      className="group bg-card border border-border rounded-2xl overflow-hidden hover:shadow-2xl hover:border-primary/50 transition-all duration-300 flex flex-col"
-                    >
-                      {/* Product Image */}
-                      <div className="relative aspect-square bg-muted overflow-hidden">
-                        <img
-                          src={
-                            product.images?.[0]?.url ||
-                            "/placeholder-product.jpg"
-                          }
-                          alt={product.name}
-                          className="w-full h-full object-cover cursor-pointer group-hover:scale-110 transition-transform duration-500"
-                        />
-                        {product.stock === 0 && (
-                          <div className="absolute inset-0 bg-background/80 backdrop-blur-[2px] flex items-center justify-center">
-                            <span className="bg-destructive text-destructive-foreground px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter shadow-lg">
-                              Out of Stock
-                            </span>
-                          </div>
-                        )}
-                        {product.discount > 0 && (
-                          <div className="absolute top-3 left-3 bg-green-500 text-white px-2 py-1 rounded-full text-[12px] font-black uppercase tracking-tighter">
-                            -{product.discount}%
-                          </div>
-                        )}
-                        
-                        {/* Star Rating */}
-                        <div className="absolute top-3 right-3 pointer-events-auto flex items-center gap-1.5 bg-background/80 backdrop-blur-md border border-border px-2 py-1 rounded-full shadow-sm">
-                          <button
-                            onClick={() => addRating(product._id)}
-                            disabled={ratingLoading === product._id || hasUserRated(product)}
-                            className={`transition-all active:scale-125 ${hasUserRated(product) ? 'cursor-default' : 'cursor-pointer hover:text-yellow-500'} ${ratingLoading === product._id ? 'animate-pulse' : ''}`}
-                          >
-                            <Star className={`w-3.5 h-3.5 ${hasUserRated(product) ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`} />
-                          </button>
-                          <span className="text-[10px] font-bold tabular-nums">
-                            {product.totalRatings || 0}
-                          </span>
-                        </div>
-                      </div>
+  {products.map((product) => {
+    const cryptoPrice = (
+      (product.discount > 0
+        ? product.price * (1 - product.discount / 100)
+        : product.price) * 0.000042
+    ).toFixed(6);
 
-                      {/* Product Details */}
-                      <div className="p-4 flex-1 flex flex-col">
-                        <div className="mb-2">
-                          <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">
-                            {product.sellerName}
-                          </p>
-                          <h3 className="font-bold text-sm line-clamp-2 group-hover:text-primary transition-colors leading-tight">
-                            {product.name}
-                          </h3>
-                        </div>
+    return (
+      <div
+        key={product._id}
+        // Added 'transform-gpu' and 'will-change-transform' to stop the shaking
+        className="group bg-card border border-border rounded-2xl overflow-hidden hover:shadow-2xl hover:border-primary/50 transition-all duration-300 flex flex-col transform-gpu will-change-transform"
+      >
+        {/* Product Image Container */}
+        <div className="relative aspect-square bg-muted overflow-hidden isolate">
+          <img
+            src={product.images?.[0]?.url || "/placeholder-product.jpg"}
+            alt={product.name}
+            // Added transform-gpu here as well
+            className="w-full h-full object-cover cursor-pointer group-hover:scale-110 transition-transform duration-500 transform-gpu"
+          />
 
-                        <div className="mb-2">
-                          <p className="text-xs text-muted-foreground">
-                            Stock: {product.stock} units
-                          </p>
-                        </div>
+          {/* Crypto Price Overlay - Improved stability */}
+          <div className="absolute bottom-0 left-0 right-0 bg-black/70 backdrop-blur-md py-2 px-3 flex items-center justify-between translate-z-0">
+            <span className="text-[10px] font-bold text-white/70 uppercase tracking-widest">
+              Crypto Price
+            </span>
+            <span className="text-[11px] font-mono font-black text-white tabular-nums">
+              {cryptoPrice} BTC
+            </span>
+          </div>
 
-                        <div className="mt-auto flex items-center justify-between gap-2">
-                          <div>
-                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-tighter">
-                              Price
-                            </p>
-                            <div className="flex items-center gap-2">
-                              <p className="text-lg font-black italic tracking-tighter">
-                                $
-                                {product.discount > 0
-                                  ? (
-                                      product.price *
-                                      (1 - product.discount / 100)
-                                    ).toFixed(2)
-                                  : product.price.toFixed(2)}
-                              </p>
-                              {product.discount > 0 && (
-                                <p className="text-xs text-muted-foreground line-through">
-                                  ${product.price.toFixed(2)}
-                                </p>
-                              )}
-                            </div>
-                          </div>
+          {product.stock === 0 && (
+            <div className="absolute inset-0 bg-background/80 backdrop-blur-[2px] flex items-center justify-center z-10">
+              <span className="bg-destructive text-destructive-foreground px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter shadow-lg">
+                Out of Stock
+              </span>
+            </div>
+          )}
 
-                          <button
-                            onClick={() => addToCart(product)}
-                            disabled={product.stock === 0 || cartLoading === product._id}
-                            className={`p-3 rounded-xl transition-all shadow-lg shadow-primary/10 ${
-                              product.stock === 0 || cartLoading === product._id
-                                ? "bg-muted text-muted-foreground cursor-not-allowed"
-                                : "bg-primary text-primary-foreground hover:scale-110 active:scale-95 cursor-pointer"
-                            }`}
-                          >
-                            {cartLoading === product._id ? (
-                              <div className="w-5 h-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                            ) : (
-                              <ShoppingCart className="w-5 h-5" />
-                            )}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+          {product.discount > 0 && (
+            <div className="absolute top-3 left-3 bg-green-500 text-white px-2 py-1 rounded-full text-[12px] font-black uppercase tracking-tighter z-10">
+              -{product.discount}%
+            </div>
+          )}
+
+          {/* Star Rating - Added z-index and translate-z-0 for stability */}
+          <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5 bg-background/90 backdrop-blur-md border border-border px-2.5 py-1 rounded-full shadow-sm translate-z-0">
+            <button
+              onClick={() => addRating(product._id)}
+              disabled={ratingLoading === product._id || hasUserRated(product)}
+              className={`transition-all active:scale-125 ${
+                hasUserRated(product)
+                  ? "cursor-default"
+                  : "cursor-pointer hover:text-yellow-500"
+              } ${ratingLoading === product._id ? "animate-pulse" : ""}`}
+            >
+              <Star
+                className={`w-3.5 h-3.5 ${
+                  hasUserRated(product)
+                    ? "fill-yellow-400 text-yellow-400"
+                    : "text-muted-foreground"
+                }`}
+              />
+            </button>
+            <span className="text-[10px] font-bold tabular-nums">
+              {product.totalRatings || 0}
+            </span>
+          </div>
+        </div>
+
+        {/* Product Details */}
+        <div className="p-4 flex-1 flex flex-col">
+          <div className="mb-2">
+            <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">
+              {product.sellerName}
+            </p>
+            <h3 className="font-bold text-sm line-clamp-2 group-hover:text-primary transition-colors leading-tight">
+              {product.name}
+            </h3>
+          </div>
+
+          <div className="mb-2">
+            <p className="text-xs text-muted-foreground">
+              Stock: {product.stock} units
+            </p>
+          </div>
+
+          <div className="mt-auto flex items-center justify-between gap-2">
+            <div>
+              <p className="text-xs text-muted-foreground font-medium uppercase tracking-tighter">
+                Price
+              </p>
+              <div className="flex items-center gap-2">
+                <p className="text-lg font-black italic tracking-tighter tabular-nums">
+                  $
+                  {product.discount > 0
+                    ? (product.price * (1 - product.discount / 100)).toFixed(2)
+                    : product.price.toFixed(2)}
+                </p>
+                {product.discount > 0 && (
+                  <p className="text-xs text-muted-foreground line-through tabular-nums">
+                    ${product.price.toFixed(2)}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <button
+              onClick={() => addToCart(product)}
+              disabled={product.stock === 0 || cartLoading === product._id}
+              className={`p-3 rounded-xl transition-all shadow-lg shadow-primary/10 ${
+                product.stock === 0 || cartLoading === product._id
+                  ? "bg-muted text-muted-foreground cursor-not-allowed"
+                  : "bg-primary text-primary-foreground hover:scale-110 active:scale-95 cursor-pointer"
+              }`}
+            >
+              {cartLoading === product._id ? (
+                <div className="w-5 h-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              ) : (
+                <ShoppingCart className="w-5 h-5" />
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  })}
+</div>
               )}
 
               {/* Load More Products */}
