@@ -39,6 +39,7 @@ interface Product {
   discount: number;
   stock: number;
   shippingFee: number;
+  crypto: string;
   images: Array<{
     url: string;
     thumbnailUrl: string;
@@ -76,6 +77,57 @@ export default function BrowseProductsPage() {
 
   // Rating states
   const [ratingLoading, setRatingLoading] = useState<string | null>(null);
+
+  // Crypto prices state
+  const [cryptoPrices, setCryptoPrices] = useState<Record<string, number>>({});
+  const [cryptoLoading, setCryptoLoading] = useState(true);
+
+  // Fetch crypto prices function
+  const fetchCryptoPrices = async () => {
+    try {
+      setCryptoLoading(true);
+      const response = await fetch('/api/coinmarketcap');
+      const data = await response.json();
+      
+      if (response.ok) {
+        // Extract prices from the response
+        const prices: Record<string, number> = {};
+        Object.keys(data).forEach(symbol => {
+          prices[symbol] = data[symbol].quote.USD.price;
+        });
+        setCryptoPrices(prices);
+      } else {
+        console.error("Failed to fetch crypto prices:", data.error);
+      }
+    } catch (error) {
+      console.error("Error fetching crypto prices:", error);
+    } finally {
+      setCryptoLoading(false);
+    }
+  };
+
+  // Convert USD to crypto function
+  const convertUsdToCrypto = (usdAmount: number, cryptoSymbol: string): string => {
+    if (cryptoLoading) {
+      return "Loading...";
+    }
+    
+    if (!cryptoPrices[cryptoSymbol]) {
+      return `${cryptoSymbol} N/A`;
+    }
+    
+    const cryptoPrice = cryptoPrices[cryptoSymbol];
+    const convertedAmount = usdAmount / cryptoPrice;
+    
+    // Format based on crypto value
+    if (convertedAmount < 0.001) {
+      return convertedAmount.toExponential(4) + ` ${cryptoSymbol}`;
+    } else if (convertedAmount < 1) {
+      return convertedAmount.toFixed(6) + ` ${cryptoSymbol}`;
+    } else {
+      return convertedAmount.toFixed(4) + ` ${cryptoSymbol}`;
+    }
+  };
 
   // Fetch products function
   const fetchProducts = async (pageNum = 1, append = false) => {
@@ -253,6 +305,7 @@ export default function BrowseProductsPage() {
   // Initial load
   useEffect(() => {
     fetchProducts(1, false);
+    fetchCryptoPrices();
   }, []);
 
   // Debounced filter changes
@@ -371,11 +424,11 @@ export default function BrowseProductsPage() {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
   {products.map((product) => {
-    const cryptoPrice = (
-      (product.discount > 0
-        ? product.price * (1 - product.discount / 100)
-        : product.price) * 0.000042
-    ).toFixed(6);
+    const finalPrice = product.discount > 0
+      ? product.price * (1 - product.discount / 100)
+      : product.price;
+    
+    const cryptoPriceDisplay = convertUsdToCrypto(finalPrice, product.crypto);
 
     return (
       <div
@@ -395,10 +448,10 @@ export default function BrowseProductsPage() {
           {/* Crypto Price Overlay - Improved stability */}
           <div className="absolute bottom-0 left-0 right-0 bg-black/70 backdrop-blur-md py-2 px-3 flex items-center justify-between translate-z-0">
             <span className="text-[10px] font-bold text-white/70 uppercase tracking-widest">
-              Crypto Price
+              {product.crypto} Price
             </span>
             <span className="text-[11px] font-mono font-black text-white tabular-nums">
-              {cryptoPrice} BTC
+              {cryptoPriceDisplay}
             </span>
           </div>
 
