@@ -45,15 +45,15 @@ export default function BuyerSidebar({
 
   // Navigation Items mapped to your updated admin pages
   const sidebarItems = [
-    { 
-      name: "Dashboard", 
-      icon: LayoutDashboard, 
-      href: `${basePath}/dashboard` 
+    {
+      name: "Dashboard",
+      icon: LayoutDashboard,
+      href: `${basePath}/dashboard`,
     },
-    { 
-      name: "Audit Logs", 
-      icon: FileText, 
-      href: `${basePath}/audit-logs` 
+    {
+      name: "Audit Logs",
+      icon: FileText,
+      href: `${basePath}/audit-logs`,
     },
     {
       name: "Order Monitoring",
@@ -65,10 +65,10 @@ export default function BuyerSidebar({
       icon: CreditCard,
       href: `${basePath}/payment-approvals`,
     },
-    { 
-      name: "Products Control", 
-      icon: Package, 
-      href: `${basePath}/product-control` 
+    {
+      name: "Products Control",
+      icon: Package,
+      href: `${basePath}/product-control`,
     },
     {
       name: "Manage Products",
@@ -85,7 +85,7 @@ export default function BuyerSidebar({
       icon: Percent,
       href: `${basePath}/commission-settings`,
     },
-     {
+    {
       name: "User Management",
       icon: UserCircle,
       href: `${basePath}/user-management`,
