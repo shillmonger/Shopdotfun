@@ -3,6 +3,7 @@
 import { useMounted } from '@/hooks/useMounted';
 import { ThemeProvider } from "./theme-provider";
 import { SessionProvider } from "next-auth/react";
+import { CartProvider } from "@/hooks/useCart";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const mounted = useMounted();
@@ -18,7 +19,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
         disableTransitionOnChange
         storageKey="shillmonger-theme"
       >
-        {children}
+        <CartProvider>
+          {children}
+        </CartProvider>
       </ThemeProvider>
     </SessionProvider>
   );

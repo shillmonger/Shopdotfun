@@ -4,12 +4,13 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Header from "@/components/landing-page/Header";
-import ThemeAndScroll from "@/components/landing-page/ThemeAndScroll";
-import Footer from "@/components/landing-page/Footer";
-import Features from "@/components/landing-page/Features";
-import FeaturedCollection from "@/components/landing-page/FeaturedCollection";
 import { Button } from "@/components/ui/button";
+import Features from "@/components/landing-page/Features";
+import Footer from "@/components/landing-page/Footer";
+import ThemeAndScroll from "@/components/landing-page/ThemeAndScroll";
+import FeaturedCollection from "@/components/landing-page/FeaturedCollection";
 import { HotTrendingProducts } from "@/components/landing-page/HotTrendingProducts";
+import { CategoryDeals } from "@/components/landing-page/CategoryDeals";
 import { PopularCategories } from "@/components/landing-page/PopularCategories";
 import { HowItWorks } from "@/components/landing-page/HowItWorks";
 
@@ -215,6 +216,9 @@ export default function HomePage() {
       
       {/* Featured Collection */}
       <FeaturedCollection />
+
+      {/* CategoryDeals */}
+      <CategoryDeals />
 
       {/* Popular Categories */}
       <PopularCategories />

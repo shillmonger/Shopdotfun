@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { getGreeting } from "@/lib/utils";
+import { toast } from 'sonner';
 
 import BuyerHeader from "@/components/buyer-dashboard/BuyerHeader";
 import BuyerSidebar from "@/components/buyer-dashboard/BuyerSidebar";
@@ -56,6 +57,7 @@ export default function BuyerOverviewPage() {
   const [shippedOrder, setShippedOrder] = useState<any>(null);
   const [recentPayments, setRecentPayments] = useState<any[]>([]);
   const [paymentNotifications, setPaymentNotifications] = useState<any[]>([]);
+  const [recommendedProducts, setRecommendedProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -141,6 +143,16 @@ export default function BuyerOverviewPage() {
           const recentPaymentsData = await recentPaymentsResponse.json();
           setRecentPayments(recentPaymentsData.recentPayments || []);
         }
+
+        // Fetch recommended products for "You Might Like" section
+        const sessionId = sessionStorage.getItem('recommendedSessionId') || Date.now().toString();
+        sessionStorage.setItem('recommendedSessionId', sessionId);
+        
+        const recommendedResponse = await fetch(`/api/buyer/recommended-products?sessionId=${sessionId}`);
+        if (recommendedResponse.ok) {
+          const recommendedData = await recommendedResponse.json();
+          setRecommendedProducts(recommendedData.products || []);
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -151,29 +163,73 @@ export default function BuyerOverviewPage() {
     fetchData();
   }, []);
 
+  // Add to cart function
+  const addToCart = async (product: any) => {
+    try {
+      const response = await fetch('/api/buyer/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productId: product._id,
+          productName: product.name,
+          sellerName: product.sellerName,
+          price: product.price,
+          discount: product.discount || 0,
+          stock: product.stock,
+          shippingFee: product.shippingFee || 0,
+          image: product.images?.[0]?.url || '',
+          quantity: 1
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success('Added to cart successfully!');
+        setCartItemsCount(data.items?.length || 0);
+        window.dispatchEvent(new CustomEvent('cartUpdated'));
+      } else {
+        if (response.status === 401) {
+          toast.error('Please login to add items to cart');
+        } else {
+          toast.error(data.error || 'Failed to add to cart');
+        }
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast.error('Failed to add to cart');
+    }
+  };
+
   // Dynamic Stats
   const stats = [
     {
       label: "My Balance",
-      value: loading ? "Loading..." : `$${userBalance?.toFixed(2) || "0.00"}`,
+      value: loading ? "" : `$${userBalance?.toFixed(2) || "0.00"}`,
+      loading: loading,
       icon: PiggyBank,
       link: "/general-dashboard/buyer-dashboard/payments",
     },
     {
       label: "Items in Cart",
-      value: loading ? "Loading..." : cartItemsCount.toString(),
+      value: loading ? "" : cartItemsCount.toString(),
+      loading: loading,
       icon: ShoppingCart,
       link: "/general-dashboard/buyer-dashboard/cart",
     },
     {
       label: "Active Orders",
-      value: loading ? "Loading..." : orderStats.active.toString(),
+      value: loading ? "" : orderStats.active.toString(),
+      loading: loading,
       icon: Clock,
       link: "/general-dashboard/buyer-dashboard/orders",
     },
     {
       label: "Shipped Orders",
-      value: loading ? "Loading..." : orderStats.received.toString(),
+      value: loading ? "" : orderStats.received.toString(),
+      loading: loading,
       icon: Truck,
       link: "/general-dashboard/buyer-dashboard/orders",
     },
@@ -234,9 +290,13 @@ export default function BuyerOverviewPage() {
                     </div>
                     <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
-                  <p className="text-xl sm:text-2xl md:text-3xl font-black italic tracking-tighter mb-1">
-                    {stat.value}
-                  </p>
+                  {stat.loading ? (
+                    <div className="h-8 w-16 bg-muted rounded animate-pulse mb-1"></div>
+                  ) : (
+                    <p className="text-xl sm:text-2xl md:text-3xl font-black italic tracking-tighter mb-1">
+                      {stat.value}
+                    </p>
+                  )}
                   <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
                     {stat.label}
                   </p>
@@ -582,7 +642,7 @@ export default function BuyerOverviewPage() {
               </div>
             </div>
 
-            {/* 5️⃣ Continue Shopping / Recommendations */}
+            {/* 5️⃣ You Might Like*/}
             <section className="pt-10 border-t border-border">
               <div className="flex justify-between items-end mb-6">
                 <h2 className="text-xl font-black uppercase italic tracking-tighter">
@@ -597,35 +657,110 @@ export default function BuyerOverviewPage() {
                 </Link>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                {[1, 2, 3, 4, 5].map((_, i) => (
-                  <div
-                    key={i}
-                    className="bg-card border border-border rounded-2xl p-3 hover:shadow-xl transition-all group cursor-pointer"
-                  >
-                    <div className="aspect-square bg-muted rounded-xl mb-3 overflow-hidden relative">
-                      <div className="w-full h-full flex items-center justify-center text-[10px] font-black uppercase opacity-20 group-hover:scale-110 transition-transform">
-                        Product Image
+                {loading ? (
+                  // Loading skeleton
+                  [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((_, i) => (
+                    <div
+                      key={i}
+                      className="bg-card border border-border rounded-2xl p-3 animate-pulse"
+                    >
+                      <div className="aspect-square bg-muted rounded-xl mb-3"></div>
+                      <div className="h-4 bg-muted rounded mb-2"></div>
+                      <div className="h-3 bg-muted rounded mb-2"></div>
+                      <div className="flex justify-between items-center">
+                        <div className="h-4 w-16 bg-muted rounded"></div>
+                        <div className="h-8 w-8 bg-muted rounded"></div>
                       </div>
                     </div>
-                    <p className="text-[10px] font-black text-primary uppercase mb-1">
-                      Tech Store
-                    </p>
-                    <p className="text-xs font-bold truncate">
-                      Wireless Smart Keyboard
-                    </p>
+                  ))
+                ) : recommendedProducts.length > 0 ? (
+                  recommendedProducts.map((product, i) => (
+                    <div
+                      key={product._id || i}
+                      className="bg-card border border-border rounded-2xl p-3 hover:shadow-xl transition-all group cursor-pointer"
+                    >
+                      <div className="aspect-square bg-muted rounded-xl mb-3 overflow-hidden relative">
+                        {product.images?.[0]?.url ? (
+                          <img
+                            src={product.images[0].url}
+                            alt={product.name}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-[10px] font-black uppercase opacity-20">
+                            No Image
+                          </div>
+                        )}
+                        {product.discount > 0 && (
+                          <div className="absolute top-2 left-2 bg-destructive text-destructive-foreground px-2 py-1 rounded-full text-[9px] font-black">
+                            -{product.discount}%
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-[10px] font-black text-primary uppercase mb-1 truncate">
+                        {product.sellerName}
+                      </p>
+                      <p className="text-xs font-bold truncate mb-1" title={product.name}>
+                        {product.name}
+                      </p>
+                      <div className="flex items-center gap-1 mb-2">
+                        {Array.from({ length: 5 }).map((_, starIndex) => (
+                          <span
+                            key={starIndex}
+                            className={`text-[8px] ${
+                              starIndex < Math.floor(product.averageRating || 0)
+                                ? 'text-yellow-500'
+                                : 'text-gray-300'
+                            }`}
+                          >
+                            ★
+                          </span>
+                        ))}
+                        <span className="text-[8px] text-muted-foreground ml-1">
+                          ({product.totalRatings || 0})
+                        </span>
+                      </div>
 
-                    {/* Price and Cart Icon Container */}
-                    <div className="flex items-center justify-between mt-2">
-                      <p className="text-sm font-black italic">$89.00</p>
-                      <button
-                        className="p-2 bg-primary text-primary-foreground rounded-lg transition-opacity hover:scale-110 active:scale-95"
-                        title="Add to Cart"
-                      >
-                        <ShoppingCart className="w-3.5 h-3.5" />
-                      </button>
+                      {/* Price and Cart Icon Container */}
+                      <div className="flex items-center justify-between mt-2">
+                        <div className="text-right">
+                          {product.discount > 0 && (
+                            <p className="text-[9px] text-muted-foreground line-through font-bold">
+                              ${product.price.toFixed(2)}
+                            </p>
+                          )}
+                          <p className="text-sm font-black italic">
+                            ${(product.price * (1 - product.discount / 100)).toFixed(2)}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => addToCart(product)}
+                          className="p-2 bg-primary text-primary-foreground cursor-pointer rounded-lg transition-opacity hover:scale-110 active:scale-95"
+                          title="Add to Cart"
+                          disabled={product.stock <= 0}
+                        >
+                          <ShoppingCart className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      {product.stock <= 0 && (
+                        <p className="text-[9px] text-destructive font-black text-center mt-2">
+                          Out of Stock
+                        </p>
+                      )}
                     </div>
+                  ))
+                ) : (
+                  // No products state
+                  <div className="col-span-full text-center py-8">
+                    <ShoppingCart className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-sm font-black uppercase tracking-tighter mb-2">
+                      No products available
+                    </p>
+                    <p className="text-[10px] text-muted-foreground uppercase">
+                      Check back later for new recommendations
+                    </p>
                   </div>
-                ))}
+                )}
               </div>
             </section>
           </div>

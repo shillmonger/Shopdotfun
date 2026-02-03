@@ -2,22 +2,134 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
 import Header from "@/components/landing-page/Header";
 import ThemeAndScroll from "@/components/landing-page/ThemeAndScroll";
 import { PopularCategories } from "@/components/landing-page/PopularCategories";
 import Footer from "@/components/landing-page/Footer";
 import { Trash2, Plus, Minus, CreditCard, Truck, Headphones } from "lucide-react";
+import { toast } from "sonner";
 
-export default function CaseStudies() {
-  // Mock Cart Data based on your uploaded image
-  const cartItems = [
-    { id: 1, name: "Trendy Brown Coat", color: "Brown", size: "XXL", price: 75, quantity: 4, img: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?q=80&w=300&auto=format&fit=crop" },
-    { id: 2, name: "Classy Light Coat", color: "Cream", size: "XXL", price: 165, quantity: 1, img: "https://images.unsplash.com/photo-1539533018447-63fcce2678e3?q=80&w=300&auto=format&fit=crop" },
-    { id: 3, name: "Light Brown Sweater", color: "Light Brown", size: "S", price: 63, quantity: 1, img: "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?q=80&w=300&auto=format&fit=crop" },
-    { id: 4, name: "Modern Brown Dress", color: "Brown", size: "S", price: 90, quantity: 2, img: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=300&auto=format&fit=crop" },
-  ];
+interface CartItem {
+  productId: string;
+  productName: string;
+  sellerName: string;
+  price: number;
+  discount: number;
+  quantity: number;
+  stock: number;
+  shippingFee: number;
+  image: string;
+  addedAt: string;
+}
 
-  const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+export default function CartPage() {
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadCartFromStorage();
+    
+    // Listen for storage events from other components
+    const handleStorageChange = () => {
+      loadCartFromStorage();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+  const loadCartFromStorage = () => {
+    try {
+      const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+      setCartItems(cart);
+    } catch (error) {
+      console.error('Error loading cart:', error);
+      setCartItems([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateCart = (updatedCart: CartItem[]) => {
+    localStorage.setItem('cart', JSON.stringify(updatedCart));
+    setCartItems(updatedCart);
+    window.dispatchEvent(new Event('storage'));
+  };
+
+  const removeFromCart = (productId: string) => {
+    const updatedCart = cartItems.filter(item => item.productId !== productId);
+    updateCart(updatedCart);
+    toast.success('Product removed from cart');
+  };
+
+  const updateQuantity = (productId: string, newQuantity: number) => {
+    if (newQuantity < 1) {
+      removeFromCart(productId);
+      return;
+    }
+
+    // Find the item to check stock
+    const item = cartItems.find(item => item.productId === productId);
+    if (item && newQuantity > item.stock) {
+      toast.error(`Only ${item.stock} units available in stock`);
+      return;
+    }
+
+    const updatedCart = cartItems.map(item => 
+      item.productId === productId 
+        ? { ...item, quantity: newQuantity }
+        : item
+    );
+    updateCart(updatedCart);
+    toast.success('Cart updated');
+  };
+
+  const clearCart = () => {
+    localStorage.removeItem('cart');
+    setCartItems([]);
+    window.dispatchEvent(new Event('storage'));
+    toast.success('Cart cleared');
+  };
+
+  const calculateDiscountedPrice = (price: number, discount: number) => {
+    return discount > 0 ? price * (1 - discount / 100) : price;
+  };
+
+  const calculateSubtotal = () => {
+    return cartItems.reduce((total, item) => {
+      const discountedPrice = calculateDiscountedPrice(item.price, item.discount);
+      return total + (discountedPrice * item.quantity);
+    }, 0);
+  };
+
+  const calculateTotalItems = () => {
+    return cartItems.reduce((total, item) => total + item.quantity, 0);
+  };
+
+  const subtotal = calculateSubtotal();
+  const totalItems = calculateTotalItems();
+  const shipping = 0; // You can calculate this based on your business logic
+  const taxes = 0; // You can calculate this based on your business logic
+  const couponDiscount = 100; // This should come from your coupon system
+  const total = Math.max(0, subtotal + shipping + taxes - couponDiscount);
+
+  if (loading) {
+    return (
+      <main className="bg-background text-foreground transition-colors duration-300 min-h-screen flex flex-col">
+        <Header />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="animate-pulse text-center">
+            <div className="h-8 bg-secondary/30 rounded w-48 mx-auto mb-4"></div>
+            <div className="h-4 bg-secondary/30 rounded w-64 mx-auto"></div>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="bg-background text-foreground transition-colors duration-300 min-h-screen flex flex-col">
@@ -54,113 +166,154 @@ export default function CaseStudies() {
 
       {/* Cart Section */}
       <section className="max-w-7xl mx-auto px-4 py-16 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          
-          {/* Table Container */}
-          <div className="lg:col-span-2 overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[600px]">
-              <thead>
-                <tr className="bg-primary/10 border-b border-primary/20">
-                  <th className="p-4 font-black uppercase italic tracking-tighter text-primary">Product</th>
-                  <th className="p-4 font-black uppercase italic tracking-tighter text-primary">Price</th>
-                  <th className="p-4 font-black uppercase italic tracking-tighter text-primary text-center">Quantity</th>
-                  <th className="p-4 font-black uppercase italic tracking-tighter text-primary">Subtotal</th>
-                </tr>
-              </thead>
-              <tbody>
-                {cartItems.map((item) => (
-                  <tr key={item.id} className="border-b border-border hover:bg-secondary/20 transition-colors">
-                    <td className="p-4 flex items-center gap-4">
-                      <button className="text-muted-foreground cursor-pointer hover:text-destructive transition-colors">
-                        <Trash2 size={18} />
-                      </button>
-                      <div className="w-20 h-24 bg-muted rounded-lg overflow-hidden relative">
-                        <img src={item.img} alt={item.name} className="object-cover w-full h-full" />
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-sm md:text-base">{item.name}</h4>
-                        <p className="text-xs text-muted-foreground italic">Color: {item.color} | Size: {item.size}</p>
-                      </div>
-                    </td>
-                    <td className="p-4 font-bold text-primary">${item.price.toFixed(2)}</td>
-                    <td className="p-4">
-                      <div className="flex items-center justify-center gap-3 border border-border rounded-lg p-2 w-max mx-auto">
-                        <button className="hover:text-primary"><Minus size={14} /></button>
-                        <span className="font-bold min-w-[20px] text-center">{item.quantity}</span>
-                        <button className="hover:text-primary"><Plus size={14} /></button>
-                      </div>
-                    </td>
-                    <td className="p-4 font-black italic tracking-tighter">
-                      ${(item.price * item.quantity).toFixed(2)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            <div className="mt-8 flex flex-col md:flex-row gap-4 justify-between items-center">
-  <div className="flex gap-2 w-full md:w-auto">
-    <input 
-      type="text" 
-      placeholder="Coupon Code" 
-      className="flex-1 bg-secondary border border-border rounded-lg px-4 py-2 focus:ring-1 focus:ring-primary outline-none"
-    />
-    <button className="bg-primary dark:bg-white text-white dark:text-black px-6 py-2 rounded-lg font-bold uppercase tracking-tighter italic hover:bg-primary/90 dark:hover:bg-gray-200 whitespace-nowrap">
-      Apply Coupon
-    </button>
-  </div>
-
-  <button className="text-muted-foreground hover:text-primary font-bold text-sm underline underline-offset-4">
-    Clear Shopping Cart
-  </button>
-</div>
-
+        {cartItems.length === 0 ? (
+          <div className="text-center py-16">
+            <h2 className="text-2xl font-bold mb-4">Your cart is empty</h2>
+            <p className="text-muted-foreground mb-8">Looks like you haven't added any products to your cart yet.</p>
+            <Link href="/">
+              <button className="bg-primary text-white dark:text-black px-8 py-3 rounded-xl font-bold uppercase tracking-tighter hover:bg-primary/90 transition-colors">
+                Continue Shopping
+              </button>
+            </Link>
           </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            
+            {/* Table Container */}
+            <div className="lg:col-span-2 overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[600px]">
+                <thead>
+                  <tr className="bg-primary/10 border-b border-primary/20">
+                    <th className="p-4 font-black uppercase italic tracking-tighter text-primary">Product</th>
+                    <th className="p-4 font-black uppercase italic tracking-tighter text-primary">Price</th>
+                    <th className="p-4 font-black uppercase italic tracking-tighter text-primary text-center">Quantity</th>
+                    <th className="p-4 font-black uppercase italic tracking-tighter text-primary">Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cartItems.map((item) => {
+                    const discountedPrice = calculateDiscountedPrice(item.price, item.discount);
+                    const itemSubtotal = discountedPrice * item.quantity;
+                    
+                    return (
+                      <tr key={item.productId} className="border-b border-border hover:bg-secondary/20 transition-colors">
+                        <td className="p-4 flex items-center gap-4">
+                          <button 
+                            onClick={() => removeFromCart(item.productId)}
+                            className="text-muted-foreground cursor-pointer hover:text-destructive transition-colors"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                          <div className="w-20 h-24 bg-muted rounded-lg overflow-hidden relative">
+                            <img src={item.image} alt={item.productName} className="object-cover w-full h-full" />
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-sm md:text-base">{item.productName}</h4>
+                            <p className="text-xs text-muted-foreground italic">Sold by {item.sellerName}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-xs text-muted-foreground">Stock:</span>
+                              <span className={`text-xs font-semibold ${item.stock <= 5 ? 'text-red-600' : item.stock <= 10 ? 'text-yellow-600' : 'text-green-600'}`}>
+                                {item.stock} units
+                              </span>
+                              {item.stock <= 5 && (
+                                <span className="text-xs text-red-600 font-semibold">(Low Stock)</span>
+                              )}
+                            </div>
+                            {item.discount > 0 && (
+                              <p className="text-xs text-green-600 font-semibold">-{item.discount}% discount</p>
+                            )}
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <div>
+                            <div className="font-bold text-primary">${discountedPrice.toFixed(2)}</div>
+                            {item.discount > 0 && (
+                              <div className="text-xs text-muted-foreground line-through">
+                                ${item.price.toFixed(2)}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center justify-center gap-3 border border-border rounded-lg p-2 w-max mx-auto">
+                            <button 
+                              onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                              className="hover:text-primary cursor-pointer"
+                            >
+                              <Minus size={14} />
+                            </button>
+                            <span className="font-bold min-w-[20px] text-center">{item.quantity}</span>
+                            <button 
+                              onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                              className={`hover:text-primary cursor-pointer ${
+                                item.quantity >= item.stock ? 'opacity-50 cursor-not-allowed' : ''
+                              }`}
+                              disabled={item.quantity >= item.stock}
+                            >
+                              <Plus size={14} />
+                            </button>
+                          </div>
+                          {item.quantity >= item.stock && (
+                            <p className="text-xs text-red-600 text-center mt-1">Max stock reached</p>
+                          )}
+                        </td>
+                        <td className="p-4 font-black italic tracking-tighter">
+                          ${itemSubtotal.toFixed(2)}
+                        </td>
+                      </tr>
+                  );
+                  })}
+                </tbody>
+              </table>
 
-          {/* Order Summary */}
-          <div className="lg:col-span-1">
-            <div className="bg-secondary/30 border border-border rounded-[2rem] p-8 sticky top-24">
-              <h3 className="text-2xl font-black uppercase italic tracking-tighter border-l-4 border-primary pl-4 mb-6">
-                Order Summary
-              </h3>
-              
-              <div className="space-y-4 mb-8">
-                <div className="flex justify-between text-muted-foreground">
-                  <span>Items</span>
-                  <span className="font-bold text-foreground">8</span>
-                </div>
-                <div className="flex justify-between text-muted-foreground">
-                  <span>Sub Total</span>
-                  <span className="font-bold text-foreground">${subtotal.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-muted-foreground">
-                  <span>Shipping</span>
-                  <span className="font-bold text-foreground">$00.00</span>
-                </div>
-                <div className="flex justify-between text-muted-foreground">
-                  <span>Taxes</span>
-                  <span className="font-bold text-foreground">$00.00</span>
-                </div>
-                <div className="flex justify-between text-primary font-bold">
-                  <span>Coupon Discount</span>
-                  <span>-$100.00</span>
-                </div>
-                <div className="h-[1px] bg-border my-4" />
-                <div className="flex justify-between text-xl font-black italic tracking-tighter">
-                  <span>Total</span>
-                  <span>${(subtotal - 100).toFixed(2)}</span>
-                </div>
+              <div className="mt-8 flex flex-col md:flex-row gap-4 justify-between items-center">
+                <button 
+                  onClick={clearCart}
+                  className="text-muted-foreground hover:text-primary font-bold text-sm underline underline-offset-4 cursor-pointer"
+                >
+                  Clear Shopping Cart
+                </button>
               </div>
 
-              <button
-  className="w-full bg-primary text-white dark:text-black py-4 rounded-xl font-black uppercase italic tracking-tighter text-lg hover:scale-[1.02] transition-transform shadow-lg shadow-primary/20"
->
-  Proceed to Checkout
-</button>
+            </div>
 
+            {/* Order Summary */}
+            <div className="lg:col-span-1">
+              <div className="bg-secondary/30 border border-border rounded-[2rem] p-8 sticky top-24">
+                <h3 className="text-2xl font-black uppercase italic tracking-tighter border-l-4 border-primary pl-4 mb-6">
+                  Order Summary
+                </h3>
+                
+                <div className="space-y-4 mb-8">
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Items</span>
+                    <span className="font-bold text-foreground">{totalItems}</span>
+                  </div>
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Sub Total</span>
+                    <span className="font-bold text-foreground">${subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Shipping</span>
+                    <span className="font-bold text-foreground">${shipping.toFixed(2)}</span>
+                  </div>
+                  <div className="h-[1px] bg-border my-4" />
+                  <div className="flex justify-between text-xl font-black italic tracking-tighter">
+                    <span>Total</span>
+                    <span>${total.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                <button
+                  className="w-full bg-primary text-white dark:text-black py-4 rounded-xl font-black uppercase italic tracking-tighter text-lg hover:scale-[1.02] transition-transform shadow-lg shadow-primary/20"
+                >
+                  Proceed to Checkout
+                </button>
+
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Features Row - From Image */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-24 border-t border-border pt-16">
@@ -219,7 +372,7 @@ export default function CaseStudies() {
           <p className="text-lg opacity-80 mb-10 font-light">
             Don&apos;t leave your cart lonely. Complete your purchase now and join our community of satisfied shoppers.
           </p>
-          <Link href="/auth/login">
+          <Link href="/">
             <button className="bg-white text-black px-10 py-4 rounded-full cursor-pointer font-bold uppercase tracking-tighter hover:bg-primary hover:text-white transition-colors">
               Continue Shopping
             </button>
