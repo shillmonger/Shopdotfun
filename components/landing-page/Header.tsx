@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Menu, X, ShoppingCart, HelpCircle, Mail, Users, ShoppingBag, FileText, Store, Home, Tag, Headset, Building2
@@ -9,9 +9,42 @@ import { Menu, X, ShoppingCart, HelpCircle, Mail, Users, ShoppingBag, FileText, 
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [cartItemsCount, setCartItemsCount] = useState(0);
   const pathname = usePathname();
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
+
+  // Load cart items and listen for storage events
+  useEffect(() => {
+    const loadCartCount = () => {
+      try {
+        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        const totalItems = cart.reduce((total: number, item: any) => total + item.quantity, 0);
+        setCartItemsCount(totalItems);
+      } catch (error) {
+        console.error('Error loading cart count:', error);
+        setCartItemsCount(0);
+      }
+    };
+
+    // Load initial cart count
+    loadCartCount();
+
+    // Listen for storage events (triggered when cart is updated)
+    const handleStorageChange = () => {
+      loadCartCount();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also listen for custom storage events (same-window updates)
+    window.addEventListener('cartUpdated', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('cartUpdated', handleStorageChange);
+    };
+  }, []);
 
   // Unified helper for both Desktop and Mobile highlights
   const linkStyles = (href: string, exact: boolean = true) => {
@@ -56,8 +89,22 @@ export default function Header() {
 
           {/* AUTH BUTTONS & CART */}
           <div className="hidden md:flex items-center gap-3 ml-4">
-            <Link href="/landing-page/cart" className="p-2 mr-2 text-muted-foreground hover:text-primary transition-colors">
+            <Link href="/landing-page/cart" className="relative p-2 mr-2 text-muted-foreground hover:text-primary transition-colors">
               <ShoppingCart size={22} />
+              {cartItemsCount > 0 && (
+                <span
+  className="absolute -top-0.5 -right-0.5
+  bg-primary text-white dark:text-black
+  text-[10px] font-semibold
+  rounded-full
+  h-4 min-w-[16px] px-1
+  flex items-center justify-center
+  leading-none"
+>
+  {cartItemsCount > 99 ? "99+" : cartItemsCount}
+</span>
+
+              )}
             </Link>
             <Button asChild variant="secondary" className="px-6 py-6 text-[15px] font-semibold rounded-xl cursor-pointer">
               <Link href="/auth/login">Login</Link>

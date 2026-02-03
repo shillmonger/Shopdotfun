@@ -58,6 +58,8 @@ export default function CartPage() {
     localStorage.setItem('cart', JSON.stringify(updatedCart));
     setCartItems(updatedCart);
     window.dispatchEvent(new Event('storage'));
+    // Dispatch custom event for same-window updates (header badge)
+    window.dispatchEvent(new CustomEvent('cartUpdated'));
   };
 
   const removeFromCart = (productId: string) => {
@@ -92,6 +94,8 @@ export default function CartPage() {
     localStorage.removeItem('cart');
     setCartItems([]);
     window.dispatchEvent(new Event('storage'));
+    // Dispatch custom event for same-window updates (header badge)
+    window.dispatchEvent(new CustomEvent('cartUpdated'));
     toast.success('Cart cleared');
   };
 
@@ -110,11 +114,15 @@ export default function CartPage() {
     return cartItems.reduce((total, item) => total + item.quantity, 0);
   };
 
+  const calculateTotalShipping = () => {
+    return cartItems.reduce((total, item) => total + (item.shippingFee * item.quantity), 0);
+  };
+
   const subtotal = calculateSubtotal();
   const totalItems = calculateTotalItems();
-  const shipping = 0; // You can calculate this based on your business logic
+  const shipping = calculateTotalShipping();
   const taxes = 0; // You can calculate this based on your business logic
-  const couponDiscount = 100; // This should come from your coupon system
+  const couponDiscount = 0; // Default to 0 when no coupon is applied
   const total = Math.max(0, subtotal + shipping + taxes - couponDiscount);
 
   if (loading) {
@@ -186,7 +194,8 @@ export default function CartPage() {
                   <tr className="bg-primary/10 border-b border-primary/20">
                     <th className="p-4 font-black uppercase italic tracking-tighter text-primary">Product</th>
                     <th className="p-4 font-black uppercase italic tracking-tighter text-primary">Price</th>
-                    <th className="p-4 font-black uppercase italic tracking-tighter text-primary text-center">Quantity</th>
+                    <th className="p-4 font-black uppercase italic tracking-tighter text-center">Quantity</th>
+                    <th className="p-4 font-black uppercase italic tracking-tighter text-primary">Shipping</th>
                     <th className="p-4 font-black uppercase italic tracking-tighter text-primary">Subtotal</th>
                   </tr>
                 </thead>
@@ -222,6 +231,12 @@ export default function CartPage() {
                             {item.discount > 0 && (
                               <p className="text-xs text-green-600 font-semibold">-{item.discount}% discount</p>
                             )}
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-xs text-muted-foreground">Shipping:</span>
+                              <span className="text-xs font-semibold text-primary">
+                                ${item.shippingFee === 0 ? 'Free' : `$${item.shippingFee.toFixed(2)}/unit`}
+                              </span>
+                            </div>
                           </div>
                         </td>
                         <td className="p-4">
@@ -257,8 +272,19 @@ export default function CartPage() {
                             <p className="text-xs text-red-600 text-center mt-1">Max stock reached</p>
                           )}
                         </td>
+                        <td className="p-4 text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            <Truck size={14} className="text-muted-foreground" />
+                            <span className="font-bold text-primary">
+                              ${(item.shippingFee * item.quantity).toFixed(2)}
+                            </span>
+                          </div>
+                          {item.shippingFee === 0 && (
+                            <p className="text-xs text-green-600 text-center mt-1">Free</p>
+                          )}
+                        </td>
                         <td className="p-4 font-black italic tracking-tighter">
-                          ${itemSubtotal.toFixed(2)}
+                          ${(itemSubtotal + (item.shippingFee * item.quantity)).toFixed(2)}
                         </td>
                       </tr>
                   );
@@ -304,11 +330,13 @@ export default function CartPage() {
                   </div>
                 </div>
 
+            <Link href="/auth/login">
                 <button
-                  className="w-full bg-primary text-white dark:text-black py-4 rounded-xl font-black uppercase italic tracking-tighter text-lg hover:scale-[1.02] transition-transform shadow-lg shadow-primary/20"
+                  className="w-full bg-primary text-white dark:text-black cursor-pointer py-4 rounded-xl font-black uppercase italic tracking-tighter text-lg hover:scale-[1.02] transition-transform shadow-lg shadow-primary/20"
                 >
                   Proceed to Checkout
                 </button>
+            </ Link>
 
               </div>
             </div>

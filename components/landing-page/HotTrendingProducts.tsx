@@ -93,6 +93,8 @@ export function HotTrendingProducts() {
       
       // Trigger storage event for cart page to update
       window.dispatchEvent(new Event('storage'));
+      // Dispatch custom event for same-window updates (header badge)
+      window.dispatchEvent(new CustomEvent('cartUpdated'));
       
     } catch (error) {
       console.error('Error adding to cart:', error);

@@ -64,6 +64,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('cart', JSON.stringify(updatedCart));
     setCartItems(updatedCart);
     window.dispatchEvent(new Event('storage'));
+    // Dispatch custom event for same-window updates
+    window.dispatchEvent(new CustomEvent('cartUpdated'));
   };
 
   const addToCart = (product: any) => {
