@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
       .sort(sortOptions)
       .limit(limit)
       .skip(skip)
-      .select('name price discount stock shippingFee images category averageRating totalRatings sellerName sellerEmail crypto processingTime commissionFee productCode')
+      .select('name description price discount stock shippingFee images category averageRating totalRatings sellerName sellerEmail crypto processingTime commissionFee productCode')
       .lean();
 
     const total = await Product.countDocuments(query);
