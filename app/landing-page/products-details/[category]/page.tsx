@@ -21,8 +21,8 @@ export default async function ProductDetailsPage({
   // ✅ Await params (Next.js 15 requirement)
   const { category } = await params;
 
-  // Replace hyphens with spaces
-  const categoryName = category.replace(/-/g, " ");
+  // Replace hyphens with spaces and decode URL-encoded characters
+  const categoryName = decodeURIComponent(category).replace(/-/g, " ");
 
   return (
     <>

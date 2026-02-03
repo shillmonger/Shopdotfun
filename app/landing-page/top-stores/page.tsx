@@ -8,30 +8,103 @@ import Footer from "@/components/landing-page/Footer";
 import { PopularCategories } from "@/components/landing-page/PopularCategories";
 import { Star, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
+import { useCart } from "@/hooks/useCart";
 
-const TOP_STORE_PRODUCTS = [
-  { id: 1, brand: "adidas", name: "Cartoon Astronaut T-Shirts", price: 78, rating: 4, image: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=400" },
-  { id: 2, brand: "adidas", name: "Cartoon Astronaut T-Shirts", price: 78, rating: 4, image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400" },
-  { id: 3, brand: "adidas", name: "Cartoon Astronaut T-Shirts", price: 78, rating: 4, image: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=400" },
-  { id: 4, brand: "adidas", name: "Cartoon Astronaut T-Shirts", price: 78, rating: 4, image: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400" },
-  { id: 5, brand: "adidas", name: "Cartoon Astronaut T-Shirts", price: 78, rating: 4, image: "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400" },
-  { id: 6, brand: "adidas", name: "Cartoon Astronaut T-Shirts", price: 78, rating: 4, image: "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=400" },
-  { id: 7, brand: "adidas", name: "Cartoon Astronaut T-Shirts", price: 78, rating: 4, image: "https://images.unsplash.com/photo-1503342392335-3764f70b8a47?w=400" },
-  { id: 8, brand: "adidas", name: "Cartoon Astronaut T-Shirts", price: 78, rating: 4, image: "https://images.unsplash.com/photo-1554568218-0f1715e72254?w=400" },
-  { id: 9, brand: "adidas", name: "Casual Linen Trousers", price: 92, rating: 5, image: "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400" },
-  { id: 10, brand: "adidas", name: "Floral Summer Shirt", price: 65, rating: 4, image: "https://images.unsplash.com/photo-1576871337632-b9aef4c17ab9?w=400" },
-  { id: 11, brand: "adidas", name: "Oxford Button Down", price: 85, rating: 4, image: "https://images.unsplash.com/photo-1598033129183-c4f50c7176c8?w=400" },
-  { id: 12, brand: "adidas", name: "Classic Chino Shorts", price: 55, rating: 4, image: "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=400" },
-];
+interface Product {
+  _id: string;
+  name: string;
+  price: number;
+  discount: number;
+  stock: number;
+  shippingFee: number;
+  images: Array<{
+    url: string;
+    thumbnailUrl?: string;
+    publicId?: string;
+  }>;
+  category: string;
+  averageRating: number;
+  totalRatings: number;
+  sellerName: string;
+  sellerEmail: string;
+  crypto: string;
+  processingTime?: string;
+  commissionFee?: number;
+  productCode?: string;
+}
 
-export default function HomePage() {
-  const [currentPage, setCurrentPage] = useState(2);
+export default function TopStoresPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 20,
+    total: 0,
+    pages: 0
+  });
+  const { addToCart } = useCart();
+
+  useEffect(() => {
+    fetchProducts();
+  }, [currentPage]);
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/products/all?page=${currentPage}&limit=20&sortBy=createdAt&sortOrder=desc`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setProducts(data.data);
+        setPagination(data.pagination);
+      } else {
+        console.error('Failed to fetch products:', data.error);
+        toast.error('Failed to load products');
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      toast.error('Failed to load products');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddToCart = (product: Product) => {
+    // Check if product is out of stock
+    if (product.stock <= 0) {
+      toast.error('Cannot add more. Product is out of stock!');
+      return;
+    }
+
+    const productData = {
+      _id: product._id,
+      name: product.name,
+      price: product.price,
+      discount: product.discount,
+      stock: product.stock,
+      shippingFee: product.shippingFee,
+      images: product.images,
+      category: product.category,
+      sellerName: product.sellerName,
+      sellerEmail: product.sellerEmail,
+      crypto: product.crypto
+    };
+    
+    addToCart(productData);
+    toast.success('Product added to cart');
+  };
+
+  const calculateDiscountedPrice = (price: number, discount: number) => {
+    return price * (1 - discount / 100);
+  };
 
   return (
     <main className="min-h-screen bg-background text-foreground">
       <Header />
 
-
+      {/* Hero Section */}
 {/* Hero Section */}
       <section className="relative h-[50vh] w-full flex items-center justify-center overflow-hidden">
         {/* Background Image with Overlay */}
@@ -67,84 +140,148 @@ export default function HomePage() {
         </div>
       </section>
 
-
-
       <section className="container max-w-[1400px] mx-auto pt-20 bg-background">
 
-        {/* Product Grid: 4 columns on mobile, 4 on desktop for symmetry */}
-        <div className="w-full mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-5">
-            {TOP_STORE_PRODUCTS.map((product) => (
-              <Link 
-                href={`/landing-page/top-stores/${product.id}`}
-                className="block"
-                key={product.id}
-              >
-                <div className="bg-card border border-border rounded-lg p-3 md:p-4 hover:shadow-xl transition-all group h-full">
-                  <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-secondary mb-3">
-                    <img 
-                      src={product.image} 
-                      alt={product.name}
-                      className="object-cover w-full h-full cursor-pointer group-hover:scale-105 transition-transform duration-500"
-                    />
-                  </div>
-
-                  <div className="px-1">
-                    <p className="text-[10px] md:text-xs text-muted-foreground font-medium uppercase tracking-widest mb-1">
-                      {product.brand}
-                    </p>
-                    <h3 className="font-semibold text-foreground text-sm md:text-base leading-tight mb-2 line-clamp-1">
-                      {product.name}
-                    </h3>
-                    
-                    <div className="flex gap-0.5 mb-2">
-                      {[...Array(5)].map((_, i) => (
-                        <Star 
-                          key={i} 
-                          className={`w-3 h-3 md:w-4 h-4 ${i < product.rating ? 'fill-yellow-400 text-yellow-400' : 'text-muted/20'}`} 
-                        />
-                      ))}
-                    </div>
-
-                    <div className="flex items-center justify-between mt-auto">
-                      <span className="text-lg md:text-xl font-black text-primary">
-                        ${product.price}
-                      </span>
-                      <button className="p-2 md:p-3 bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground rounded-full transition-all cursor-pointer">
-                        <ShoppingCart className="w-4 h-4 md:w-5 h-5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Loading products...</p>
           </div>
+        )}
 
-          {/* Pagination Section from Screenshot 2 */}
-          <div className="flex justify-center items-center gap-2 mt-16 mb-24">
-            <button className="w-10 h-10 flex items-center cursor-pointer justify-center rounded-full border border-border text-muted-foreground hover:text-primary transition-colors">
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            
-            {[1, 2, 3].map((page) => (
-              <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={`w-10 h-10 rounded-lg cursor-pointer font-bold transition-all ${
-                  currentPage === page 
-                    ? 'bg-primary text-white scale-110 shadow-lg' 
-                    : 'bg-secondary text-muted-foreground hover:bg-primary/20'
-                }`}
-              >
-                {page}
-              </button>
-            ))}
+        {/* Product Grid */}
+        {!loading && (
+          <div className="w-full mx-auto px-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-5">
+              {products.map((product) => {
+                const discountedPrice = calculateDiscountedPrice(product.price, product.discount);
+                const imageUrl = product.images?.[0]?.url || product.images?.[0]?.thumbnailUrl || '/placeholder.png';
+                
+                return (
+                  <div key={product._id} className="group">
+                    <Link 
+                      href={`/landing-page/top-stores/${product._id}`}
+                      className="block"
+                    >
+                      <div className="bg-card border border-border rounded-lg p-3 md:p-4 hover:shadow-xl transition-all group h-full">
+                        <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-secondary mb-3">
+                          <img 
+                            src={imageUrl} 
+                            alt={product.name}
+                            className="object-cover w-full h-full cursor-pointer group-hover:scale-105 transition-transform duration-500"
+                          />
+                          {/* Discount Badge */}
+                          {product.discount > 0 && (
+                            <div className="absolute top-2 right-2 bg-orange-100 text-orange-600 text-xs font-bold px-2 py-1 rounded">
+                              -{product.discount}%
+                            </div>
+                          )}
+                          {/* Stock Badge */}
+                          {product.stock <= 5 && (
+                            <div className="absolute top-2 left-2 bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded">
+                              {product.stock <= 0 ? 'Out of Stock' : `Only ${product.stock} left`}
+                            </div>
+                          )}
+                        </div>
 
-            <button className="w-10 h-10 flex items-center cursor-pointer justify-center rounded-full border border-border text-muted-foreground hover:text-primary transition-colors">
-              <ChevronRight className="w-5 h-5" />
-            </button>
+                        <div className="px-1">
+                          <p className="text-[10px] md:text-xs text-muted-foreground font-medium uppercase tracking-widest mb-1">
+                            {product.category}
+                          </p>
+                          <h3 className="font-semibold text-foreground text-sm md:text-base leading-tight mb-2 line-clamp-2">
+                            {product.name}
+                          </h3>
+                          
+                          <div className="flex gap-0.5 mb-2">
+  {[...Array(5)].map((_, i) => (
+    <Star
+      key={i}
+      className={`w-3 h-3 md:w-4 md:h-4 ${
+        i < Math.floor(product.averageRating || 0)
+          ? "fill-yellow-400 text-yellow-400"
+          : "text-muted-foreground/30 dark:text-muted-foreground/20"
+      }`}
+    />
+  ))}
+
+  {product.totalRatings > 0 && (
+    <span className="text-xs text-muted-foreground ml-1">
+      ({product.totalRatings})
+    </span>
+  )}
+</div>
+
+                          <div className="flex items-center justify-between mt-auto">
+                            <div className="flex flex-col">
+                              <span className="text-lg md:text-xl font-black text-primary">
+                                ${discountedPrice.toFixed(2)}
+                              </span>
+                              {product.discount > 0 && (
+                                <span className="text-xs text-muted-foreground line-through">
+                                  ${product.price.toFixed(2)}
+                                </span>
+                              )}
+                            </div>
+                            <button 
+                              className="p-2 md:p-3 bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground rounded-lg transition-all cursor-pointer"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleAddToCart(product);
+                              }}
+                              disabled={product.stock <= 0}
+                            >
+                              <ShoppingCart className="w-4 h-4 md:w-5 h-5" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Pagination */}
+            {pagination.pages > 1 && (
+              <div className="flex justify-center items-center gap-2 mt-16 mb-24">
+                <button 
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="w-10 h-10 flex items-center justify-center rounded-full border border-border text-muted-foreground hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                
+                {Array.from({ length: Math.min(5, pagination.pages) }, (_, i) => {
+                  const pageNum = i + 1;
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`w-10 h-10 rounded-lg font-bold transition-all ${
+                        currentPage === pageNum 
+                          ? 'bg-primary text-white scale-110 shadow-lg' 
+                          : 'bg-secondary text-muted-foreground hover:bg-primary/20'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+
+                <button 
+                  onClick={() => setCurrentPage(prev => Math.min(pagination.pages, prev + 1))}
+                  disabled={currentPage === pagination.pages}
+                  className="w-10 h-10 flex items-center justify-center rounded-full border border-border text-muted-foreground hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            )}
           </div>
-        </div>
+        )}
 
         <PopularCategories />
       </section>
