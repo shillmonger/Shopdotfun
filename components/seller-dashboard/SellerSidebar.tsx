@@ -48,7 +48,6 @@ export default function SellerSidebar({ sidebarOpen, setSidebarOpen }: SidebarPr
     { name: "Tracking Info", icon: MapPin, href: `${basePath}/tracking-info` },
     { name: "Sales Analytics", icon: BarChart3, href: `${basePath}/analytics` },
     { name: "Request Payout", icon: Wallet, href: `${basePath}/request-payout` },
-    { name: "Payout History", icon: History, href: `${basePath}/payouts` },
     { name: "Seller Leaderboard", icon: Trophy, href: `${basePath}/leaderboard` },
     { name: "Profile & Settings", icon: UserCheck, href: `${basePath}/profile-settings` },
     ...(isAdmin ? [{ name: "# Admin Auth Panel", icon: Server, href: `/general-dashboard/admin-dashboard/dashboard` }] : []),
