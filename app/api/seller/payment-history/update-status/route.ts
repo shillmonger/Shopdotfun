@@ -30,52 +30,41 @@ export async function PATCH(request: NextRequest) {
     const client = await (await import('@/lib/db')).clientPromise;
     const db = client.db('shop_dot_fun');
     
-    // First find the seller to get the payment history
-    const sellerData = await db.collection('sellers').findOne({ email: session.user.email });
-    
-    if (!sellerData) {
-      return NextResponse.json({ error: 'Seller not found' }, { status: 404 });
-    }
-    
-    console.log('Seller paymentHistory count:', sellerData.paymentHistory?.length || 0);
-    console.log('PaymentHistory IDs:', sellerData.paymentHistory?.map((p: any) => p.paymentId.toString()) || []);
-    
-    // Find the payment in the paymentHistory array
-    const paymentIndex = sellerData.paymentHistory?.findIndex((p: any) => 
-      p.paymentId.toString() === paymentId
-    );
-    
-    console.log('Found paymentIndex:', paymentIndex);
-    
-    if (paymentIndex === -1 || paymentIndex === undefined) {
-      return NextResponse.json({ error: 'Payment not found' }, { status: 404 });
-    }
-    
-    // Update the specific payment status using the actual ObjectId from the database
-    const result = await db.collection('sellers').findOneAndUpdate(
-      { 
+    // Update the specific payment status using MongoDB's positional operator
+    const result = await db.collection('sellers').updateOne(
+      {
         email: session.user.email,
-        'paymentHistory.paymentId': sellerData.paymentHistory[paymentIndex].paymentId
+        "paymentHistory.paymentId": new ObjectId(paymentId),
+        "paymentHistory.payoutStatus": "pending"
       },
-      { 
-        $set: { 
-          [`paymentHistory.${paymentIndex}.payoutStatus`]: 'requested',
+      {
+        $set: {
+          "paymentHistory.$.payoutStatus": "requested",
           updatedAt: new Date()
         }
-      },
-      { returnDocument: 'after' }
+      }
     );
 
     console.log('Update result:', result);
 
-    if (!result?.value) {
+    if (result.modifiedCount === 0) {
       return NextResponse.json({ error: 'Payment not found or already updated' }, { status: 404 });
     }
+
+    // Get the updated payment details for the response
+    const updatedSeller = await db.collection('sellers').findOne({
+      email: session.user.email,
+      "paymentHistory.paymentId": new ObjectId(paymentId)
+    });
+
+    const updatedPayment = updatedSeller?.paymentHistory?.find((p: any) => 
+      p.paymentId.toString() === paymentId
+    );
 
     return NextResponse.json({ 
       success: true, 
       message: 'Payout status updated to requested',
-      updatedPayment: result.value.paymentHistory[paymentIndex]
+      updatedPayment
     });
 
   } catch (error) {

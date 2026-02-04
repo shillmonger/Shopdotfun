@@ -347,7 +347,7 @@ export default function AdminPayoutManagement() {
                     {/* Crypto & Wallet Details */}
                     <div className="bg-background border border-border rounded-2xl p-4 space-y-3">
                       <p className="text-[9px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
-                        <Bitcoin className="w-3 h-3" /> Crypto Settlement Address
+                        Crypto Settlement Address
                       </p>
                       {selectedPayout.seller.cryptoPayoutDetails && selectedPayout.seller.cryptoPayoutDetails.length > 0 ? (
                         <div className="space-y-2">

@@ -267,7 +267,7 @@ export default function SellerPayoutRequest() {
 
                       <div className="bg-muted/20 p-4 rounded-2xl border border-border space-y-2">
                          <div className="flex items-center gap-2">
-                            <Bitcoin className="w-4 h-4 text-primary" />
+                            {/* <Bitcoin className="w-4 h-4 text-primary" /> */}
                             <span className="text-[9px] font-black uppercase tracking-widest">Crypto Breakdown</span>
                          </div>
                         <p className="text-xl font-black italic tracking-tighter">
