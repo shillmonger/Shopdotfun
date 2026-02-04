@@ -160,13 +160,14 @@ export default function AdminPayoutManagement() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update payment status');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.details || errorData.error || 'Failed to update payment status');
       }
 
       const result = await response.json();
       
-      toast.success('Payment Updated', {
-        description: `Payout ${paymentId} has been marked as paid.`
+      toast.success('Payment Processed Successfully', {
+        description: `Payout ${paymentId} marked as paid. ₦${result.deductedAmount.toLocaleString()} deducted from seller balance.`
       });
 
       // Refresh the data
@@ -175,8 +176,9 @@ export default function AdminPayoutManagement() {
       
     } catch (error) {
       console.error('Error updating payment:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to mark payment as paid';
       toast.error('Error', {
-        description: 'Failed to mark payment as paid'
+        description: errorMessage
       });
     } finally {
       setUpdatingPaymentId(null);
@@ -200,7 +202,7 @@ export default function AdminPayoutManagement() {
                 { label: "Paid Today", val: `₦${stats.paidToday.toLocaleString()}`, icon: CheckCircle2, color: "text-green-500" },
                 { label: "Held Payouts", val: stats.heldCount, icon: PauseCircle, color: "text-destructive" },
               ].map((s, i) => (
-                <div key={i} className="bg-card border border-border p-6 rounded-[2.5rem] flex items-center justify-between shadow-sm">
+                <div key={i} className="bg-card border border-border p-6 rounded-[1rem] flex items-center justify-between shadow-sm">
                   <div>
                     <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest mb-1">{s.label}</p>
                     <p className={`text-2xl font-black italic tracking-tighter ${s.color}`}>{s.val}</p>
@@ -228,7 +230,7 @@ export default function AdminPayoutManagement() {
                   {!loading && (
                     <button
                       onClick={fetchSellersWithRequestedPayouts}
-                      className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-xl text-xs font-black uppercase tracking-widest hover:bg-primary/90 transition-colors"
+                      className="flex items-center cursor-pointer gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-xl text-xs font-black uppercase tracking-widest hover:bg-primary/90 transition-colors"
                     >
                       <RefreshCcw className="w-4 h-4" />
                       Refresh
@@ -427,14 +429,14 @@ export default function AdminPayoutManagement() {
                     {/* Action Buttons */}
                     <div className="grid grid-cols-2 gap-3 pt-4">
                        <button 
-                        className="flex items-center justify-center gap-2 border-2 border-destructive text-destructive py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-destructive hover:text-white transition-all"
+                        className="flex items-center cursor-pointer justify-center gap-2 border-2 border-destructive text-destructive py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-destructive hover:text-white transition-all"
                        >
                          <Ban className="w-3 h-3" /> Hold
                        </button>
                        <button 
                         onClick={() => handleMarkAsPaid(selectedPayout.seller._id, selectedPayout.payment.paymentId)}
                         disabled={updatingPaymentId === selectedPayout.payment.paymentId}
-                        className="flex items-center justify-center gap-2 bg-foreground text-background py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center justify-center cursor-pointer gap-2 bg-foreground text-background py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                        >
                          {updatingPaymentId === selectedPayout.payment.paymentId ? (
                            <>

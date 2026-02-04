@@ -34,12 +34,15 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Seller ID and Payment ID are required' }, { status: 400 });
     }
 
-    console.log('Received sellerId:', sellerId, 'paymentId:', paymentId);
+    console.log('Request body:', { sellerId, paymentId });
 
     // Find the seller
     const sellerData = await db.collection('sellers').findOne({ 
       _id: new ObjectId(sellerId) 
     });
+    
+    console.log('Seller data found:', !!sellerData);
+    console.log('Payment history length:', sellerData?.paymentHistory?.length || 0);
     
     if (!sellerData) {
       return NextResponse.json({ error: 'Seller not found' }, { status: 404 });
@@ -58,7 +61,11 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Payment not found' }, { status: 404 });
     }
     
-    // Update the specific payment status from 'requested' to 'paid'
+    // Calculate the final amount to deduct from user balance
+    const payment = sellerData.paymentHistory[paymentIndex];
+    const finalAmount = payment.amountReceived; // This is the net amount after commission
+
+    // Update the specific payment status from 'requested' to 'paid' and deduct from userBalance
     const result = await db.collection('sellers').findOneAndUpdate(
       { 
         _id: new ObjectId(sellerId),
@@ -68,6 +75,9 @@ export async function PATCH(request: NextRequest) {
         $set: { 
           [`paymentHistory.${paymentIndex}.payoutStatus`]: 'paid',
           updatedAt: new Date()
+        },
+        $inc: { 
+          userBalance: -finalAmount // Deduct the final amount from user balance
         }
       },
       { returnDocument: 'after' }
@@ -81,14 +91,21 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ 
       success: true, 
-      message: 'Payout status updated to paid',
-      updatedPayment: result.value.paymentHistory[paymentIndex]
+      message: 'Payout status updated to paid and balance deducted',
+      updatedPayment: result.value.paymentHistory[paymentIndex],
+      previousBalance: result.value.userBalance + finalAmount,
+      newBalance: result.value.userBalance,
+      deductedAmount: finalAmount
     });
 
   } catch (error) {
     console.error('Error updating payout status:', error);
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     return NextResponse.json(
-      { error: 'Failed to update payout status' },
+      { 
+        error: 'Failed to update payout status',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }
