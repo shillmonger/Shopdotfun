@@ -51,38 +51,41 @@ export async function PATCH(request: NextRequest) {
         // Get buyer and seller information
         const buyerEmail = order.buyerInfo.email;
         const sellerEmail = order.sellerInfo.sellerEmail;
-        const orderAmount = order.paymentInfo.amount;
+        const productPrice = order.productInfo.price;
+        const shippingFee = order.productInfo.shippingFee || 0;
+        const totalAmount = productPrice + shippingFee;
         const paymentId = order.paymentInfo.paymentId;
         const cryptoAmount = order.paymentInfo.cryptoAmount;
         const cryptoMethod = order.paymentInfo.cryptoMethodUsed;
 
         // Deduct amount from buyer's balance
-        await UserModel.updateUserBalance(buyerEmail, -orderAmount);
+        await UserModel.updateUserBalance(buyerEmail, -totalAmount);
         
         // Add deduction record to buyer's payment history
         await UserModel.addBuyerPaymentHistory(buyerEmail, {
           paymentId: new ObjectId(paymentId),
-          amountDeducted: orderAmount,
+          amountDeducted: totalAmount,
           cryptoAmount,
           cryptoMethod,
-          orderTotal: orderAmount,
+          orderTotal: totalAmount,
           orderId: order.orderId
         });
 
         // Credit amount to seller's balance
-        await UserModel.updateSellerBalance(sellerEmail, orderAmount);
+        await UserModel.updateSellerBalance(sellerEmail, totalAmount);
         
         // Add credit record to seller's payment history
         await UserModel.addSellerPaymentHistory(sellerEmail, {
           paymentId: new ObjectId(paymentId),
-          amountReceived: orderAmount,
+          amountReceived: totalAmount,
           cryptoAmount,
           cryptoMethod,
-          orderTotal: orderAmount,
-          orderId: order.orderId
+          orderTotal: totalAmount,
+          orderId: order.orderId,
+          payoutStatus: 'pending'
         });
 
-        console.log(`Payment released: ${orderAmount} deducted from ${buyerEmail} and credited to ${sellerEmail}`);
+        console.log(`Payment released: ${totalAmount} deducted from ${buyerEmail} and credited to ${sellerEmail}`);
       } catch (balanceError) {
         console.error('Error updating user balances:', balanceError);
         // Don't fail the order update if balance update fails

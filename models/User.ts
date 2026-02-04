@@ -69,6 +69,7 @@ export interface Seller extends UserBase {
     receivedAt: Date;
     orderTotal: number;
     orderId: string;
+    payoutStatus: 'pending' | 'paid';
   }>;
 }
 
@@ -430,6 +431,7 @@ class UserModel {
     cryptoMethod: string;
     orderTotal: number;
     orderId: string;
+    payoutStatus?: 'pending' | 'paid';
   }) {
     try {
       const client = await clientPromise;
@@ -439,7 +441,8 @@ class UserModel {
         $push: {
           paymentHistory: {
             ...paymentData,
-            receivedAt: new Date()
+            receivedAt: new Date(),
+            payoutStatus: paymentData.payoutStatus || 'pending'
           }
         },
         $set: { updatedAt: new Date() }

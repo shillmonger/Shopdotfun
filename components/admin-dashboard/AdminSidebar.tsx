@@ -51,11 +51,6 @@ export default function BuyerSidebar({
       href: `${basePath}/dashboard`,
     },
     {
-      name: "Audit Logs",
-      icon: FileText,
-      href: `${basePath}/audit-logs`,
-    },
-    {
       name: "Order Monitoring",
       icon: Truck,
       href: `${basePath}/order-monitoring`,

@@ -474,8 +474,15 @@ export default function OrdersReceivedPage() {
                                 0,
                               );
 
+                              const totalShippingFee = order.items.reduce(
+                                (sum, item) => sum + (item.shippingFee || 0),
+                                0,
+                              );
+
                               const totalDiscount =
                                 originalTotal - discountedTotal;
+
+                              const finalEarnings = discountedTotal + totalShippingFee;
 
                               return (
                                 <>
@@ -483,7 +490,7 @@ export default function OrdersReceivedPage() {
                                   <div className="flex flex-col sm:flex-row sm:items-end sm:gap-3 justify-center md:justify-start">
                                     {/* Final Amount */}
                                     <p className="flex items-center justify-center text-2xl sm:text-3xl font-black italic tracking-tighter">
-                                      ${discountedTotal.toFixed(2)}
+                                      ${finalEarnings.toFixed(2)}
                                     </p>
 
                                     {/* Discount Info */}
