@@ -36,65 +36,65 @@ export async function PATCH(request: NextRequest) {
 
     console.log('Request body:', { sellerId, paymentId });
 
-    // Find the seller
+    // First get the seller to find the payment amount for balance calculation
     const sellerData = await db.collection('sellers').findOne({ 
       _id: new ObjectId(sellerId) 
     });
     
-    console.log('Seller data found:', !!sellerData);
-    console.log('Payment history length:', sellerData?.paymentHistory?.length || 0);
-    
     if (!sellerData) {
       return NextResponse.json({ error: 'Seller not found' }, { status: 404 });
     }
-    
-    console.log('Seller paymentHistory count:', sellerData.paymentHistory?.length || 0);
-    
-    // Find the payment in the paymentHistory array
-    const paymentIndex = sellerData.paymentHistory?.findIndex((p: any) => 
-      p.paymentId.toString() === paymentId
+
+    // Find the payment to get the amount for balance deduction
+    const payment = sellerData.paymentHistory?.find((p: any) => 
+      p.paymentId.toString() === paymentId && p.payoutStatus === 'requested'
     );
     
-    console.log('Found paymentIndex:', paymentIndex);
-    
-    if (paymentIndex === -1 || paymentIndex === undefined) {
-      return NextResponse.json({ error: 'Payment not found' }, { status: 404 });
+    if (!payment) {
+      return NextResponse.json({ error: 'Payment not found or not in requested status' }, { status: 404 });
     }
     
-    // Calculate the final amount to deduct from user balance
-    const payment = sellerData.paymentHistory[paymentIndex];
     const finalAmount = payment.amountReceived; // This is the net amount after commission
 
     // Update the specific payment status from 'requested' to 'paid' and deduct from userBalance
-    const result = await db.collection('sellers').findOneAndUpdate(
-      { 
+    const result = await db.collection('sellers').updateOne(
+      {
         _id: new ObjectId(sellerId),
-        'paymentHistory.paymentId': sellerData.paymentHistory[paymentIndex].paymentId
+        "paymentHistory.paymentId": new ObjectId(paymentId),
+        "paymentHistory.payoutStatus": "requested"
       },
-      { 
-        $set: { 
-          [`paymentHistory.${paymentIndex}.payoutStatus`]: 'paid',
+      {
+        $set: {
+          "paymentHistory.$.payoutStatus": "paid",
           updatedAt: new Date()
         },
         $inc: { 
           userBalance: -finalAmount // Deduct the final amount from user balance
         }
-      },
-      { returnDocument: 'after' }
+      }
     );
 
     console.log('Update result:', result);
 
-    if (!result?.value) {
+    if (result.modifiedCount === 0) {
       return NextResponse.json({ error: 'Payment not found or already updated' }, { status: 404 });
     }
+
+    // Get the updated seller data for response
+    const updatedSeller = await db.collection('sellers').findOne({
+      _id: new ObjectId(sellerId)
+    });
+
+    const updatedPayment = updatedSeller?.paymentHistory?.find((p: any) => 
+      p.paymentId.toString() === paymentId
+    );
 
     return NextResponse.json({ 
       success: true, 
       message: 'Payout status updated to paid and balance deducted',
-      updatedPayment: result.value.paymentHistory[paymentIndex],
-      previousBalance: result.value.userBalance + finalAmount,
-      newBalance: result.value.userBalance,
+      updatedPayment,
+      previousBalance: updatedSeller!.userBalance + finalAmount,
+      newBalance: updatedSeller!.userBalance,
       deductedAmount: finalAmount
     });
 
