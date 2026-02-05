@@ -237,7 +237,7 @@ export default function CategoryDeals({ categoryFilter }: CategoryDealsProps) {
                       }
                     </span>
                     {product.discount > 0 && product.crypto === 'USD' && (
-                      <span className="text-[11px] text-muted-foreground line-through">
+                      <span className="text-[5px] text-muted-foreground line-through">
                         ₦ {product.oldPrice.toLocaleString()}
                       </span>
                     )}

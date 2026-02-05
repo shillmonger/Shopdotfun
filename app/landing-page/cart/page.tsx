@@ -196,9 +196,9 @@ export default function CartPage() {
 
             <div className="relative mb-6 group">
               <img
-  src="https://i.postimg.cc/zDnhMkn7/Shopping-removebg-preview.png"
-  alt="Empty Box"
-  className="
+                src="https://i.postimg.cc/zDnhMkn7/Shopping-removebg-preview.png"
+                alt="Empty Box"
+                className="
     w-40 h-40
     lg:w-60 lg:h-60
     object-contain cursor-pointer
@@ -208,7 +208,7 @@ export default function CartPage() {
     group-hover:scale-110
     transition-all duration-500 ease-out
   "
-/>
+              />
               <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-16 h-1 bg-primary/20 blur-sm rounded-full" />
             </div>
 
@@ -270,13 +270,14 @@ export default function CartPage() {
                           >
                             <Trash2 size={18} />
                           </button>
-                          <div className="w-20 h-24 bg-muted rounded-lg overflow-hidden relative">
+                          <div className="w-20 h-24 shrink-0 bg-muted rounded-lg overflow-hidden relative">
                             <img
                               src={item.image}
                               alt={item.productName}
-                              className="object-cover w-full h-full"
+                              className="absolute inset-0 w-full h-full object-cover"
                             />
                           </div>
+
                           <div>
                             <h4 className="font-bold text-sm md:text-base">
                               {item.productName}
@@ -309,7 +310,6 @@ export default function CartPage() {
                                 Shipping:
                               </span>
                               <span className="text-xs font-semibold text-primary">
-                                $
                                 {item.shippingFee === 0
                                   ? "Free"
                                   : `$${item.shippingFee.toFixed(2)}/unit`}
