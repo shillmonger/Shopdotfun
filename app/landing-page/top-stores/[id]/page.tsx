@@ -74,63 +74,48 @@ export default function ProductDetailsPage({
   const [relatedProducts, setRelatedProducts] = useState<RelatedProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [cryptoPrices, setCryptoPrices] = useState<{ [key: string]: string }>({});
+  const [cryptoPrices, setCryptoPrices] = useState<{ [key: string]: string }>(
+    {},
+  );
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
 
   useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        setLoading(true);
-
-        // Fetch main product
-        const productResponse = await fetch(`/api/products/${id}`);
-        if (productResponse.ok) {
-          const productData = await productResponse.json();
-          setProduct(productData);
-
-          // Fetch related products from same seller
-          const relatedResponse = await fetch(`/api/products/seller/${productData.sellerEmail}`);
-          if (relatedResponse.ok) {
-            const relatedData = await relatedResponse.json();
-            const related = relatedData.products.filter((p: Product) => p._id !== id).slice(0, 8);
-            setRelatedProducts(related);
-
-            // Convert prices to crypto for main product and related products
-            const priceConversions: { [key: string]: string } = {};
-
-            // Convert main product price
-            if (productData.crypto && productData.crypto !== "USD") {
-              const discountedPrice = productData.price * (1 - productData.discount / 100);
-              const cryptoPrice = await convertToCrypto(discountedPrice, productData.crypto);
-              priceConversions[productData._id] = cryptoPrice;
-            }
-
-            // Convert related products prices
-            for (const item of related) {
-              if (item.crypto && item.crypto !== "USD") {
-                const discountedPrice = item.price * (1 - item.discount / 100);
-                const cryptoPrice = await convertToCrypto(discountedPrice, item.crypto);
-                priceConversions[item._id] = cryptoPrice;
-              }
-            }
-
-            setCryptoPrices(priceConversions);
-          }
-        } else {
-          toast.error("Product not found");
-        }
-      } catch (error) {
-        toast.error("Failed to load product");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (id) {
-      fetchProduct();
-    }
+    fetchProduct();
+    fetchRelatedProducts();
   }, [id]);
+
+  const fetchProduct = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/products/${id}`);
+      const data = await response.json();
+
+      if (data.success) {
+        const productData = data.data;
+        setProduct(productData);
+
+        // Convert price to crypto if needed
+        if (productData.crypto && productData.crypto !== "USD") {
+          const discountedPrice =
+            productData.price * (1 - productData.discount / 100);
+          const cryptoPrice = await convertToCrypto(
+            discountedPrice,
+            productData.crypto,
+          );
+          setCryptoPrices({ [productData._id]: cryptoPrice });
+        }
+      } else {
+        console.error("Failed to fetch product:", data.error);
+        toast.error("Failed to load product");
+      }
+    } catch (error) {
+      console.error("Error fetching product:", error);
+      toast.error("Failed to load product");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchRelatedProducts = async () => {
     try {
@@ -144,6 +129,20 @@ export default function ProductDetailsPage({
           .filter((p: Product) => p._id !== id)
           .slice(0, 4);
         setRelatedProducts(filtered);
+
+        // Convert prices to crypto for related products
+        const priceConversions: { [key: string]: string } = {};
+        for (const item of filtered) {
+          if (item.crypto && item.crypto !== "USD") {
+            const discountedPrice = item.price * (1 - item.discount / 100);
+            const cryptoPrice = await convertToCrypto(
+              discountedPrice,
+              item.crypto,
+            );
+            priceConversions[item._id] = cryptoPrice;
+          }
+        }
+        setCryptoPrices((prev) => ({ ...prev, ...priceConversions }));
       }
     } catch (error) {
       console.error("Error fetching related products:", error);
@@ -195,7 +194,9 @@ export default function ProductDetailsPage({
               <div className="absolute inset-0 rounded-full border-t-2 border-primary animate-spin"></div>
               <div className="absolute inset-2 rounded-full border-t-2 border-primary/30 animate-spin-reverse"></div>
             </div>
-            <p className="mt-6 text-muted-foreground font-medium animate-pulse">Refining product details...</p>
+            <p className="mt-6 text-muted-foreground font-medium animate-pulse">
+              Refining product details...
+            </p>
           </div>
         </div>
         <Footer />
@@ -209,12 +210,17 @@ export default function ProductDetailsPage({
         <Header />
         <div className="container max-w-[1480px] mx-auto pt-40 pb-24 px-4">
           <div className="max-w-md mx-auto text-center py-12 px-6 rounded-3xl border bg-card/50 backdrop-blur-sm">
-            <h2 className="text-3xl font-bold tracking-tight mb-3">Product not found</h2>
+            <h2 className="text-3xl font-bold tracking-tight mb-3">
+              Product not found
+            </h2>
             <p className="text-muted-foreground mb-8 text-balance">
-              The item you're looking for might have been moved or is no longer available.
+              The item you're looking for might have been moved or is no longer
+              available.
             </p>
             <Link href="/landing-page/top-stores">
-              <Button size="lg" className="rounded-full px-8">Return to Shop</Button>
+              <Button size="lg" className="rounded-full px-8">
+                Return to Shop
+              </Button>
             </Link>
           </div>
         </div>
@@ -223,8 +229,14 @@ export default function ProductDetailsPage({
     );
   }
 
-  const discountedPrice = calculateDiscountedPrice(product.price, product.discount);
-  const imageUrl = product.images?.[selectedImage]?.url || product.images?.[selectedImage]?.thumbnailUrl || "/placeholder.png";
+  const discountedPrice = calculateDiscountedPrice(
+    product.price,
+    product.discount,
+  );
+  const imageUrl =
+    product.images?.[selectedImage]?.url ||
+    product.images?.[selectedImage]?.thumbnailUrl ||
+    "/placeholder.png";
 
   return (
     <main className="min-h-screen bg-[#fafafa] dark:bg-background selection:bg-primary/20">
@@ -233,11 +245,16 @@ export default function ProductDetailsPage({
       <div className="container max-w-[1300px] mx-auto pt-32 pb-24 px-4 sm:px-6">
         {/* Breadcrumb-style Navigation */}
         <nav className="flex items-center gap-2 mb-8 text-sm font-medium">
-          <Link href="/landing-page/top-stores" className="text-muted-foreground hover:text-primary transition-colors">
+          <Link
+            href="/landing-page/top-stores"
+            className="text-muted-foreground hover:text-primary transition-colors"
+          >
             Stores
           </Link>
           <ChevronRight className="w-4 h-4 text-muted-foreground/40" />
-          <span className="text-muted-foreground/60 truncate max-w-[200px]">{product.name}</span>
+          <span className="text-muted-foreground/60 truncate max-w-[200px]">
+            {product.name}
+          </span>
         </nav>
 
         <div className="grid lg:grid-cols-12 gap-12 xl:gap-16">
@@ -249,19 +266,23 @@ export default function ProductDetailsPage({
                 alt={product.name}
                 className="w-full h-full object-cover transition-transform duration-1000 ease-out group-hover:scale-105"
               />
-              
+
               <div className="absolute top-6 left-6 flex flex-col gap-2">
                 <span className="px-4 py-1.5 bg-white/90 dark:bg-black/90 backdrop-blur-md text-foreground text-[10px] font-bold uppercase tracking-widest rounded-full shadow-sm border border-border/20">
                   {product.category}
                 </span>
                 {product.stock <= 5 && (
-                  <span className={cn(
-                    "px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-full shadow-sm border",
-                    product.stock <= 0 
-                      ? "bg-red-500 text-white border-red-600" 
-                      : "bg-orange-500 text-white border-orange-600"
-                  )}>
-                    {product.stock <= 0 ? "Out of Stock" : `Only ${product.stock} Left`}
+                  <span
+                    className={cn(
+                      "px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-full shadow-sm border",
+                      product.stock <= 0
+                        ? "bg-red-500 text-white border-red-600"
+                        : "bg-orange-500 text-white border-orange-600",
+                    )}
+                  >
+                    {product.stock <= 0
+                      ? "Out of Stock"
+                      : `Only ${product.stock} Left`}
                   </span>
                 )}
               </div>
@@ -276,7 +297,8 @@ export default function ProductDetailsPage({
             {product.images && product.images.length > 1 && (
               <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
                 {product.images.map((image, idx) => {
-                  const thumbUrl = image.url || image.thumbnailUrl || "/placeholder.png";
+                  const thumbUrl =
+                    image.url || image.thumbnailUrl || "/placeholder.png";
                   return (
                     <button
                       key={idx}
@@ -285,10 +307,14 @@ export default function ProductDetailsPage({
                         "relative flex-shrink-0 w-24 h-24 rounded-2xl overflow-hidden border-2 transition-all duration-300",
                         selectedImage === idx
                           ? "border-primary ring-4 ring-primary/10 scale-95"
-                          : "border-transparent grayscale-[0.5] hover:grayscale-0 hover:border-border"
+                          : "border-transparent grayscale-[0.5] hover:grayscale-0 hover:border-border",
                       )}
                     >
-                      <img src={thumbUrl} alt="thumbnail" className="w-full h-full object-cover" />
+                      <img
+                        src={thumbUrl}
+                        alt="thumbnail"
+                        className="w-full h-full object-cover"
+                      />
                     </button>
                   );
                 })}
@@ -330,10 +356,11 @@ export default function ProductDetailsPage({
               <div className="flex items-center gap-4 py-6 border-y border-border/50">
                 <div className="flex flex-col">
                   <span className="text-4xl font-bold tracking-tight text-foreground">
-                    {product.crypto && product.crypto !== "USD" && cryptoPrices[product._id]
+                    {product.crypto &&
+                    product.crypto !== "USD" &&
+                    cryptoPrices[product._id]
                       ? cryptoPrices[product._id]
-                      : `$${discountedPrice.toFixed(2)}`
-                    }
+                      : `$${discountedPrice.toFixed(2)}`}
                   </span>
                   {product.discount > 0 && product.crypto === "USD" && (
                     <span className="text-lg text-muted-foreground/60 line-through font-medium">
@@ -350,17 +377,47 @@ export default function ProductDetailsPage({
 
               <div className="grid grid-cols-1 gap-4 text-sm">
                 {[
-                  { label: "Availability", value: product.stock <= 0 ? "Out of Stock" : `${product.stock} units`, icon: Package, color: product.stock <= 5 ? "text-red-500" : "text-foreground" },
-                  { label: "Delivery Fee", value: product.shippingFee === 0 ? "Free" : `$${product.shippingFee.toFixed(2)}`, icon: Truck, color: "text-primary" },
-                  { label: "Processing", value: product.processingTime || "3-5 Days", icon: Clock },
-                  { label: "Crypto Payment", value: product.crypto, icon: CreditCard },
+                  {
+                    label: "Availability",
+                    value:
+                      product.stock <= 0
+                        ? "Out of Stock"
+                        : `${product.stock} units`,
+                    icon: Package,
+                    color:
+                      product.stock <= 5 ? "text-red-500" : "text-foreground",
+                  },
+                  {
+                    label: "Delivery Fee",
+                    value:
+                      product.shippingFee === 0
+                        ? "Free"
+                        : `$${product.shippingFee.toFixed(2)}`,
+                    icon: Truck,
+                    color: "text-primary",
+                  },
+                  {
+                    label: "Processing",
+                    value: product.processingTime || "3-5 Days",
+                    icon: Clock,
+                  },
+                  {
+                    label: "Crypto Payment",
+                    value: product.crypto,
+                    icon: CreditCard,
+                  },
                 ].map((spec, i) => (
-                  <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-card border border-border/40 shadow-sm">
+                  <div
+                    key={i}
+                    className="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-card border border-border/40 shadow-sm"
+                  >
                     <div className="flex items-center gap-3 text-muted-foreground">
                       <spec.icon className="w-4 h-4" />
                       <span>{spec.label}</span>
                     </div>
-                    <span className={cn("font-bold", spec.color)}>{spec.value}</span>
+                    <span className={cn("font-bold", spec.color)}>
+                      {spec.value}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -375,7 +432,7 @@ export default function ProductDetailsPage({
                   <ShoppingCart className="w-5 h-5 mr-3" strokeWidth={2.5} />
                   {product.stock <= 0 ? "OUT OF STOCK" : "ADD TO CART"}
                 </Button>
-                
+
                 <p className="text-[11px] text-center text-muted-foreground font-medium uppercase tracking-widest">
                   Secure checkout powered by Blockchain
                 </p>
@@ -387,9 +444,14 @@ export default function ProductDetailsPage({
                   { icon: RefreshCw, label: "30-Day Return" },
                   { icon: Truck, label: "Eco Shipping" },
                 ].map((badge, i) => (
-                  <div key={i} className="flex flex-col items-center gap-2 p-3 rounded-xl border border-border/30 bg-muted/20">
+                  <div
+                    key={i}
+                    className="flex flex-col items-center gap-2 p-3 rounded-xl border border-border/30 bg-muted/20"
+                  >
                     <badge.icon className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-[9px] font-bold uppercase tracking-tighter text-muted-foreground text-center">{badge.label}</span>
+                    <span className="text-[9px] font-bold uppercase tracking-tighter text-muted-foreground text-center">
+                      {badge.label}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -414,21 +476,34 @@ export default function ProductDetailsPage({
         {relatedProducts.length > 0 && (
           <div className="mt-32">
             <div className="flex flex-col items-center mb-12">
-             <h2 className="text-2xl md:text-3xl font-black uppercase italic tracking-tighter mb-2 text-foreground dark:text-white">
-  You Might Also Like
-</h2>
-
+              <h2 className="text-2xl md:text-3xl font-black uppercase italic tracking-tighter mb-2 text-foreground dark:text-white">
+                You Might Also Like
+              </h2>
             </div>
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 xl:gap-8">
               {relatedProducts.map((item) => {
-                const itemDiscountedPrice = calculateDiscountedPrice(item.price, item.discount);
-                const itemImageUrl = item.images?.[0]?.url || item.images?.[0]?.thumbnailUrl || "/placeholder.png";
+                const itemDiscountedPrice = calculateDiscountedPrice(
+                  item.price,
+                  item.discount,
+                );
+                const itemImageUrl =
+                  item.images?.[0]?.url ||
+                  item.images?.[0]?.thumbnailUrl ||
+                  "/placeholder.png";
 
                 return (
-                  <Link href={`/landing-page/top-stores/${item._id}`} key={item._id} className="group flex flex-col">
-                    <div className="relative aspect-[4/5] rounded-[1rem] overflow-hidden bg-white border border-border/40 transition-all duration-500 hover:shadow-2xl">
-                      <img src={itemImageUrl} alt={item.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                  <Link
+                    href={`/landing-page/top-stores/${item._id}`}
+                    key={item._id}
+                    className="group flex flex-col"
+                  >
+                    <div className="relative aspect-[4/5] rounded-[1rem] overflow-hidden bg-white border border-border/40 transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-2xl">
+                      <img
+                        src={itemImageUrl}
+                        alt={item.name}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      />
                       {item.discount > 0 && (
                         <div className="absolute top-4 right-4 bg-primary text-primary-foreground text-[10px] font-black px-2.5 py-1 rounded-lg shadow-lg">
                           -{item.discount}%
@@ -441,10 +516,11 @@ export default function ProductDetailsPage({
                       </h3>
                       <div className="flex items-center gap-3">
                         <p className="font-bold text-lg text-foreground">
-                          {item.crypto && item.crypto !== "USD" && cryptoPrices[item._id]
+                          {item.crypto &&
+                          item.crypto !== "USD" &&
+                          cryptoPrices[item._id]
                             ? cryptoPrices[item._id]
-                            : `$${itemDiscountedPrice.toFixed(2)}`
-                          }
+                            : `$${itemDiscountedPrice.toFixed(2)}`}
                         </p>
                         {item.discount > 0 && item.crypto === "USD" && (
                           <p className="text-xs text-muted-foreground/60 line-through">
