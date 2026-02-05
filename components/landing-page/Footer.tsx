@@ -6,7 +6,7 @@ import {
   Twitter,
   Send,
   Instagram,
-  ShoppingBag,
+  MessageCircle,
   Store,
   ShieldCheck,
   Truck,
@@ -15,9 +15,9 @@ import {
 
 export default function Footer() {
   const socialLinks = [
-    { name: "YouTube", icon: <Youtube size={24} />, href: "#" },
-    { name: "X (Twitter)", icon: <Twitter size={24} />, href: "#" },
-    { name: "Telegram", icon: <Send size={24} />, href: "#" },
+    { name: "YouTube", icon: <Youtube size={24} />, href: "https://youtube.com/@shopdotfun?si=RximRCQOct0Wf6ob" },
+    { name: "X (Twitter)", icon: <Twitter size={24} />, href: "https://x.com/shopdotfun" },
+    { name: "MessageCircle", icon: <Send size={24} />, href: "https://chat.whatsapp.com/HXQHNDkHhEVJsuomQeyTiL" },
     { name: "Instagram", icon: <Instagram size={24} />, href: "#" },
   ];
 
