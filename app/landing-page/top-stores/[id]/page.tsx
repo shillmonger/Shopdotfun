@@ -264,7 +264,7 @@ export default function ProductDetailsPage({
               <img
                 src={imageUrl}
                 alt={product.name}
-                className="w-full h-full object-cover transition-transform duration-1000 ease-out group-hover:scale-105"
+                className="w-full h-full object-cover cursor-pointer transition-transform duration-1000 ease-out group-hover:scale-105"
               />
 
               <div className="absolute top-6 left-6 flex flex-col gap-2">
@@ -313,7 +313,7 @@ export default function ProductDetailsPage({
                       <img
                         src={thumbUrl}
                         alt="thumbnail"
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover cursor-pointer"
                       />
                     </button>
                   );
@@ -335,7 +335,7 @@ export default function ProductDetailsPage({
                   </span>
                 </div>
 
-                <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground leading-[1.1]">
+                <h1 className="text-2xl md:text-3xl font-black uppercase italic tracking-tighter mb-4 text-foreground bg-gradient-to-b from-foreground to-foreground/40 bg-clip-text text-transparent">
                   {product.name}
                 </h1>
 
@@ -355,7 +355,7 @@ export default function ProductDetailsPage({
 
               <div className="flex items-center gap-4 py-6 border-y border-border/50">
                 <div className="flex flex-col">
-                  <span className="text-4xl font-bold tracking-tight text-foreground">
+                  <span className="text-3xl md:text-4xl font-black uppercase italic tracking-tighter mb-4 text-foreground bg-gradient-to-b from-foreground to-foreground/40 bg-clip-text text-transparent">
                     {product.crypto &&
                     product.crypto !== "USD" &&
                     cryptoPrices[product._id]
@@ -426,8 +426,8 @@ export default function ProductDetailsPage({
                 <Button
                   onClick={handleAddToCart}
                   disabled={product.stock <= 0}
-                  size="lg"
-                  className="w-full h-16 rounded-2xl text-lg font-bold shadow-xl shadow-primary/20 transition-all hover:shadow-primary/30 active:scale-[0.98]"
+                  size="sm"
+                  className="w-full h-13 rounded-xl text-sm cursor-pointer font-bold shadow-xl shadow-primary/20 transition-all hover:shadow-primary/30 active:scale-[0.98]"
                 >
                   <ShoppingCart className="w-5 h-5 mr-3" strokeWidth={2.5} />
                   {product.stock <= 0 ? "OUT OF STOCK" : "ADD TO CART"}
@@ -476,7 +476,7 @@ export default function ProductDetailsPage({
         {relatedProducts.length > 0 && (
           <div className="mt-32">
             <div className="flex flex-col items-center mb-12">
-              <h2 className="text-2xl md:text-3xl font-black uppercase italic tracking-tighter mb-2 text-foreground dark:text-white">
+              <h2 className="text-2xl md:text-3xl font-black uppercase italic tracking-tighter text-foreground bg-gradient-to-b from-foreground to-foreground/40 bg-clip-text text-transparent">
                 You Might Also Like
               </h2>
             </div>
