@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { ChevronRight, ShoppingCart, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { toast } from 'sonner';
+import { convertToCrypto } from "@/lib/crypto-converter";
 
 interface Product {
   _id: string;
@@ -13,6 +14,7 @@ interface Product {
   discount: number;
   stock: number;
   shippingFee: number;
+  crypto?: string;
   images: Array<{
     url: string;
     thumbnailUrl: string;
@@ -28,6 +30,7 @@ interface Product {
 export function HotTrendingProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [cryptoPrices, setCryptoPrices] = useState<{[key: string]: string}>({});
 
   useEffect(() => {
     fetchProducts();
@@ -39,7 +42,19 @@ export function HotTrendingProducts() {
       const data = await response.json();
       
       if (data.success) {
-        setProducts(data.data);
+        const products = data.data;
+        setProducts(products);
+        
+        // Convert prices to crypto for products that have crypto field
+        const priceConversions: {[key: string]: string} = {};
+        for (const product of products) {
+          if (product.crypto && product.crypto !== 'USD') {
+            const discountedPrice = product.price * (1 - product.discount / 100);
+            const cryptoPrice = await convertToCrypto(discountedPrice, product.crypto);
+            priceConversions[product._id] = cryptoPrice;
+          }
+        }
+        setCryptoPrices(priceConversions);
       } else {
         toast.error('Failed to load products');
       }
@@ -203,9 +218,12 @@ export function HotTrendingProducts() {
 
                   <div className="flex items-center gap-2 mt-auto">
                     <span className="text-[16px] font-black text-foreground">
-                      ${discountedPrice.toFixed(2)}
+                      {product.crypto && product.crypto !== 'USD' && cryptoPrices[product._id]
+                        ? cryptoPrices[product._id]
+                        : `$${discountedPrice.toFixed(2)}`
+                      }
                     </span>
-                    {hasDiscount && (
+                    {hasDiscount && product.crypto === 'USD' && (
                       <span className="text-[12px] text-muted-foreground line-through opacity-70">
                         ${product.price.toFixed(2)}
                       </span>

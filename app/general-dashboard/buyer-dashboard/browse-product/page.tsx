@@ -518,12 +518,16 @@ export default function BrowseProductsPage() {
               </p>
               <div className="flex items-center gap-2">
                 <p className="text-lg font-black italic tracking-tighter tabular-nums">
-                  $
-                  {product.discount > 0
-                    ? (product.price * (1 - product.discount / 100)).toFixed(2)
-                    : product.price.toFixed(2)}
+                  {product.crypto && product.crypto !== 'USD'
+                    ? cryptoPriceDisplay
+                    : `${
+                        product.discount > 0
+                          ? (product.price * (1 - product.discount / 100)).toFixed(2)
+                          : product.price.toFixed(2)
+                      }`
+                  }
                 </p>
-                {product.discount > 0 && (
+                {product.discount > 0 && product.crypto === 'USD' && (
                   <p className="text-xs text-muted-foreground line-through tabular-nums">
                     ${product.price.toFixed(2)}
                   </p>

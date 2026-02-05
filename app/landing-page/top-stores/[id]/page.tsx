@@ -21,6 +21,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { useCart } from "@/hooks/useCart";
 import { cn } from "@/lib/utils";
+import { convertToCrypto } from "@/lib/crypto-converter";
 
 // Product type definition
 interface Product {
@@ -56,6 +57,7 @@ interface RelatedProduct {
   price: number;
   discount: number;
   averageRating: number;
+  crypto: string;
   images: Array<{
     url: string;
     thumbnailUrl?: string;
@@ -72,33 +74,63 @@ export default function ProductDetailsPage({
   const [relatedProducts, setRelatedProducts] = useState<RelatedProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [cryptoPrices, setCryptoPrices] = useState<{ [key: string]: string }>({});
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
 
   useEffect(() => {
-    fetchProduct();
-    fetchRelatedProducts();
-  }, [id]);
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
 
-  const fetchProduct = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/products/${id}`);
-      const data = await response.json();
+        // Fetch main product
+        const productResponse = await fetch(`/api/products/${id}`);
+        if (productResponse.ok) {
+          const productData = await productResponse.json();
+          setProduct(productData);
 
-      if (data.success) {
-        setProduct(data.data);
-      } else {
-        console.error("Failed to fetch product:", data.error);
+          // Fetch related products from same seller
+          const relatedResponse = await fetch(`/api/products/seller/${productData.sellerEmail}`);
+          if (relatedResponse.ok) {
+            const relatedData = await relatedResponse.json();
+            const related = relatedData.products.filter((p: Product) => p._id !== id).slice(0, 8);
+            setRelatedProducts(related);
+
+            // Convert prices to crypto for main product and related products
+            const priceConversions: { [key: string]: string } = {};
+
+            // Convert main product price
+            if (productData.crypto && productData.crypto !== "USD") {
+              const discountedPrice = productData.price * (1 - productData.discount / 100);
+              const cryptoPrice = await convertToCrypto(discountedPrice, productData.crypto);
+              priceConversions[productData._id] = cryptoPrice;
+            }
+
+            // Convert related products prices
+            for (const item of related) {
+              if (item.crypto && item.crypto !== "USD") {
+                const discountedPrice = item.price * (1 - item.discount / 100);
+                const cryptoPrice = await convertToCrypto(discountedPrice, item.crypto);
+                priceConversions[item._id] = cryptoPrice;
+              }
+            }
+
+            setCryptoPrices(priceConversions);
+          }
+        } else {
+          toast.error("Product not found");
+        }
+      } catch (error) {
         toast.error("Failed to load product");
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error fetching product:", error);
-      toast.error("Failed to load product");
-    } finally {
-      setLoading(false);
+    };
+
+    if (id) {
+      fetchProduct();
     }
-  };
+  }, [id]);
 
   const fetchRelatedProducts = async () => {
     try {
@@ -298,15 +330,18 @@ export default function ProductDetailsPage({
               <div className="flex items-center gap-4 py-6 border-y border-border/50">
                 <div className="flex flex-col">
                   <span className="text-4xl font-bold tracking-tight text-foreground">
-                    ${discountedPrice.toFixed(2)}
+                    {product.crypto && product.crypto !== "USD" && cryptoPrices[product._id]
+                      ? cryptoPrices[product._id]
+                      : `$${discountedPrice.toFixed(2)}`
+                    }
                   </span>
-                  {product.discount > 0 && (
+                  {product.discount > 0 && product.crypto === "USD" && (
                     <span className="text-lg text-muted-foreground/60 line-through font-medium">
                       ${product.price.toFixed(2)}
                     </span>
                   )}
                 </div>
-                {product.discount > 0 && (
+                {product.discount > 0 && product.crypto === "USD" && (
                   <div className="ml-auto px-3 py-1 bg-green-500/10 text-green-600 dark:text-green-400 text-xs font-bold rounded-lg border border-green-500/20">
                     Save ${(product.price - discountedPrice).toFixed(2)}
                   </div>
@@ -392,7 +427,7 @@ export default function ProductDetailsPage({
 
                 return (
                   <Link href={`/landing-page/top-stores/${item._id}`} key={item._id} className="group flex flex-col">
-                    <div className="relative aspect-[4/5] rounded-[1rem] overflow-hidden bg-white border border-border/40 transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-2xl">
+                    <div className="relative aspect-[4/5] rounded-[1rem] overflow-hidden bg-white border border-border/40 transition-all duration-500 hover:shadow-2xl">
                       <img src={itemImageUrl} alt={item.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                       {item.discount > 0 && (
                         <div className="absolute top-4 right-4 bg-primary text-primary-foreground text-[10px] font-black px-2.5 py-1 rounded-lg shadow-lg">
@@ -406,9 +441,12 @@ export default function ProductDetailsPage({
                       </h3>
                       <div className="flex items-center gap-3">
                         <p className="font-bold text-lg text-foreground">
-                          ${itemDiscountedPrice.toFixed(2)}
+                          {item.crypto && item.crypto !== "USD" && cryptoPrices[item._id]
+                            ? cryptoPrices[item._id]
+                            : `$${itemDiscountedPrice.toFixed(2)}`
+                          }
                         </p>
-                        {item.discount > 0 && (
+                        {item.discount > 0 && item.crypto === "USD" && (
                           <p className="text-xs text-muted-foreground/60 line-through">
                             ${item.price.toFixed(2)}
                           </p>

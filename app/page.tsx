@@ -10,7 +10,7 @@ import Footer from "@/components/landing-page/Footer";
 import ThemeAndScroll from "@/components/landing-page/ThemeAndScroll";
 import FeaturedCollection from "@/components/landing-page/FeaturedCollection";
 import { HotTrendingProducts } from "@/components/landing-page/HotTrendingProducts";
-import { CategoryDeals } from "@/components/landing-page/CategoryDeals";
+import CategoryDeals from "@/components/landing-page/CategoryDeals";
 import { PopularCategories } from "@/components/landing-page/PopularCategories";
 import { HowItWorks } from "@/components/landing-page/HowItWorks";
 

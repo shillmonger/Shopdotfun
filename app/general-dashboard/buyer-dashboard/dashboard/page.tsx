@@ -24,6 +24,7 @@ import { toast } from 'sonner';
 import BuyerHeader from "@/components/buyer-dashboard/BuyerHeader";
 import BuyerSidebar from "@/components/buyer-dashboard/BuyerSidebar";
 import BuyerNav from "@/components/buyer-dashboard/BuyerNav";
+import { convertToCrypto } from "@/lib/crypto-converter";
 
 // Helper function to calculate time ago
 const getTimeAgo = (date: Date): string => {
@@ -59,6 +60,7 @@ export default function BuyerOverviewPage() {
   const [paymentNotifications, setPaymentNotifications] = useState<any[]>([]);
   const [recommendedProducts, setRecommendedProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [cryptoPrices, setCryptoPrices] = useState<{[key: string]: string}>({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -151,7 +153,19 @@ export default function BuyerOverviewPage() {
         const recommendedResponse = await fetch(`/api/buyer/recommended-products?sessionId=${sessionId}`);
         if (recommendedResponse.ok) {
           const recommendedData = await recommendedResponse.json();
-          setRecommendedProducts(recommendedData.products || []);
+          const products = recommendedData.products || [];
+          setRecommendedProducts(products);
+          
+          // Convert prices to crypto for products that have crypto field
+          const priceConversions: {[key: string]: string} = {};
+          for (const product of products) {
+            if (product.crypto && product.crypto !== 'USD') {
+              const discountedPrice = product.price * (1 - product.discount / 100);
+              const cryptoPrice = await convertToCrypto(discountedPrice, product.crypto);
+              priceConversions[product._id] = cryptoPrice;
+            }
+          }
+          setCryptoPrices(priceConversions);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -723,14 +737,17 @@ export default function BuyerOverviewPage() {
 
                       {/* Price and Cart Icon Container */}
                       <div className="flex items-center justify-between mt-2">
-                        <div className="text-right">
+                        <div>
                           {product.discount > 0 && (
                             <p className="text-[9px] text-muted-foreground line-through font-bold">
                               ${product.price.toFixed(2)}
                             </p>
                           )}
                           <p className="text-sm font-black italic">
-                            ${(product.price * (1 - product.discount / 100)).toFixed(2)}
+                            {product.crypto && product.crypto !== 'USD' && cryptoPrices[product._id]
+                              ? cryptoPrices[product._id]
+                              : `$${(product.price * (1 - product.discount / 100)).toFixed(2)}`
+                            }
                           </p>
                         </div>
                         <button

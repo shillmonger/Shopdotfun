@@ -1,7 +1,7 @@
 import Header from "@/components/landing-page/Header";
 import ThemeAndScroll from "@/components/landing-page/ThemeAndScroll";
 import Footer from "@/components/landing-page/Footer";
-import { CategoryDeals } from "@/components/landing-page/CategoryDeals";
+import CategoryDeals from "@/components/landing-page/CategoryDeals";
 import { PopularCategories } from "@/components/landing-page/PopularCategories";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
