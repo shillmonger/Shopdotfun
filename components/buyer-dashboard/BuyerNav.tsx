@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutGrid, CreditCard, Package, ShoppingBag, User, GraduationCap, Settings } from "lucide-react";
+import { LayoutGrid, CreditCard, Package, ShoppingBag, User, Star, Settings } from "lucide-react";
 
 export default function UserNav() {
   const pathname = usePathname();
@@ -11,7 +11,7 @@ export default function UserNav() {
     { name: "Orders", href: "/general-dashboard/buyer-dashboard/orders", icon: Package },
     { name: "Products", href: "/general-dashboard/buyer-dashboard/browse-product", icon: ShoppingBag },
     { name: "Dashboard", href: "/general-dashboard/buyer-dashboard/dashboard", icon: LayoutGrid },
-    { name: "Checkout", href: "/general-dashboard/buyer-dashboard/checkout", icon: CreditCard },
+    { name: "Ratings", href: "/general-dashboard/buyer-dashboard/reviews-ratings", icon: Star },
     { name: "Profile", href: "/general-dashboard/buyer-dashboard/profile-settings", icon: Settings },
   ];
 

@@ -243,6 +243,18 @@ export default function UserSettingsPage() {
     setTheme(theme === "dark" ? "light" : "dark");
   };
 
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      await signOut({ redirect: false });
+      toast.success('Logged out successfully');
+      router.push('/auth/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast.error('Failed to logout');
+    }
+  };
+
   return (
     <div className="flex h-screen overflow-hidden bg-background text-foreground">
       <BuyerSidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
@@ -528,7 +540,10 @@ export default function UserSettingsPage() {
                     <Shield className="w-4 h-4" /> Danger Zone
                   </h3>
                   <div className="flex flex-col sm:flex-row gap-3">
-                    <button className="flex-1 text-xs font-black uppercase tracking-widest py-3 px-4 rounded-xl border border-destructive text-destructive hover:bg-destructive hover:text-white transition-all cursor-pointer">
+                    <button 
+                      onClick={handleLogout}
+                      className="flex-1 text-xs font-black uppercase tracking-widest py-3 px-4 rounded-xl border border-destructive text-destructive hover:bg-destructive hover:text-white transition-all cursor-pointer"
+                    >
                       Log out everywhere
                     </button>
                     <button className="flex-1 text-xs font-black uppercase tracking-widest py-3 px-4 rounded-xl bg-destructive text-white hover:opacity-90 transition-all cursor-pointer">

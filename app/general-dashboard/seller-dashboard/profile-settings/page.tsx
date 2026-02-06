@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 interface CryptoWallet {
   walletName: string;
@@ -41,6 +42,18 @@ import SellerSidebar from "@/components/seller-dashboard/SellerSidebar";
 import SellerNav from "@/components/seller-dashboard/SellerNav";
 
 export default function SellerProfilePage() {
+  const router = useRouter();
+  const handleLogout = async () => {
+    try {
+      await signOut({ redirect: false });
+      toast.success('Logged out successfully');
+      router.push('/auth/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast.error('Failed to logout');
+    }
+  };
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const darkMode = theme === "dark";
@@ -805,7 +818,10 @@ export default function SellerProfilePage() {
                     <Shield className="w-4 h-4" /> Danger Zone
                   </h3>
                   <div className="flex flex-col sm:flex-row gap-3">
-                    <button className="flex-1 text-xs font-black uppercase tracking-widest py-3 px-4 rounded-xl border border-destructive text-destructive hover:bg-destructive hover:text-white transition-all cursor-pointer">
+                    <button 
+                      onClick={handleLogout}
+                      className="flex-1 text-xs font-black uppercase tracking-widest py-3 px-4 rounded-xl border border-destructive text-destructive hover:bg-destructive hover:text-white transition-all cursor-pointer"
+                    >
                       Log out everywhere
                     </button>
                     <button className="flex-1 text-xs font-black uppercase tracking-widest py-3 px-4 rounded-xl bg-destructive text-white hover:opacity-90 transition-all cursor-pointer">
