@@ -4,6 +4,7 @@ import { useMounted } from '@/hooks/useMounted';
 import { ThemeProvider } from "./theme-provider";
 import { SessionProvider } from "next-auth/react";
 import { CartProvider } from "@/hooks/useCart";
+import { CryptoProvider } from "@/contexts/CryptoContext";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const mounted = useMounted();
@@ -20,7 +21,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
         storageKey="shillmonger-theme"
       >
         <CartProvider>
-          {children}
+          <CryptoProvider>
+            {children}
+          </CryptoProvider>
         </CartProvider>
       </ThemeProvider>
     </SessionProvider>

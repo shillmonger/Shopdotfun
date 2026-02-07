@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { useCart } from "@/hooks/useCart";
 import { toast } from 'sonner';
 import { convertToCrypto } from "@/lib/crypto-converter";
+import { useCrypto } from "@/contexts/CryptoContext";
 
 interface Product {
   id: string;
@@ -54,10 +55,11 @@ export default function CategoryDeals({ categoryFilter }: CategoryDealsProps) {
   const [loading, setLoading] = useState(true);
   const [cryptoPrices, setCryptoPrices] = useState<{[key: string]: string}>({});
   const { addToCart } = useCart();
+  const { selectedCoin } = useCrypto();
 
   useEffect(() => {
     fetchCategoryProducts();
-  }, []);
+  }, [selectedCoin]);
 
   const fetchCategoryProducts = async () => {
     try {
@@ -74,11 +76,10 @@ export default function CategoryDeals({ categoryFilter }: CategoryDealsProps) {
         
         for (const section of sections) {
           for (const product of section.products) {
-            if (product.crypto && product.crypto !== 'USD') {
-              const discountedPrice = product.price * (1 - product.discount / 100);
-              const cryptoPrice = await convertToCrypto(discountedPrice, product.crypto);
-              priceConversions[product.id] = cryptoPrice;
-            }
+            const discountedPrice = product.price * (1 - product.discount / 100);
+            // Convert to selected crypto regardless of product's original crypto setting
+            const cryptoPrice = await convertToCrypto(discountedPrice, selectedCoin.symbol);
+            priceConversions[product.id] = cryptoPrice;
           }
         }
         
@@ -231,12 +232,9 @@ export default function CategoryDeals({ categoryFilter }: CategoryDealsProps) {
                   </h4>
                   <div className="flex justify-between items-center mb-4">
                     <span className="text-base font-bold">
-                      {product.crypto && product.crypto !== 'USD' && cryptoPrices[product.id]
-                        ? cryptoPrices[product.id]
-                        : `₦ ${product.price.toLocaleString()}`
-                      }
+                      {cryptoPrices[product.id] || `₦ ${product.price.toLocaleString()}`}
                     </span>
-                    {product.discount > 0 && product.crypto === 'USD' && (
+                    {product.discount > 0 && !cryptoPrices[product.id] && (
                       <span className="text-[5px] text-muted-foreground line-through">
                         ₦ {product.oldPrice.toLocaleString()}
                       </span>

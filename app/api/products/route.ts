@@ -1,15 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import mongoose from 'mongoose';
 import { Product } from '@/models/Product';
-
-// MongoDB connection
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/shopdotfun';
-
-async function connectDB() {
-  if (mongoose.connection.readyState === 0) {
-    await mongoose.connect(MONGODB_URI);
-  }
-}
+import { connectDB } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   try {

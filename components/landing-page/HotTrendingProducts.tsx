@@ -6,6 +6,7 @@ import { ChevronRight, ShoppingCart, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from 'sonner';
 import { convertToCrypto } from "@/lib/crypto-converter";
+import { useCrypto } from "@/contexts/CryptoContext";
 
 interface Product {
   _id: string;
@@ -31,10 +32,11 @@ export function HotTrendingProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [cryptoPrices, setCryptoPrices] = useState<{ [key: string]: string }>({});
+  const { selectedCoin } = useCrypto();
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [selectedCoin]);
 
   const fetchProducts = async () => {
     try {
@@ -47,11 +49,9 @@ export function HotTrendingProducts() {
 
         const priceConversions: { [key: string]: string } = {};
         for (const product of products) {
-          if (product.crypto && product.crypto !== 'USD') {
-            const discountedPrice = product.price * (1 - product.discount / 100);
-            const cryptoPrice = await convertToCrypto(discountedPrice, product.crypto);
-            priceConversions[product._id] = cryptoPrice;
-          }
+          const discountedPrice = product.price * (1 - product.discount / 100);
+          const cryptoPrice = await convertToCrypto(discountedPrice, selectedCoin.symbol);
+          priceConversions[product._id] = cryptoPrice;
         }
         setCryptoPrices(priceConversions);
       } else {
@@ -177,41 +177,38 @@ export function HotTrendingProducts() {
                     {product.name}
                   </h3>
 
-<div className="flex items-center justify-between gap-3">
-                  {/* 5 Star Rating Display */}
-                  <div className="flex items-center gap-1">
-                    <div className="flex">
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <Star 
-                          key={s} 
-                          size={10} 
-                          className={`${s <= rating ? 'fill-yellow-400 text-yellow-400' : 'fill-muted text-muted'}`} 
-                        />
-                      ))}
+                  <div className="flex items-center justify-between gap-3">
+                    {/* 5 Star Rating Display */}
+                    <div className="flex items-center gap-1">
+                      <div className="flex">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <Star 
+                            key={s} 
+                            size={10} 
+                            className={`${s <= rating ? 'fill-yellow-400 text-yellow-400' : 'fill-muted text-muted'}`} 
+                          />
+                        ))}
+                      </div>
+                      <span className="text-[10px] text-muted-foreground">
+                        ({product.totalRatings || 0})
+                      </span>
                     </div>
-                    <span className="text-[10px] text-muted-foreground">
-                      ({product.totalRatings || 0})
-                    </span>
-                  </div>
 
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-muted-foreground">Stock:</span>
-                    <span className={`text-[10px] font-semibold ${
-                      product.stock <= 5 ? 'text-red-600' : 
-                      product.stock <= 10 ? 'text-yellow-600' : 
-                      'text-green-600'
-                    }`}>
-                      {product.stock} units
-                    </span>
-                  </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-muted-foreground">Stock:</span>
+                      <span className={`text-[10px] font-semibold ${
+                        product.stock <= 5 ? 'text-red-600' : 
+                        product.stock <= 10 ? 'text-yellow-600' : 
+                        'text-green-600'
+                      }`}>
+                        {product.stock} units
+                      </span>
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-2 mt-auto">
                     <span className="text-[16px] font-black text-foreground">
-                      {product.crypto && product.crypto !== 'USD' && cryptoPrices[product._id]
-                        ? cryptoPrices[product._id]
-                        : `$${discountedPrice.toFixed(2)}`
-                      }
+                      {cryptoPrices[product._id] || `$${discountedPrice.toFixed(2)}`}
                     </span>
                   </div>
                 </div>
