@@ -350,6 +350,57 @@ export default function UserSettingsPage() {
                     </button>
                   </div>
                 </div>
+
+
+                {/* Sellect crypto */}
+<div className="bg-card rounded-2xl shadow-lg border border-border p-6">
+  <h3 className="text-sm font-black uppercase tracking-widest mb-6 flex items-center gap-2">
+    <Palette className="w-4 h-4 text-primary" />Price Appearance
+  </h3>
+  
+  <div className="grid grid-cols-2 gap-4">
+  {[
+    { name: "Bitcoin", symbol: "BTC", icon: "https://cryptologos.cc/logos/bitcoin-btc-logo.png" },
+    { name: "Vertcoin", symbol: "VTC", icon: "https://i.postimg.cc/GpG8VMT5/Vertcoin.png" },
+    { name: "Litecoin", symbol: "LTC", icon: "https://i.postimg.cc/59YdVZ2N/litecoin.jpg" },
+    { name: "Tether", symbol: "USDT", icon: "https://cryptologos.cc/logos/tether-usdt-logo.png" }
+  ].map((coin) => (
+    <button
+      key={coin.symbol}
+      className="
+        flex items-center gap-3
+        w-full p-4
+        rounded-xl border border-border
+        bg-black/[0.02] dark:bg-white/[0.02]
+        hover:bg-accent hover:shadow-md
+        transition-all duration-200
+        text-left group
+      "
+    >
+      {/* Icon */}
+      <div className="w-11 h-11 flex items-center justify-center rounded-lg bg-background border border-border shrink-0">
+        <img
+          src={coin.icon}
+          alt={coin.name}
+          className="w-6 h-6 object-contain grayscale group-hover:grayscale-0 transition"
+        />
+      </div>
+
+      {/* Text */}
+      <div className="flex flex-col leading-tight min-w-0">
+        <span className="text-sm font-bold truncate">
+          {coin.name}
+        </span>
+
+        <span className="text-xs text-muted-foreground uppercase tracking-wide">
+          {coin.symbol}
+        </span>
+      </div>
+    </button>
+  ))}
+</div>
+
+</div>
               </div>
 
               {/* Right Column - Forms */}
