@@ -68,7 +68,7 @@ export default function BuyerSidebar({ sidebarOpen, setSidebarOpen }: SidebarPro
         <div className="flex items-center justify-between h-15 lg:h-15 px-6 border-b border-border">
           <div className="flex flex-col">
             <h1 className="text-xl font-black uppercase tracking-tighter italic text-foreground">
-              Shop<span className="text-muted-foreground italic">Dot</span>Fun
+              GIN<span className="text-muted-foreground italic">GO</span>MART
             </h1>
             <p className="text-[8px] font-bold tracking-[0.2em] text-muted-foreground uppercase">
               Shopping Experience
