@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { 
   Users, 
   Store, 
@@ -127,12 +128,14 @@ export default function AdminOverviewPage() {
               </div>
 
               <div className="flex gap-2 w-full md:w-auto">
+                <Link href="/general-dashboard/admin-dashboard/email-notifications">
                 <button 
                   onClick={handleBroadcastEmail}
                   className="flex-1 md:flex-none bg-foreground text-background px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary transition-all flex items-center justify-center gap-2"
                 >
                   <Mail className="w-4 h-4" /> Broadcast Email
                 </button>
+                </Link>
               </div>
             </div>
 

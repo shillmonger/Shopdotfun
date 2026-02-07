@@ -30,7 +30,7 @@ export default function Footer() {
           <div>
             <Link href="/" className="flex items-center gap-2">
               <span className="text-2xl sm:text-4xl font-black uppercase italic tracking-wider hover:text-primary transition-colors bg-gradient-to-b from-foreground to-foreground/40 bg-clip-text text-transparent">
-                SHOPDOTFUN
+                GINGOMART
               </span>
             </Link>
             <p className="mt-5 leading-relaxed text-muted-foreground max-w-sm">
@@ -146,7 +146,7 @@ export default function Footer() {
             Corporate Compliance
           </p>
           <p className="text-sm">
-            SHOPDOTFUN operates as a registered multi-vendor entity. We adhere to international 
+            GINGOMART operates as a registered multi-vendor entity. We adhere to international 
             e-commerce standards, anti-fraud regulations, and digital marketplace laws. Our 
             administrator team monitors all orders and transactions to ensure a secure 
             environment. We maintain strict data privacy protocols in accordance with global 
@@ -158,7 +158,7 @@ export default function Footer() {
       {/* Final Copyright */}
       <div className="max-w-[1400px] mx-auto border-t border-border mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
         <div className="flex flex-col md:flex-row items-center gap-2 md:gap-6">
-          <p>© {new Date().getFullYear()} SHOPDOTFUN — All rights reserved.</p>
+          <p>© {new Date().getFullYear()} GINGOMART — All rights reserved.</p>
           <div className="flex gap-4 text-[12px]">
             <Link href="/landing-page/privacy" className="hover:text-primary">Privacy Policy</Link>
             <Link href="/landing-page/terms" className="hover:text-primary">User Agreement</Link>
