@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { useCart } from "@/hooks/useCart";
 import { cn } from "@/lib/utils";
 import { convertToCrypto } from "@/lib/crypto-converter";
+import { useCrypto } from "@/contexts/CryptoContext";
 
 // Product type definition
 interface Product {
@@ -79,11 +80,12 @@ export default function ProductDetailsPage({
   );
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
+  const { selectedCoin } = useCrypto();
 
   useEffect(() => {
     fetchProduct();
     fetchRelatedProducts();
-  }, [id]);
+  }, [id, selectedCoin]);
 
   const fetchProduct = async () => {
     try {
@@ -95,16 +97,14 @@ export default function ProductDetailsPage({
         const productData = data.data;
         setProduct(productData);
 
-        // Convert price to crypto if needed
-        if (productData.crypto && productData.crypto !== "USD") {
-          const discountedPrice =
-            productData.price * (1 - productData.discount / 100);
-          const cryptoPrice = await convertToCrypto(
-            discountedPrice,
-            productData.crypto,
-          );
-          setCryptoPrices({ [productData._id]: cryptoPrice });
-        }
+        // Convert price to selected crypto
+        const discountedPrice =
+          productData.price * (1 - productData.discount / 100);
+        const cryptoPrice = await convertToCrypto(
+          discountedPrice,
+          selectedCoin.symbol,
+        );
+        setCryptoPrices({ [productData._id]: cryptoPrice });
       } else {
         console.error("Failed to fetch product:", data.error);
         toast.error("Failed to load product");
@@ -130,17 +130,15 @@ export default function ProductDetailsPage({
           .slice(0, 4);
         setRelatedProducts(filtered);
 
-        // Convert prices to crypto for related products
+        // Convert prices to selected crypto for all related products
         const priceConversions: { [key: string]: string } = {};
         for (const item of filtered) {
-          if (item.crypto && item.crypto !== "USD") {
-            const discountedPrice = item.price * (1 - item.discount / 100);
-            const cryptoPrice = await convertToCrypto(
-              discountedPrice,
-              item.crypto,
-            );
-            priceConversions[item._id] = cryptoPrice;
-          }
+          const discountedPrice = item.price * (1 - item.discount / 100);
+          const cryptoPrice = await convertToCrypto(
+            discountedPrice,
+            selectedCoin.symbol,
+          );
+          priceConversions[item._id] = cryptoPrice;
         }
         setCryptoPrices((prev) => ({ ...prev, ...priceConversions }));
       }
@@ -356,19 +354,15 @@ export default function ProductDetailsPage({
               <div className="flex items-center gap-4 py-6 border-y border-border/50">
                 <div className="flex flex-col">
                   <span className="text-3xl md:text-4xl font-black uppercase italic tracking-tighter mb-4 text-foreground bg-gradient-to-b from-foreground to-foreground/40 bg-clip-text text-transparent">
-                    {product.crypto &&
-                    product.crypto !== "USD" &&
-                    cryptoPrices[product._id]
-                      ? cryptoPrices[product._id]
-                      : `$${discountedPrice.toFixed(2)}`}
+                    {cryptoPrices[product._id] || `$${discountedPrice.toFixed(2)}`}
                   </span>
-                  {product.discount > 0 && product.crypto === "USD" && (
+                  {product.discount > 0 && !cryptoPrices[product._id] && (
                     <span className="text-lg text-muted-foreground/60 line-through font-medium">
                       ${product.price.toFixed(2)}
                     </span>
                   )}
                 </div>
-                {product.discount > 0 && product.crypto === "USD" && (
+                {product.discount > 0 && !cryptoPrices[product._id] && (
                   <div className="ml-auto px-3 py-1 bg-green-500/10 text-green-600 dark:text-green-400 text-xs font-bold rounded-lg border border-green-500/20">
                     Save ${(product.price - discountedPrice).toFixed(2)}
                   </div>
@@ -516,13 +510,9 @@ export default function ProductDetailsPage({
                       </h3>
                       <div className="flex items-center gap-3">
                         <p className="font-bold text-lg text-foreground">
-                          {item.crypto &&
-                          item.crypto !== "USD" &&
-                          cryptoPrices[item._id]
-                            ? cryptoPrices[item._id]
-                            : `$${itemDiscountedPrice.toFixed(2)}`}
+                          {cryptoPrices[item._id] || `$${itemDiscountedPrice.toFixed(2)}`}
                         </p>
-                        {item.discount > 0 && item.crypto === "USD" && (
+                        {item.discount > 0 && !cryptoPrices[item._id] && (
                           <p className="text-xs text-muted-foreground/60 line-through">
                             ${item.price.toFixed(2)}
                           </p>

@@ -11,6 +11,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { useCart } from "@/hooks/useCart";
 import { convertToCrypto } from "@/lib/crypto-converter";
+import { useCrypto } from "@/contexts/CryptoContext";
 
 interface Product {
   _id: string;
@@ -45,10 +46,11 @@ export default function TopStoresPage() {
     pages: 0
   });
   const { addToCart } = useCart();
+  const { selectedCoin } = useCrypto();
 
   useEffect(() => {
     fetchProducts();
-  }, [currentPage]);
+  }, [currentPage, selectedCoin]);
 
   const fetchProducts = async () => {
     try {
@@ -61,14 +63,12 @@ export default function TopStoresPage() {
         setProducts(products);
         setPagination(data.pagination);
         
-        // Convert prices to crypto for products that have crypto field
+        // Convert prices to crypto for all products using selected crypto
         const priceConversions: {[key: string]: string} = {};
         for (const product of products) {
-          if (product.crypto && product.crypto !== 'USD') {
-            const discountedPrice = product.price * (1 - product.discount / 100);
-            const cryptoPrice = await convertToCrypto(discountedPrice, product.crypto);
-            priceConversions[product._id] = cryptoPrice;
-          }
+          const discountedPrice = product.price * (1 - product.discount / 100);
+          const cryptoPrice = await convertToCrypto(discountedPrice, selectedCoin.symbol);
+          priceConversions[product._id] = cryptoPrice;
         }
         setCryptoPrices(priceConversions);
       } else {
@@ -159,10 +159,7 @@ export default function TopStoresPage() {
                       {/* Price Tag */}
                       <div className="absolute top-5 right-5 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
                         <span className="font-bold text-xs">
-                          {product.crypto && product.crypto !== 'USD' && cryptoPrices[product._id]
-                            ? cryptoPrices[product._id]
-                            : `$${discountedPrice.toFixed(2)}`
-                          }
+                          {cryptoPrices[product._id] || `$${discountedPrice.toFixed(2)}`}
                         </span>
                       </div>
 

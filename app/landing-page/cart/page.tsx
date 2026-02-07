@@ -16,6 +16,8 @@ import {
   Headphones,
 } from "lucide-react";
 import { toast } from "sonner";
+import { convertToCrypto } from "@/lib/crypto-converter";
+import { useCrypto } from "@/contexts/CryptoContext";
 
 interface CartItem {
   productId: string;
@@ -33,6 +35,8 @@ interface CartItem {
 export default function CartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [cryptoPrices, setCryptoPrices] = useState<{[key: string]: string}>({});
+  const { selectedCoin } = useCrypto();
 
   useEffect(() => {
     loadCartFromStorage();
@@ -47,18 +51,33 @@ export default function CartPage() {
     return () => {
       window.removeEventListener("storage", handleStorageChange);
     };
-  }, []);
+  }, [selectedCoin]);
 
   const loadCartFromStorage = () => {
     try {
       const cart = JSON.parse(localStorage.getItem("cart") || "[]");
       setCartItems(cart);
+      
+      // Convert cart item prices to crypto
+      convertCartPrices(cart);
     } catch (error) {
       console.error("Error loading cart:", error);
       setCartItems([]);
     } finally {
       setLoading(false);
     }
+  };
+
+  const convertCartPrices = async (cart: CartItem[]) => {
+    const priceConversions: {[key: string]: string} = {};
+    
+    for (const item of cart) {
+      const discountedPrice = calculateDiscountedPrice(item.price, item.discount);
+      const cryptoPrice = await convertToCrypto(discountedPrice, selectedCoin.symbol);
+      priceConversions[item.productId] = cryptoPrice;
+    }
+    
+    setCryptoPrices(priceConversions);
   };
 
   const updateCart = (updatedCart: CartItem[]) => {
@@ -120,6 +139,16 @@ export default function CartPage() {
     }, 0);
   };
 
+  const calculateCryptoSubtotal = () => {
+    return cartItems.reduce((total, item) => {
+      if (cryptoPrices[item.productId]) {
+        const cryptoAmount = parseFloat(cryptoPrices[item.productId].split(' ')[0]);
+        return total + (cryptoAmount * item.quantity);
+      }
+      return total;
+    }, 0);
+  };
+
   const calculateTotalItems = () => {
     return cartItems.reduce((total, item) => total + item.quantity, 0);
   };
@@ -132,11 +161,13 @@ export default function CartPage() {
   };
 
   const subtotal = calculateSubtotal();
+  const cryptoSubtotal = calculateCryptoSubtotal();
   const totalItems = calculateTotalItems();
   const shipping = calculateTotalShipping();
   const taxes = 0; // You can calculate this based on your business logic
   const couponDiscount = 0; // Default to 0 when no coupon is applied
   const total = Math.max(0, subtotal + shipping + taxes - couponDiscount);
+  const cryptoTotal = cryptoSubtotal > 0 ? cryptoSubtotal : null;
 
   if (loading) {
     return (
@@ -320,9 +351,9 @@ export default function CartPage() {
                         <td className="p-4">
                           <div>
                             <div className="font-bold text-primary">
-                              ${discountedPrice.toFixed(2)}
+                              {cryptoPrices[item.productId] || `$${discountedPrice.toFixed(2)}`}
                             </div>
-                            {item.discount > 0 && (
+                            {item.discount > 0 && !cryptoPrices[item.productId] && (
                               <div className="text-xs text-muted-foreground line-through">
                                 ${item.price.toFixed(2)}
                               </div>
@@ -375,7 +406,12 @@ export default function CartPage() {
                               className="text-muted-foreground"
                             />
                             <span className="font-bold text-primary">
-                              ${(item.shippingFee * item.quantity).toFixed(2)}
+                              {item.shippingFee === 0
+                                ? "Free"
+                                : cryptoPrices[item.productId] 
+                                  ? `${(parseFloat(cryptoPrices[item.productId].split(' ')[0]) * item.quantity).toFixed(6)} ${selectedCoin.symbol}`
+                                  : `$${(item.shippingFee * item.quantity).toFixed(2)}`
+                              }
                             </span>
                           </div>
                           {item.shippingFee === 0 && (
@@ -385,11 +421,10 @@ export default function CartPage() {
                           )}
                         </td>
                         <td className="p-4 font-black italic tracking-tighter">
-                          $
-                          {(
-                            itemSubtotal +
-                            item.shippingFee * item.quantity
-                          ).toFixed(2)}
+                          {cryptoPrices[item.productId] 
+                            ? `${(parseFloat(cryptoPrices[item.productId].split(' ')[0]) * item.quantity).toFixed(6)} ${selectedCoin.symbol}`
+                            : `$${(itemSubtotal + item.shippingFee * item.quantity).toFixed(2)}`
+                          }
                         </td>
                       </tr>
                     );
@@ -424,19 +459,19 @@ export default function CartPage() {
                   <div className="flex justify-between text-muted-foreground">
                     <span>Sub Total</span>
                     <span className="font-bold text-foreground">
-                      ${subtotal.toFixed(2)}
+                      {cryptoTotal ? `${cryptoTotal.toFixed(6)} ${selectedCoin.symbol}` : `$${subtotal.toFixed(2)}`}
                     </span>
                   </div>
                   <div className="flex justify-between text-muted-foreground">
                     <span>Shipping</span>
                     <span className="font-bold text-foreground">
-                      ${shipping.toFixed(2)}
+                      {cryptoTotal ? (shipping === 0 ? 'Free' : `${(shipping / subtotal * cryptoTotal).toFixed(6)} ${selectedCoin.symbol}`) : `$${shipping.toFixed(2)}`}
                     </span>
                   </div>
                   <div className="h-[1px] bg-border my-4" />
                   <div className="flex justify-between text-xl font-black italic tracking-tighter">
                     <span>Total</span>
-                    <span>${total.toFixed(2)}</span>
+                    <span>{cryptoTotal ? `${(cryptoTotal + (shipping === 0 ? 0 : shipping / subtotal * cryptoTotal)).toFixed(6)} ${selectedCoin.symbol}` : `$${total.toFixed(2)}`}</span>
                   </div>
                 </div>
 
