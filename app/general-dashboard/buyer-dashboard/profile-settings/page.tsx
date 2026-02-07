@@ -78,6 +78,16 @@ export default function UserSettingsPage() {
   const [profileImage, setProfileImage] = useState("https://github.com/shadcn.png");
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   
+  // Crypto selection state
+  const getInitialCrypto = () => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('selectedCrypto') || "BTC";
+    }
+    return "BTC";
+  };
+  
+  const [selectedCrypto, setSelectedCrypto] = useState<string>(getInitialCrypto());
+  
   // Fetch buyer profile data
   useEffect(() => {
     const fetchProfile = async () => {
@@ -116,10 +126,19 @@ export default function UserSettingsPage() {
     
     fetchProfile();
   }, []);
-  
+
+  // Save crypto preference to localStorage when changed
+  useEffect(() => {
+    if (selectedCrypto) {
+      localStorage.setItem('selectedCrypto', selectedCrypto);
+      // Dispatch event to notify other components
+      window.dispatchEvent(new CustomEvent('cryptoChanged', { detail: { crypto: selectedCrypto } }));
+    }
+  }, [selectedCrypto]);
+
   // Member since state
   const [memberSince, setMemberSince] = useState("");
-  
+
   // Get user session
   const { data: session } = useSession();
   
@@ -353,54 +372,68 @@ export default function UserSettingsPage() {
 
 
                 {/* Sellect crypto */}
-<div className="bg-card rounded-2xl shadow-lg border border-border p-6">
-  <h3 className="text-sm font-black uppercase tracking-widest mb-6 flex items-center gap-2">
-    <Palette className="w-4 h-4 text-primary" />Price Appearance
-  </h3>
-  
-  <div className="grid grid-cols-2 gap-4">
-  {[
-    { name: "Bitcoin", symbol: "BTC", icon: "https://cryptologos.cc/logos/bitcoin-btc-logo.png" },
-    { name: "Vertcoin", symbol: "VTC", icon: "https://i.postimg.cc/GpG8VMT5/Vertcoin.png" },
-    { name: "Litecoin", symbol: "LTC", icon: "https://i.postimg.cc/59YdVZ2N/litecoin.jpg" },
-    { name: "Tether", symbol: "USDT", icon: "https://cryptologos.cc/logos/tether-usdt-logo.png" }
-  ].map((coin) => (
-    <button
-      key={coin.symbol}
-      className="
-        flex items-center gap-3
-        w-full p-4
-        rounded-xl border border-border
-        bg-black/[0.02] dark:bg-white/[0.02]
-        hover:bg-accent hover:shadow-md
-        transition-all duration-200
-        text-left group
-      "
-    >
-      {/* Icon */}
-      <div className="w-11 h-11 flex items-center justify-center rounded-lg bg-background border border-border shrink-0">
-        <img
-          src={coin.icon}
-          alt={coin.name}
-          className="w-6 h-6 object-contain grayscale group-hover:grayscale-0 transition"
-        />
-      </div>
+                <div className="bg-card rounded-2xl shadow-lg border border-border p-6">
+                  <h3 className="text-sm font-black uppercase tracking-widest mb-6 flex items-center gap-2">
+                    <Palette className="w-4 h-4 text-primary" /> Price Appearance
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {[
+                      { name: "Bitcoin", symbol: "BTC", icon: "https://cryptologos.cc/logos/bitcoin-btc-logo.png" },
+                      { name: "Vertcoin", symbol: "VTC", icon: "https://i.postimg.cc/GpG8VMT5/Vertcoin.png" },
+                      { name: "Litecoin", symbol: "LTC", icon: "https://i.postimg.cc/59YdVZ2N/litecoin.jpg" },
+                      { name: "Tether", symbol: "USDT", icon: "https://cryptologos.cc/logos/tether-usdt-logo.png" }
+                    ].map((coin) => (
+                      <button
+                        key={coin.symbol}
+                        onClick={() => setSelectedCrypto(coin.symbol)}
+                        className={`
+                          flex items-center gap-2
+                          w-full p-2
+                          rounded-xl border-2 transition-all duration-200
+                          text-left group relative overflow-hidden cursor-pointer
+                          ${
+                            selectedCrypto === coin.symbol
+                              ? "border-primary bg-primary/10 shadow-lg shadow-primary/20"
+                              : "border-border bg-black/[0.02] dark:bg-white/[0.02] hover:bg-accent hover:shadow-md hover:border-primary/50"
+                          }
+                        `}
+                      >
+                        {/* Active indicator */}
+                        {selectedCrypto === coin.symbol && (
+                          <div className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full animate-pulse" />
+                        )}
+                        
+                        {/* Icon */}
+                        <div className={`w-11 h-11 flex items-center justify-center rounded-lg bg-background border shrink-0 transition-all ${
+                          selectedCrypto === coin.symbol ? "border-primary" : "border-border"
+                        }`}>
+                          <img
+                            src={coin.icon}
+                            alt={coin.name}
+                            className={`w-6 h-6 object-contain transition-all ${
+                              selectedCrypto === coin.symbol ? "grayscale-0" : "grayscale group-hover:grayscale-0"
+                            }`}
+                          />
+                        </div>
 
-      {/* Text */}
-      <div className="flex flex-col leading-tight min-w-0">
-        <span className="text-sm font-bold truncate">
-          {coin.name}
-        </span>
+                        {/* Text */}
+                        <div className="flex flex-col leading-tight min-w-0">
+                          <span className={`text-sm font-bold truncate ${
+                            selectedCrypto === coin.symbol ? "text-primary" : ""
+                          }`}>
+                            {coin.name}
+                          </span>
 
-        <span className="text-xs text-muted-foreground uppercase tracking-wide">
-          {coin.symbol}
-        </span>
-      </div>
-    </button>
-  ))}
-</div>
-
-</div>
+                          <span className="text-xs uppercase tracking-wide">
+                            <span className={selectedCrypto === coin.symbol ? "text-primary font-bold" : "text-muted-foreground"}>
+                              {coin.symbol}
+                            </span>
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               {/* Right Column - Forms */}

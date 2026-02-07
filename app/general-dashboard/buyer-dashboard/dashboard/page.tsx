@@ -61,6 +61,20 @@ export default function BuyerOverviewPage() {
   const [recommendedProducts, setRecommendedProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [cryptoPrices, setCryptoPrices] = useState<{[key: string]: string}>({});
+  
+  // Selected crypto state (from user preferences)
+  const [selectedCrypto, setSelectedCrypto] = useState<string>("BTC");
+
+  // Convert USD to selected crypto function
+  const convertUsdToSelectedCrypto = async (usdAmount: number): Promise<string> => {
+    try {
+      const cryptoPrice = await convertToCrypto(usdAmount, selectedCrypto);
+      return cryptoPrice;
+    } catch (error) {
+      console.error('Error converting crypto:', error);
+      return `${selectedCrypto} N/A`;
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -156,14 +170,12 @@ export default function BuyerOverviewPage() {
           const products = recommendedData.products || [];
           setRecommendedProducts(products);
           
-          // Convert prices to crypto for products that have crypto field
+          // Convert prices to selected crypto for all products
           const priceConversions: {[key: string]: string} = {};
           for (const product of products) {
-            if (product.crypto && product.crypto !== 'USD') {
-              const discountedPrice = product.price * (1 - product.discount / 100);
-              const cryptoPrice = await convertToCrypto(discountedPrice, product.crypto);
-              priceConversions[product._id] = cryptoPrice;
-            }
+            const discountedPrice = product.price * (1 - product.discount / 100);
+            const cryptoPrice = await convertToCrypto(discountedPrice, selectedCrypto);
+            priceConversions[product._id] = cryptoPrice;
           }
           setCryptoPrices(priceConversions);
         }
@@ -176,6 +188,44 @@ export default function BuyerOverviewPage() {
 
     fetchData();
   }, []);
+
+  // Load crypto preference from localStorage on mount
+  useEffect(() => {
+    const savedCrypto = localStorage.getItem('selectedCrypto');
+    if (savedCrypto) {
+      setSelectedCrypto(savedCrypto);
+    }
+  }, []);
+
+  // Listen for crypto changes from settings page
+  useEffect(() => {
+    const handleCryptoChange = (event: CustomEvent) => {
+      setSelectedCrypto(event.detail.crypto);
+    };
+
+    window.addEventListener('cryptoChanged', handleCryptoChange as EventListener);
+    
+    return () => {
+      window.removeEventListener('cryptoChanged', handleCryptoChange as EventListener);
+    };
+  }, []);
+
+  // Update price conversions when selected crypto changes
+  useEffect(() => {
+    if (recommendedProducts.length > 0) {
+      const updatePrices = async () => {
+        const priceConversions: {[key: string]: string} = {};
+        for (const product of recommendedProducts) {
+          const discountedPrice = product.price * (1 - product.discount / 100);
+          const cryptoPrice = await convertToCrypto(discountedPrice, selectedCrypto);
+          priceConversions[product._id] = cryptoPrice;
+        }
+        setCryptoPrices(priceConversions);
+      };
+      
+      updatePrices();
+    }
+  }, [selectedCrypto, recommendedProducts]);
 
   // Add to cart function
   const addToCart = async (product: any) => {
@@ -744,10 +794,7 @@ export default function BuyerOverviewPage() {
                             </p>
                           )}
                           <p className="text-sm font-black italic">
-                            {product.crypto && product.crypto !== 'USD' && cryptoPrices[product._id]
-                              ? cryptoPrices[product._id]
-                              : `$${(product.price * (1 - product.discount / 100)).toFixed(2)}`
-                            }
+                            {cryptoPrices[product._id] || `$${(product.price * (1 - product.discount / 100)).toFixed(2)}`}
                           </p>
                         </div>
                         <button

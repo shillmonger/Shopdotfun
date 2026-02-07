@@ -81,6 +81,9 @@ export default function BrowseProductsPage() {
   // Crypto prices state
   const [cryptoPrices, setCryptoPrices] = useState<Record<string, number>>({});
   const [cryptoLoading, setCryptoLoading] = useState(true);
+  
+  // Selected crypto state (from user preferences)
+  const [selectedCrypto, setSelectedCrypto] = useState<string>("BTC");
 
   // Fetch crypto prices function
   const fetchCryptoPrices = async () => {
@@ -302,6 +305,27 @@ export default function BrowseProductsPage() {
   };
 
   // Effects
+  // Load crypto preference from localStorage on mount
+  useEffect(() => {
+    const savedCrypto = localStorage.getItem('selectedCrypto');
+    if (savedCrypto) {
+      setSelectedCrypto(savedCrypto);
+    }
+  }, []);
+
+  // Listen for crypto changes from settings page
+  useEffect(() => {
+    const handleCryptoChange = (event: CustomEvent) => {
+      setSelectedCrypto(event.detail.crypto);
+    };
+
+    window.addEventListener('cryptoChanged', handleCryptoChange as EventListener);
+    
+    return () => {
+      window.removeEventListener('cryptoChanged', handleCryptoChange as EventListener);
+    };
+  }, []);
+
   // Initial load
   useEffect(() => {
     fetchProducts(1, false);
@@ -427,8 +451,6 @@ export default function BrowseProductsPage() {
     const finalPrice = product.discount > 0
       ? product.price * (1 - product.discount / 100)
       : product.price;
-    
-    const cryptoPriceDisplay = convertUsdToCrypto(finalPrice, product.crypto);
 
     return (
       <div
@@ -448,10 +470,10 @@ export default function BrowseProductsPage() {
           {/* Crypto Price Overlay - Improved stability */}
           <div className="absolute bottom-0 left-0 right-0 bg-black/70 backdrop-blur-md py-2 px-3 flex items-center justify-between translate-z-0">
             <span className="text-[10px] font-bold text-white/70 uppercase tracking-widest">
-              {product.crypto} Price
+              {selectedCrypto} Price
             </span>
             <span className="text-[11px] font-mono font-black text-white tabular-nums">
-              {cryptoPriceDisplay}
+              {convertUsdToCrypto(finalPrice, selectedCrypto)}
             </span>
           </div>
 
@@ -518,16 +540,9 @@ export default function BrowseProductsPage() {
               </p>
               <div className="flex items-center gap-2">
                 <p className="text-lg font-black italic tracking-tighter tabular-nums">
-                  {product.crypto && product.crypto !== 'USD'
-                    ? cryptoPriceDisplay
-                    : `${
-                        product.discount > 0
-                          ? (product.price * (1 - product.discount / 100)).toFixed(2)
-                          : product.price.toFixed(2)
-                      }`
-                  }
+                  {convertUsdToCrypto(finalPrice, selectedCrypto)}
                 </p>
-                {product.discount > 0 && product.crypto === 'USD' && (
+                {product.discount > 0 && (
                   <p className="text-xs text-muted-foreground line-through tabular-nums">
                     ${product.price.toFixed(2)}
                   </p>
