@@ -31,15 +31,12 @@ const cryptoCoins = [
 ];
 
 export function CryptoConverterDropdown({ className }: { className?: string }) {
-  const [selectedCrypto, setSelectedCrypto] = useState<string>("BTC");
-
-  // Load crypto preference from localStorage on mount
-  useEffect(() => {
-    const savedCrypto = localStorage.getItem('selectedCrypto');
-    if (savedCrypto) {
-      setSelectedCrypto(savedCrypto);
+  const [selectedCrypto, setSelectedCrypto] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('selectedCrypto') || 'BTC';
     }
-  }, []);
+    return 'BTC';
+  });
 
   const handleCryptoSelect = (cryptoSymbol: string) => {
     setSelectedCrypto(cryptoSymbol);

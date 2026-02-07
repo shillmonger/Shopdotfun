@@ -10,7 +10,7 @@ import {
   Paperclip,
   Clock,
   ShieldAlert,
-  CheckCircle2,  
+  CheckCircle2,
   Layout,
   Search,
   Zap,
