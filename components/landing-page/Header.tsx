@@ -29,6 +29,35 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useCrypto } from "@/contexts/CryptoContext";
 
+/**
+ * FIXED: CartIcon is now defined outside the main component.
+ * This prevents the 'react-hooks/static-components' build error.
+ */
+const CartIcon = ({ 
+  size = 22, 
+  cartItemsCount 
+}: { 
+  size?: number; 
+  cartItemsCount: number 
+}) => (
+  <div className="relative">
+    <ShoppingCart size={size} />
+    {cartItemsCount > 0 && (
+      <span
+        className="absolute -top-1.5 -right-1.5
+          bg-primary text-white dark:text-black
+          text-[10px] font-bold
+          rounded-full
+          h-4 min-w-[16px] px-1
+          flex items-center justify-center
+          leading-none border-2 border-background"
+      >
+        {cartItemsCount > 99 ? "99+" : cartItemsCount}
+      </span>
+    )}
+  </div>
+);
+
 export function CryptoConverterDropdown({ className }: { className?: string }) {
   const { selectedCoin, setSelectedCoin, coins } = useCrypto();
 
@@ -117,25 +146,6 @@ export default function Header() {
     }`;
   };
 
-  const CartIcon = ({ size = 22 }: { size?: number }) => (
-    <div className="relative">
-      <ShoppingCart size={size} />
-      {cartItemsCount > 0 && (
-        <span
-          className="absolute -top-1.5 -right-1.5
-          bg-primary text-white dark:text-black
-          text-[10px] font-bold
-          rounded-full
-          h-4 min-w-[16px] px-1
-          flex items-center justify-center
-          leading-none border-2 border-background"
-        >
-          {cartItemsCount > 99 ? "99+" : cartItemsCount}
-        </span>
-      )}
-    </div>
-  );
-
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-0">
@@ -165,7 +175,7 @@ export default function Header() {
               href="/landing-page/cart"
               className="p-2 text-muted-foreground hover:text-primary transition-colors"
             >
-              <CartIcon />
+              <CartIcon cartItemsCount={cartItemsCount} />
             </Link>
 
             {/* Desktop Auth */}
@@ -216,7 +226,7 @@ export default function Header() {
               <Home size={18} /> Home
             </Link>
             <Link href="/landing-page/cart" onClick={closeMobileMenu} className={linkStyles("/landing-page/cart")}>
-              <CartIcon size={18} /> My Cart
+              <CartIcon size={18} cartItemsCount={cartItemsCount} /> My Cart
             </Link>
             <Link href="/landing-page/blog" onClick={closeMobileMenu} className={linkStyles("/landing-page/blog")}>
               <FileText size={18} /> Our Blog
